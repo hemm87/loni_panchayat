@@ -44,22 +44,6 @@ export default function LoginPage() {
 
   useEffect(() => {
     const auth = getAuth();
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(
-        auth,
-        'recaptcha-container',
-        {
-          size: 'invisible',
-          callback: (response: any) => {
-            // reCAPTCHA solved, allow signInWithPhoneNumber.
-          },
-        }
-      );
-    }
-  }, []);
-
-  useEffect(() => {
-    const auth = getAuth();
     getRedirectResult(auth)
       .then(result => {
         if (result) {
@@ -110,9 +94,26 @@ export default function LoginPage() {
     await signInWithRedirect(auth, provider);
   };
 
+  const generateRecaptcha = () => {
+    const auth = getAuth();
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        auth,
+        'recaptcha-container',
+        {
+          size: 'invisible',
+          callback: (response: any) => {
+            // reCAPTCHA solved, allow signInWithPhoneNumber.
+          },
+        }
+      );
+    }
+  };
+
   const handleSendOtp = async () => {
     setLoading(true);
     const auth = getAuth();
+    generateRecaptcha();
     const appVerifier = window.recaptchaVerifier;
     try {
       // Use E.164 format for phone numbers
