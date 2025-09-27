@@ -12,6 +12,7 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
   type ConfirmationResult,
+  type UserCredential,
 } from 'firebase/auth';
 import { useUser } from '@/firebase';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,26 @@ import { Label } from '@/components/ui/label';
 import { Scale, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { doc, setDoc } from 'firebase/firestore';
+import { getFirebase } from '@/firebase/provider';
+
+
+async function upsertUserProfile(result: UserCredential) {
+  const { firestore } = getFirebase();
+  if (!firestore) throw new Error("Firestore not initialized");
+
+  const user = result.user;
+  const userRef = doc(firestore, 'users', user.uid);
+  
+  const userData = {
+    uid: user.uid,
+    email: user.email,
+    displayName: user.displayName,
+    photoURL: user.photoURL,
+  };
+
+  await setDoc(userRef, userData, { merge: true });
+}
 
 export default function LoginPage() {
   const { user, loading: userLoading } = useUser();
@@ -45,13 +66,20 @@ export default function LoginPage() {
   useEffect(() => {
     const auth = getAuth();
     getRedirectResult(auth)
-      .then(result => {
+      .then((result) => {
         if (result) {
-          // User successfully signed in via redirect.
-          // The main `useUser` hook will handle the redirect to dashboard.
+          // This is the signed-in user
+          const user = result.user;
+          toast({
+            title: 'Sign In Successful',
+            description: `Welcome back, ${user.displayName || user.email}!`,
+          });
+          // Create or update user profile in Firestore
+          upsertUserProfile(result);
         }
       })
       .catch(error => {
+        console.error("Google Sign-In Error", error);
         toast({
           variant: 'destructive',
           title: 'Google Sign-In Failed',
@@ -73,7 +101,8 @@ export default function LoginPage() {
     setLoading(true);
     const auth = getAuth();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      await upsertUserProfile(credential);
       // router push is handled by the useEffect
     } catch (error: any) {
       toast({
@@ -148,7 +177,8 @@ export default function LoginPage() {
     if (!confirmationResult) return;
     setLoading(true);
     try {
-      await confirmationResult.confirm(otp);
+      const credential = await confirmationResult.confirm(otp);
+      await upsertUserProfile(credential);
       // router push is handled by the useEffect
     } catch (error: any) {
       toast({

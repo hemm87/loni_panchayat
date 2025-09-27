@@ -32,11 +32,13 @@ import {
   useSidebar,
 } from '../ui/sidebar';
 import { getAuth, signOut } from 'firebase/auth';
+import { useUser } from '@/firebase';
 
 export function AppHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
+  const { user } = useUser();
   
   const pageTitles: { [key: string]: string } = {
     '/dashboard': 'Dashboard',
@@ -57,6 +59,16 @@ export function AppHeader() {
       console.error('Error signing out: ', error);
     }
   };
+  
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return 'AD';
+    const names = name.split(' ');
+    if (names.length > 1) {
+      return names[0][0] + names[names.length - 1][0];
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
@@ -109,13 +121,13 @@ export function AppHeader() {
             className="overflow-hidden rounded-full"
           >
             <Avatar>
-              <AvatarImage src="https://picsum.photos/seed/user1/100/100" alt="@shadcn" />
-              <AvatarFallback>AD</AvatarFallback>
+              <AvatarImage src={user?.photoURL ?? undefined} alt="User avatar" />
+              <AvatarFallback>{getInitials(user?.displayName)}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
+          <DropdownMenuLabel>{user?.displayName || user?.email || 'Admin Account'}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>Settings</DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
