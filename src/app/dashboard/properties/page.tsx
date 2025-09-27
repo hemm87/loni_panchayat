@@ -1,9 +1,39 @@
-import { getProperties } from '@/lib/data';
+'use client';
+import { useMemo } from 'react';
+import { useCollection, useFirestore } from '@/firebase';
+import { collection } from 'firebase/firestore';
 import { PropertiesTable } from '@/components/properties/properties-table';
-import type { Property } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export default async function PropertiesPage() {
-  const properties: Property[] = await getProperties();
+function PropertiesSkeleton() {
+  return (
+    <div className="flex flex-col gap-8">
+       <div>
+        <Skeleton className="h-9 w-64" />
+        <Skeleton className="mt-2 h-4 w-96" />
+      </div>
+       <div className="flex items-center justify-between py-4 gap-4">
+        <Skeleton className="h-10 flex-1" />
+        <Skeleton className="h-10 w-28" />
+       </div>
+      <Skeleton className="h-[600px] w-full" />
+    </div>
+  );
+}
+
+export default function PropertiesPage() {
+  const firestore = useFirestore();
+  
+  const propertiesQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'properties');
+  }, [firestore]);
+
+  const { data: properties, loading } = useCollection(propertiesQuery);
+  
+  if (loading) {
+    return <PropertiesSkeleton />;
+  }
   
   return (
     <div className="flex flex-col gap-8">
@@ -15,7 +45,7 @@ export default async function PropertiesPage() {
           View and manage all properties in the system.
         </p>
       </div>
-      <PropertiesTable data={properties} />
+      <PropertiesTable data={properties || []} />
     </div>
   );
 }

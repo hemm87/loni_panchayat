@@ -25,6 +25,44 @@
         }
       },
       "required": ["uid", "email"]
+    },
+    "taxRecord": {
+      "title": "Tax Record",
+      "description": "A record of a tax assessment for a property.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "taxType": { "type": "string" },
+        "hindiName": { "type": "string" },
+        "assessedAmount": { "type": "number" },
+        "paymentStatus": { "enum": ["Paid", "Unpaid", "Partial"] },
+        "amountPaid": { "type": "number" },
+        "paymentDate": { "type": "string", "format": "date" },
+        "receiptNumber": { "type": "string" },
+        "assessmentYear": { "type": "number" }
+      },
+      "required": ["id", "taxType", "assessedAmount", "paymentStatus", "amountPaid", "assessmentYear"]
+    },
+    "property": {
+      "title": "Property",
+      "description": "A property in the system, which can be residential, commercial, or agricultural.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "mobileNumber": { "type": "string" },
+        "houseNo": { "type": "string" },
+        "aadhaarHash": { "type": "string" },
+        "propertyType": { "enum": ["Residential", "Commercial", "Agricultural"] },
+        "area": { "type": "number" },
+        "photoUrl": { "type": "string", "format": "uri" },
+        "photoHint": { "type": "string" },
+        "taxes": {
+          "type": "array",
+          "items": { "$ref": "#/entities/taxRecord" }
+        }
+      },
+      "required": ["id", "ownerName", "propertyType", "area"]
     }
   },
   "auth": {
@@ -36,6 +74,12 @@
         "$ref": "#/entities/user"
       },
       "description": "Stores user profile information."
+    },
+    "/properties/{propertyId}": {
+      "schema": {
+        "$ref": "#/entities/property"
+      },
+      "description": "Stores property records."
     }
   }
 }

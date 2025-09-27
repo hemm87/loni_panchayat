@@ -1,15 +1,59 @@
+'use client';
+import { useEffect, useState } from 'react';
 import { getProperties, getRecentPayments } from '@/lib/data';
 import { StatsCards } from '@/components/dashboard/stats-cards';
 import { TaxStatusChart } from '@/components/dashboard/tax-status-chart';
 import AiFeedback from '@/components/dashboard/ai-feedback';
 import { RecentPayments } from '@/components/dashboard/recent-payments';
-import type { Property, TaxRecord } from '@/lib/types';
+import type { Property, TaxRecord, Payment } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export default async function DashboardPage() {
-  const properties: Property[] = await getProperties();
-  const recentPayments = await getRecentPayments();
+function DashboardSkeleton() {
+  return (
+    <div className="flex flex-col gap-8">
+      <div>
+        <Skeleton className="h-9 w-72" />
+        <Skeleton className="mt-2 h-4 w-96" />
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Skeleton className="h-28" />
+        <Skeleton className="h-28" />
+        <Skeleton className="h-28" />
+        <Skeleton className="h-28" />
+      </div>
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
+        <Skeleton className="lg:col-span-3 h-[450px]" />
+        <Skeleton className="lg:col-span-2 h-[450px]" />
+      </div>
+      <Skeleton className="h-96" />
+    </div>
+  );
+}
 
-  const allTaxes: TaxRecord[] = properties.flatMap(p => p.taxes);
+
+export default function DashboardPage() {
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [recentPayments, setRecentPayments] = useState<Payment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      const [props, payments] = await Promise.all([
+        getProperties(),
+        getRecentPayments()
+      ]);
+      setProperties(props);
+      setRecentPayments(payments);
+      setLoading(false);
+    }
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
+
+  const allTaxes: TaxRecord[] = properties.flatMap(p => p.taxes || []);
 
   const totalProperties = properties.length;
   const totalAssessedValue = allTaxes.reduce(
@@ -28,10 +72,9 @@ export default async function DashboardPage() {
     totalProperties: totalProperties,
     pendingTaxes: allTaxes.filter(t => t.paymentStatus !== 'Paid').length,
     paidTaxes: allTaxes.filter(t => t.paymentStatus === 'Paid').length,
-    // Mocked data for other AI inputs
     lowAssessmentAmount: allTaxes.filter(t => t.assessedAmount < 1000).length,
     highAssessmentAmount: allTaxes.filter(t => t.assessedAmount > 20000).length,
-    incompletePropertyData: 0, // Assuming all mock data is complete
+    incompletePropertyData: properties.filter(p => !p.ownerName || !p.area).length,
   };
 
   return (

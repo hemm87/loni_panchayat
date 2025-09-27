@@ -29,6 +29,7 @@ interface PropertiesTableProps {
 }
 
 const getStatusForProperty = (property: Property) => {
+  if (!property.taxes || property.taxes.length === 0) return <Badge variant="outline">No Taxes</Badge>;
   const hasUnpaid = property.taxes.some(t => t.paymentStatus === 'Unpaid');
   const hasPartial = property.taxes.some(t => t.paymentStatus === 'Partial');
   const allPaid = property.taxes.every(t => t.paymentStatus === 'Paid');

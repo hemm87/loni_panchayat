@@ -1,161 +1,50 @@
-import type { Property, Payment } from './types';
+import { getFirebase } from '@/firebase/provider';
+import { collection, getDocs, query } from 'firebase/firestore';
+import type { Property, Payment, TaxRecord } from './types';
 
-const properties: Property[] = [
-  {
-    id: 'PROP001',
-    ownerName: 'Amit Kumar',
-    mobileNumber: '9876543210',
-    houseNo: 'H-12',
-    aadhaarHash: '...1234',
-    propertyType: 'Residential',
-    area: 1200,
-    photoUrl: 'https://picsum.photos/seed/prop1/600/400',
-    photoHint: 'modern house',
-    taxes: [
-      {
-        id: 'TAX001',
-        taxType: 'House Tax',
-        hindiName: 'घर कर',
-        assessedAmount: 5000,
-        paymentStatus: 'Paid',
-        amountPaid: 5000,
-        paymentDate: '2023-05-15',
-        receiptNumber: 'REC-2023-001',
-        assessmentYear: 2023,
-      },
-      {
-        id: 'TAX002',
-        taxType: 'Water Tax',
-        hindiName: 'जल कर',
-        assessedAmount: 1200,
-        paymentStatus: 'Paid',
-        amountPaid: 1200,
-        paymentDate: '2023-05-15',
-        receiptNumber: 'REC-2023-001',
-        assessmentYear: 2023,
-      },
-    ],
-  },
-  {
-    id: 'PROP002',
-    ownerName: 'Sunita Sharma',
-    mobileNumber: '9123456789',
-    houseNo: 'B-45',
-    aadhaarHash: '...5678',
-    propertyType: 'Commercial',
-    area: 2500,
-    photoUrl: 'https://picsum.photos/seed/prop2/600/400',
-    photoHint: 'office building',
-    taxes: [
-      {
-        id: 'TAX003',
-        taxType: 'Profession Tax',
-        hindiName: 'व्यवसाय कर',
-        assessedAmount: 15000,
-        paymentStatus: 'Unpaid',
-        amountPaid: 0,
-        assessmentYear: 2023,
-      },
-      {
-        id: 'TAX004',
-        taxType: 'Sanitation Tax',
-        hindiName: 'स्वच्छता कर',
-        assessedAmount: 3000,
-        paymentStatus: 'Partial',
-        amountPaid: 1500,
-        assessmentYear: 2023,
-      },
-    ],
-  },
-  {
-    id: 'PROP003',
-    ownerName: 'Rajesh Singh',
-    mobileNumber: '9988776655',
-    houseNo: 'L-7, Khet',
-    aadhaarHash: '...9012',
-    propertyType: 'Agricultural',
-    area: 43560, // 1 acre
-    photoUrl: 'https://picsum.photos/seed/prop3/600/400',
-    photoHint: 'farm field',
-    taxes: [
-      {
-        id: 'TAX005',
-        taxType: 'Land Tax',
-        hindiName: 'भूमि कर',
-        assessedAmount: 8000,
-        paymentStatus: 'Paid',
-        amountPaid: 8000,
-        paymentDate: '2023-07-20',
-        receiptNumber: 'REC-2023-105',
-        assessmentYear: 2023,
-      },
-    ],
-  },
-  {
-    id: 'PROP004',
-    ownerName: 'Meena Devi',
-    mobileNumber: '9234567890',
-    houseNo: 'C-101',
-    aadhaarHash: '...3456',
-    propertyType: 'Residential',
-    area: 950,
-    photoUrl: 'https://picsum.photos/seed/prop4/600/400',
-    photoHint: 'small house',
-    taxes: [
-      {
-        id: 'TAX006',
-        taxType: 'House Tax',
-        hindiName: 'घर कर',
-        assessedAmount: 4200,
-        paymentStatus: 'Unpaid',
-        amountPaid: 0,
-        assessmentYear: 2023,
-      },
-    ],
-  },
-  {
-    id: 'PROP005',
-    ownerName: 'Sanjay Gupta',
-    mobileNumber: '9345678901',
-    houseNo: 'Shop-5, Market',
-    aadhaarHash: '...7890',
-    propertyType: 'Commercial',
-    area: 800,
-    photoUrl: 'https://picsum.photos/seed/prop5/600/400',
-    photoHint: 'local shop',
-    taxes: [
-      {
-        id: 'TAX007',
-        taxType: 'Trade License Fee',
-        hindiName: 'व्यापार लाइसेंस शुल्क',
-        assessedAmount: 2500,
-        paymentStatus: 'Paid',
-        amountPaid: 2500,
-        paymentDate: '2023-04-10',
-        receiptNumber: 'REC-2023-00-T',
-        assessmentYear: 2023,
-      },
-      {
-        id: 'TAX008',
-        taxType: 'Advertisement Tax',
-        hindiName: 'विज्ञापन कर',
-        assessedAmount: 1000,
-        paymentStatus: 'Unpaid',
-        amountPaid: 0,
-        assessmentYear: 2023,
-      },
-    ],
-  },
+// The mock data is kept for reference but is no longer used by the app.
+const MOCK_PROPERTIES: Property[] = [
+  // ... (mock data remains here but is unused)
 ];
 
+async function seedData() {
+  const { firestore } = getFirebase();
+  if (!firestore) throw new Error('Firestore not initialized');
+
+  const propertiesRef = collection(firestore, 'properties');
+  const snapshot = await getDocs(propertiesRef);
+
+  if (snapshot.empty) {
+    console.log('No properties found. Seeding mock data...');
+    const { MOCK_PROPERTIES_FOR_SEED } = await import('@/lib/mock-seed');
+    for (const property of MOCK_PROPERTIES_FOR_SEED) {
+      const { doc, setDoc } = await import('firebase/firestore');
+      await setDoc(doc(firestore, 'properties', property.id), property);
+    }
+    console.log('Mock data seeded.');
+  } else {
+    console.log('Properties collection already exists. Skipping seed.');
+  }
+}
+
+
 export const getProperties = async (): Promise<Property[]> => {
-  return new Promise(resolve => setTimeout(() => resolve(properties), 500));
+  const { firestore } = getFirebase();
+  if (!firestore) return [];
+  
+  await seedData();
+
+  const propertiesCol = collection(firestore, 'properties');
+  const propertiesSnapshot = await getDocs(propertiesCol);
+  const propertiesList = propertiesSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Property);
+  return propertiesList;
 };
 
 export const getRecentPayments = async (): Promise<Payment[]> => {
+  const properties = await getProperties();
   const payments: Payment[] = [];
   properties.forEach(p => {
-    p.taxes.forEach(t => {
+    p.taxes?.forEach(t => {
       if (t.paymentStatus !== 'Unpaid' && t.paymentDate) {
         payments.push({
           id: t.id,
@@ -168,5 +57,5 @@ export const getRecentPayments = async (): Promise<Payment[]> => {
       }
     });
   });
-  return new Promise(resolve => setTimeout(() => resolve(payments.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5)), 300));
+  return payments.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
 };
