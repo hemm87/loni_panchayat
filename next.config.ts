@@ -37,12 +37,10 @@ const nextConfig: NextConfig = {
     ],
   },
   devIndicators: {
-    buildActivity: false
+    buildActivity: false,
   },
   experimental: {
-    allowedDevOrigins: [
-      "https://*.cloudworkstations.dev"
-    ]
+    //
   }
 };
 
