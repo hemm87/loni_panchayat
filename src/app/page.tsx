@@ -112,14 +112,14 @@ export default function LoginPage() {
 
   const handleSendOtp = async () => {
     setLoading(true);
-    const auth = getAuth();
     generateRecaptcha();
+    const auth = getAuth();
     const appVerifier = window.recaptchaVerifier;
     try {
       // Use E.164 format for phone numbers
       const formattedPhoneNumber = `+${phoneNumber.replace(/\D/g, '')}`;
-      if (formattedPhoneNumber.length < 10) {
-        throw new Error('Invalid phone number provided.');
+      if (formattedPhoneNumber.length < 10) { // Simple validation
+        throw new Error("Invalid phone number provided.");
       }
       const confirmation = await signInWithPhoneNumber(
         auth,
