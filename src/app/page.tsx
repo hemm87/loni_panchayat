@@ -7,7 +7,8 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
 } from 'firebase/auth';
 import { useUser } from '@/firebase';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,28 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const auth = getAuth();
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          // User successfully signed in via redirect.
+          // The main `useUser` hook will handle the redirect to dashboard.
+        }
+      })
+      .catch((error) => {
+        toast({
+          variant: 'destructive',
+          title: 'Google Sign-In Failed',
+          description: error.message,
+        });
+      }).finally(() => {
+        setIsRedirecting(false);
+      });
+  }, [toast]);
 
   useEffect(() => {
     if (!userLoading && user) {
@@ -55,22 +77,13 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
+    setIsRedirecting(true);
     const auth = getAuth();
     const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      router.push('/dashboard');
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Google Sign-In Failed',
-        description: error.message,
-      });
-      setLoading(false);
-    }
+    await signInWithRedirect(auth, provider);
   };
   
-  if (userLoading || user) {
+  if (userLoading || user || isRedirecting) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
