@@ -1,111 +1,209 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { getProperties, getRecentPayments } from '@/lib/data';
-import { StatsCards } from '@/components/dashboard/stats-cards';
-import { TaxStatusChart } from '@/components/dashboard/tax-status-chart';
-import AiFeedback from '@/components/dashboard/ai-feedback';
-import { RecentPayments } from '@/components/dashboard/recent-payments';
-import type { Property, TaxRecord, Payment } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
+import React, { useState } from 'react';
+import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-function DashboardSkeleton() {
-  return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <Skeleton className="h-9 w-72" />
-        <Skeleton className="mt-2 h-4 w-96" />
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Skeleton className="h-28" />
-        <Skeleton className="h-28" />
-        <Skeleton className="h-28" />
-        <Skeleton className="h-28" />
-      </div>
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
-        <Skeleton className="lg:col-span-3 h-[450px]" />
-        <Skeleton className="lg:col-span-2 h-[450px]" />
-      </div>
-      <Skeleton className="h-96" />
-    </div>
-  );
-}
+const Dashboard = () => {
+  const [activeMenu, setActiveMenu] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  // Sample data for charts
+  const revenueData = [
+    { month: 'जन', revenue: 45000 },
+    { month: 'फर', revenue: 52000 },
+    { month: 'मार्च', revenue: 48000 },
+    { month: 'अप्रैल', revenue: 61000 },
+    { month: 'मई', revenue: 55000 },
+    { month: 'जून', revenue: 67000 },
+  ];
 
-export default function DashboardPage() {
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [recentPayments, setRecentPayments] = useState<Payment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const menuItems = [
+    { id: 'dashboard', icon: Home, label: 'Dashboard', labelHi: 'होम' },
+    { id: 'register', icon: UserPlus, label: 'Register New User', labelHi: 'नया उपयोगकर्ता पंजीकरण' },
+    { id: 'users', icon: Users, label: 'All Users / Properties', labelHi: 'सभी उपयोगकर्ता / संपत्ति' },
+    { id: 'bill', icon: FileText, label: 'Generate Bill / Receipt', labelHi: 'रसीद बनाएँ' },
+    { id: 'reports', icon: BarChart3, label: 'Reports', labelHi: 'रिपोर्ट्स' },
+    { id: 'settings', icon: Settings, label: 'Settings', labelHi: 'सेटिंग्स' },
+  ];
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      const [props, payments] = await Promise.all([
-        getProperties(),
-        getRecentPayments()
-      ]);
-      setProperties(props);
-      setRecentPayments(payments);
-      setLoading(false);
-    }
-    fetchData();
-  }, []);
-
-  if (loading) {
-    return <DashboardSkeleton />;
-  }
-
-  const allTaxes: TaxRecord[] = properties.flatMap(p => p.taxes || []);
-
-  const totalProperties = properties.length;
-  const totalAssessedValue = allTaxes.reduce(
-    (sum, tax) => sum + tax.assessedAmount,
-    0
-  );
-  const totalCollected = allTaxes.reduce(
-    (sum, tax) => sum + tax.amountPaid,
-    0
-  );
-  const pendingTaxesCount = allTaxes.filter(
-    t => t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial'
-  ).length;
-
-  const statsForAI = {
-    totalProperties: totalProperties,
-    pendingTaxes: allTaxes.filter(t => t.paymentStatus !== 'Paid').length,
-    paidTaxes: allTaxes.filter(t => t.paymentStatus === 'Paid').length,
-    lowAssessmentAmount: allTaxes.filter(t => t.assessedAmount < 1000).length,
-    highAssessmentAmount: allTaxes.filter(t => t.assessedAmount > 20000).length,
-    incompletePropertyData: properties.filter(p => !p.ownerName || !p.area).length,
-  };
+  const stats = [
+    { title: 'Total Users Registered', titleHi: 'कुल उपयोगकर्ता', value: '1,247', color: 'bg-blue-500', icon: '👤' },
+    { title: 'Paid Taxes', titleHi: 'भरे हुए कर', value: '892', color: 'bg-green-500', icon: '✅' },
+    { title: 'Pending Taxes', titleHi: 'लंबित कर', value: '355', color: 'bg-orange-500', icon: '⏳' },
+    { title: 'Total Revenue', titleHi: 'कुल राजस्व', value: '₹3,28,000', color: 'bg-purple-500', icon: '💰' },
+  ];
 
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="font-headline text-3xl font-bold tracking-tight text-foreground">
-          Admin Dashboard
-        </h1>
-        <p className="text-muted-foreground">
-          Overview of tax collection and property management.
-        </p>
-      </div>
-
-      <StatsCards
-        totalProperties={totalProperties}
-        totalAssessedValue={totalAssessedValue}
-        totalCollected={totalCollected}
-        pendingTaxesCount={pendingTaxesCount}
-      />
-
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-          <TaxStatusChart taxes={allTaxes} />
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <aside className={`${sidebarOpen ? 'w-72' : 'w-0'} bg-white shadow-lg transition-all duration-300 overflow-hidden`}>
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white text-xl font-bold">
+              🏛️
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-800">Loni Panchayat</h1>
+              <p className="text-sm text-gray-600">लॉनी ग्राम पंचायत</p>
+            </div>
+          </div>
         </div>
-        <div className="lg:col-span-2">
-          <AiFeedback stats={statsForAI} />
+
+        <nav className="p-4">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveMenu(item.id)}
+                className={`w-full flex items-center gap-4 px-4 py-4 mb-2 rounded-lg text-left transition-all ${
+                  activeMenu === item.id
+                    ? 'bg-orange-500 text-white shadow-md'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Icon className="w-6 h-6" />
+                <div className="flex-1">
+                  <div className="font-semibold text-base">{item.label}</div>
+                  <div className="text-sm opacity-90">{item.labelHi}</div>
+                </div>
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
+          <button className="w-full flex items-center gap-4 px-4 py-4 rounded-lg text-red-600 hover:bg-red-50 transition-all">
+            <LogOut className="w-6 h-6" />
+            <div>
+              <div className="font-semibold text-base">Logout</div>
+              <div className="text-sm">लॉगआउट</div>
+            </div>
+          </button>
         </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Navbar */}
+        <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">Admin Dashboard</h2>
+                <p className="text-sm text-gray-600">Welcome back! • स्वागत है</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className="font-semibold text-gray-800">Admin User</p>
+                <p className="text-sm text-gray-600">admin@lonipanchayat.in</p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                A
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Dashboard Content */}
+        <main className="flex-1 overflow-y-auto p-6">
+          {activeMenu === 'dashboard' && (
+            <>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {stats.map((stat, index) => (
+                  <div
+                    key={index}
+                    className="bg-white rounded-xl shadow-md p-6 border-l-4 hover:shadow-lg transition-shadow"
+                    style={{ borderColor: stat.color.replace('bg-', '') }}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-4xl">{stat.icon}</span>
+                      <div className={`${stat.color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
+                        {stat.value}
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-800 mb-1">{stat.title}</h3>
+                    <p className="text-gray-600">{stat.titleHi}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Revenue Chart */}
+              <div className="bg-white rounded-xl shadow-md p-6 mb-8">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">
+                  Monthly Revenue Collection • मासिक राजस्व संग्रह
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={revenueData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="revenue" fill="#f97316" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">
+                  Quick Actions • त्वरित कार्य
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button
+                    onClick={() => setActiveMenu('register')}
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-6 rounded-xl font-bold text-lg hover:shadow-lg transition-all transform hover:scale-105"
+                  >
+                    <div className="text-3xl mb-2">➕</div>
+                    <div>Register New User</div>
+                    <div className="text-sm opacity-90">नया उपयोगकर्ता पंजीकरण</div>
+                  </button>
+                  <button
+                    onClick={() => setActiveMenu('bill')}
+                    className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-6 rounded-xl font-bold text-lg hover:shadow-lg transition-all transform hover:scale-105"
+                  >
+                    <div className="text-3xl mb-2">📑</div>
+                    <div>Generate Bill</div>
+                    <div className="text-sm opacity-90">रसीद बनाएँ</div>
+                  </button>
+                  <button
+                    onClick={() => setActiveMenu('reports')}
+                    className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-6 rounded-xl font-bold text-lg hover:shadow-lg transition-all transform hover:scale-105"
+                  >
+                    <div className="text-3xl mb-2">📊</div>
+                    <div>View Reports</div>
+                    <div className="text-sm opacity-90">रिपोर्ट देखें</div>
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Placeholder content for other sections */}
+          {activeMenu !== 'dashboard' && (
+            <div className="bg-white rounded-xl shadow-md p-12 text-center">
+              <div className="text-6xl mb-4">🚧</div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                {menuItems.find(item => item.id === activeMenu)?.label}
+              </h3>
+              <p className="text-xl text-gray-600 mb-2">
+                {menuItems.find(item => item.id === activeMenu)?.labelHi}
+              </p>
+              <p className="text-gray-500">This section is under development</p>
+            </div>
+          )}
+        </main>
       </div>
-      
-      <RecentPayments payments={recentPayments} />
     </div>
   );
-}
+};
+
+export default Dashboard;
