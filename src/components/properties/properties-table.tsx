@@ -14,15 +14,8 @@ import type { Property } from '@/lib/types';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Search, FileDown } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
-import { MoreHorizontal } from 'lucide-react';
+import { PropertyActions } from './property-actions';
+
 
 interface PropertiesTableProps {
   data: Property[];
@@ -97,27 +90,7 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
                   </TableCell>
                   <TableCell>{getStatusForProperty(property)}</TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit Property</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                          Delete Property
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <PropertyActions property={property} />
                   </TableCell>
                 </TableRow>
               ))
@@ -137,3 +110,5 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
     </div>
   );
 }
+
+    

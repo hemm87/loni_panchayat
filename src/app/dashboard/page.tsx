@@ -18,7 +18,7 @@ const Dashboard = () => {
   const firestore = useFirestore();
   const { toast } = useToast();
   
-  const initialTaxState = { taxType: 'Property Tax' as TaxRecord['taxType'], assessedAmount: '' };
+  const initialTaxState: Omit<TaxRecord, 'id' | 'hindiName' | 'paymentStatus' | 'amountPaid' | 'assessmentYear' | 'paymentDate' | 'receiptNumber'> = { taxType: 'Property Tax', assessedAmount: 0 };
   
   // Form states for Register Page
   const [formData, setFormData] = useState({
@@ -72,7 +72,7 @@ const Dashboard = () => {
   const handleTaxChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const newTaxes = [...taxes];
-    newTaxes[index] = { ...newTaxes[index], [name]: value };
+    newTaxes[index] = { ...newTaxes[index], [name]: name === 'assessedAmount' ? parseFloat(value) || 0 : value };
     setTaxes(newTaxes);
   };
 
@@ -104,8 +104,8 @@ const Dashboard = () => {
         area: Number(formData.area),
         photoUrl: `https://picsum.photos/seed/${propertyId}/600/400`,
         photoHint: 'new property',
-        taxes: taxes.filter(t => t.assessedAmount).map(t => ({
-            id: `TAX${Date.now()}${Math.random()}`,
+        taxes: taxes.filter(t => t.assessedAmount > 0).map(t => ({
+            id: `TAX${Date.now()}${Math.random().toString(36).substring(2, 8)}`,
             taxType: t.taxType,
             hindiName: '', // This can be populated based on taxType if needed
             assessedAmount: Number(t.assessedAmount),
@@ -891,3 +891,5 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+    
