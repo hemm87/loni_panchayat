@@ -1,16 +1,27 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useUser, useCollection, useFirestore } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import type { Property } from '@/lib/types';
+import { format, getMonth, parseISO } from 'date-fns';
 
 const Dashboard = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const router = useRouter();
   const { user } = useUser();
+  const firestore = useFirestore();
+
+  const propertiesQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'properties');
+  }, [firestore]);
+
+  const { data: properties, loading: propertiesLoading } = useCollection<Property>(propertiesQuery);
 
   const handleLogout = async () => {
     const auth = getAuth();
@@ -22,15 +33,71 @@ const Dashboard = () => {
     }
   };
 
-  // Sample data for charts
-  const revenueData = [
-    { month: 'जन', revenue: 45000 },
-    { month: 'फर', revenue: 52000 },
-    { month: 'मार्च', revenue: 48000 },
-    { month: 'अप्रैल', revenue: 61000 },
-    { month: 'मई', revenue: 55000 },
-    { month: 'जून', revenue: 67000 },
-  ];
+  const { stats, revenueData } = useMemo(() => {
+    if (!properties) {
+      return { stats: [], revenueData: [] };
+    }
+
+    let totalUsers = properties.length;
+    let paidTaxesCount = 0;
+    let pendingTaxesCount = 0;
+    let totalRevenue = 0;
+    const monthlyRevenue: { [key: number]: number } = {};
+
+    properties.forEach(p => {
+      let allPaid = true;
+      let hasPending = false;
+      if (p.taxes && p.taxes.length > 0) {
+        p.taxes.forEach(t => {
+          if (t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial') {
+            allPaid = false;
+            hasPending = true;
+          }
+          if (t.amountPaid > 0) {
+            totalRevenue += t.amountPaid;
+          }
+          if (t.paymentDate) {
+            try {
+              const month = getMonth(parseISO(t.paymentDate));
+              monthlyRevenue[month] = (monthlyRevenue[month] || 0) + t.amountPaid;
+            } catch (e) {
+              console.error(`Invalid date format for paymentDate: ${t.paymentDate}`);
+            }
+          }
+        });
+      } else {
+        allPaid = false; // No taxes filed is not "all paid"
+      }
+
+      if (allPaid) {
+        paidTaxesCount++;
+      }
+      if (hasPending) {
+        pendingTaxesCount++;
+      }
+    });
+    
+    // If a property has no taxes, it's considered pending.
+    pendingTaxesCount += properties.filter(p => !p.taxes || p.taxes.length === 0).length;
+
+
+    const calculatedStats = [
+      { title: 'Total Users Registered', titleHi: 'कुल उपयोगकर्ता', value: totalUsers.toLocaleString(), color: 'bg-blue-500', icon: '👤' },
+      { title: 'Paid Taxes', titleHi: 'भरे हुए कर', value: paidTaxesCount.toLocaleString(), color: 'bg-green-500', icon: '✅' },
+      { title: 'Pending Taxes', titleHi: 'लंबित कर', value: pendingTaxesCount.toLocaleString(), color: 'bg-orange-500', icon: '⏳' },
+      { title: 'Total Revenue', titleHi: 'कुल राजस्व', value: `₹${totalRevenue.toLocaleString()}`, color: 'bg-purple-500', icon: '💰' },
+    ];
+
+    const monthNames = ['जन', 'फर', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुलाई', 'अग', 'सित', 'अक्ट', 'नव', 'दिस'];
+    const calculatedRevenueData = monthNames.map((monthName, index) => ({
+        month: monthName,
+        revenue: monthlyRevenue[index] || 0,
+    })).slice(0, 6); // Show first 6 months for now as per original design
+
+    return { stats: calculatedStats, revenueData: calculatedRevenueData };
+
+  }, [properties]);
+
 
   const menuItems = [
     { id: 'dashboard', icon: Home, label: 'Dashboard', labelHi: 'होम' },
@@ -39,13 +106,6 @@ const Dashboard = () => {
     { id: 'bill', icon: FileText, label: 'Generate Bill / Receipt', labelHi: 'रसीद बनाएँ' },
     { id: 'reports', icon: BarChart3, label: 'Reports', labelHi: 'रिपोर्ट्स' },
     { id: 'settings', icon: Settings, label: 'Settings', labelHi: 'सेटिंग्स' },
-  ];
-
-  const stats = [
-    { title: 'Total Users Registered', titleHi: 'कुल उपयोगकर्ता', value: '1,247', color: 'bg-blue-500', icon: '👤' },
-    { title: 'Paid Taxes', titleHi: 'भरे हुए कर', value: '892', color: 'bg-green-500', icon: '✅' },
-    { title: 'Pending Taxes', titleHi: 'लंबित कर', value: '355', color: 'bg-orange-500', icon: '⏳' },
-    { title: 'Total Revenue', titleHi: 'कुल राजस्व', value: '₹3,28,000', color: 'bg-purple-500', icon: '💰' },
   ];
 
   return (
