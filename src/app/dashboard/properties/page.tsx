@@ -1,9 +1,10 @@
 'use client';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useCollection, useFirestore } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { PropertiesTable } from '@/components/properties/properties-table';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { Property } from '@/lib/types';
 
 function PropertiesSkeleton() {
   return (
@@ -23,14 +24,22 @@ function PropertiesSkeleton() {
 
 export default function PropertiesPage() {
   const firestore = useFirestore();
-  
+  const [loading, setLoading] = useState(true);
+
   const propertiesQuery = useMemo(() => {
     if (!firestore) return null;
     return collection(firestore, 'properties');
   }, [firestore]);
 
-  const { data: properties, loading } = useCollection(propertiesQuery);
+  const { data: properties, loading: collectionLoading } = useCollection<Property>(propertiesQuery);
   
+  useEffect(() => {
+    // Only set loading to false once the initial data fetch is complete
+    if (!collectionLoading) {
+      setLoading(false);
+    }
+  }, [collectionLoading]);
+
   if (loading) {
     return <PropertiesSkeleton />;
   }

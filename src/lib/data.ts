@@ -1,38 +1,42 @@
 import { getFirebase } from '@/firebase/provider';
-import { collection, getDocs, query } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 import type { Property, Payment, TaxRecord } from './types';
 
-// The mock data is kept for reference but is no longer used by the app.
-const MOCK_PROPERTIES: Property[] = [
-  // ... (mock data remains here but is unused)
-];
-
-async function seedData() {
+async function seedDataIfEmpty() {
   const { firestore } = getFirebase();
   if (!firestore) throw new Error('Firestore not initialized');
 
   const propertiesRef = collection(firestore, 'properties');
-  const snapshot = await getDocs(propertiesRef);
+  const q = query(propertiesRef, limit(1));
+  const snapshot = await getDocs(q);
 
   if (snapshot.empty) {
     console.log('No properties found. Seeding mock data...');
     const { MOCK_PROPERTIES_FOR_SEED } = await import('@/lib/mock-seed');
-    for (const property of MOCK_PROPERTIES_FOR_SEED) {
-      const { doc, setDoc } = await import('firebase/firestore');
-      await setDoc(doc(firestore, 'properties', property.id), property);
-    }
+    const { doc, setDoc, writeBatch } = await import('firebase/firestore');
+
+    const batch = writeBatch(firestore);
+    MOCK_PROPERTIES_FOR_SEED.forEach(property => {
+      const docRef = doc(firestore, 'properties', property.id);
+      batch.set(docRef, property);
+    });
+    await batch.commit();
+
     console.log('Mock data seeded.');
   } else {
-    console.log('Properties collection already exists. Skipping seed.');
+    console.log('Properties collection already has data. Skipping seed.');
   }
 }
 
-
+let seeded = false;
 export const getProperties = async (): Promise<Property[]> => {
   const { firestore } = getFirebase();
   if (!firestore) return [];
   
-  await seedData();
+  if (!seeded) {
+    await seedDataIfEmpty();
+    seeded = true;
+  }
 
   const propertiesCol = collection(firestore, 'properties');
   const propertiesSnapshot = await getDocs(propertiesCol);
@@ -44,18 +48,20 @@ export const getRecentPayments = async (): Promise<Payment[]> => {
   const properties = await getProperties();
   const payments: Payment[] = [];
   properties.forEach(p => {
-    p.taxes?.forEach(t => {
-      if (t.paymentStatus !== 'Unpaid' && t.paymentDate) {
-        payments.push({
-          id: t.id,
-          ownerName: p.ownerName,
-          propertyId: p.id,
-          amount: t.amountPaid,
-          date: t.paymentDate,
-          taxType: t.taxType,
-        });
-      }
-    });
+    if (p.taxes) {
+      p.taxes.forEach(t => {
+        if (t.paymentStatus !== 'Unpaid' && t.paymentDate) {
+          payments.push({
+            id: t.id,
+            ownerName: p.ownerName,
+            propertyId: p.id,
+            amount: t.amountPaid,
+            date: t.paymentDate,
+            taxType: t.taxType,
+          });
+        }
+      });
+    }
   });
   return payments.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
 };
