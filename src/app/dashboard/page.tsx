@@ -1,17 +1,18 @@
 
 'use client';
 import React, { useState, useMemo } from 'react';
-import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Filter, Download, Printer, Edit, Trash2, Eye, Save, Calendar, IndianRupee, PlusCircle, MinusCircle } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Download, Printer, Save, PlusCircle, MinusCircle } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useCollection } from '@/firebase';
-import { doc, setDoc, collection, writeBatch } from 'firebase/firestore';
+import { doc, setDoc, collection } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import type { Property, TaxRecord } from '@/lib/types';
 import { PropertiesTable } from '@/components/properties/properties-table';
 import { StatsCard } from '@/components/ui/stats-card';
 import { DashboardSkeleton } from '@/components/ui/loading-skeletons';
+import { NoPropertiesState, NoReportsState } from '@/components/ui/empty-state';
 
 // Helper function to map tax types to Hindi names
 function getTaxHindiName(taxType: string): string {
@@ -416,30 +417,30 @@ const Dashboard = () => {
 
   // All Users Page
   const UsersPage = () => {
-      if (!firestore) {
-        return (
-          <div className="flex items-center justify-center h-96">
-            <p className="text-muted-foreground">Firestore is not initialized</p>
-          </div>
-        );
-      }
-
+    if (!firestore) {
       return (
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">
-              All Users / Properties • सभी उपयोगकर्ता / संपत्ति
-            </h2>
-            <button className="bg-orange-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-orange-600 transition-all flex items-center gap-2">
-              <Download className="w-5 h-5" />
-              Export • निर्यात करें
-            </button>
-          </div>
-
-           <PropertiesTable data={properties || []} />
+        <div className="flex items-center justify-center h-96">
+          <p className="text-muted-foreground">Firestore is not initialized</p>
         </div>
       );
-  }
+    }
+  
+    if (!properties || properties.length === 0) {
+      return <NoPropertiesState onAddNew={() => setActiveMenu('register')} />;
+    }
+  
+    return (
+      <div className="bg-white rounded-xl shadow-md p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">
+            All Users / Properties • सभी उपयोगकर्ता / संपत्ति
+          </h2>
+        </div>
+  
+        <PropertiesTable data={properties || []} />
+      </div>
+    );
+  };
 
   // Generate Bill Page
   const BillPage = () => (
@@ -643,13 +644,7 @@ const Dashboard = () => {
           </button>
         </div>
       </div>
-
-      <div className="text-center py-12 bg-white rounded-xl shadow-md text-gray-400">
-        <BarChart3 className="w-16 h-16 mx-auto mb-4 opacity-50" />
-        <p className="text-lg">No reports available yet</p>
-        <p>अभी तक कोई रिपोर्ट उपलब्ध नहीं है</p>
-        <p className="mt-4 text-sm">Connect Firebase to generate reports from database</p>
-      </div>
+      <NoReportsState />
     </div>
   );
 
@@ -927,3 +922,5 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+    

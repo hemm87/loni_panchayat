@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -15,6 +16,7 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Search, FileDown } from 'lucide-react';
 import { PropertyActions } from './property-actions';
+import { SearchEmptyState } from '@/components/ui/empty-state';
 
 
 interface PropertiesTableProps {
@@ -98,9 +100,9 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="h-24 text-center"
+                  className="h-48 text-center"
                 >
-                  No results found.
+                  <SearchEmptyState onClear={() => setFilter('')} />
                 </TableCell>
               </TableRow>
             )}
