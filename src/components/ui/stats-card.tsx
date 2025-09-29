@@ -15,14 +15,14 @@ interface StatsCardProps {
 }
 
 export function StatsCard({ title, titleHi, value, icon, color, trend }: StatsCardProps) {
-  const colorClasses = {
+  const colorClasses: Record<string, string> = {
     'bg-blue-500': 'from-blue-400 to-blue-600',
     'bg-green-500': 'from-green-400 to-green-600',
     'bg-orange-500': 'from-orange-400 to-orange-600',
     'bg-purple-500': 'from-purple-400 to-purple-600',
   };
 
-  const gradientClass = colorClasses[color as keyof typeof colorClasses] || 'from-gray-400 to-gray-600';
+  const gradientClass = colorClasses[color] || 'from-gray-400 to-gray-600';
 
   return (
     <div className="group relative overflow-hidden bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
@@ -58,4 +58,8 @@ export function StatsCard({ title, titleHi, value, icon, color, trend }: StatsCa
           </div>
         </div>
 
-        <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${gradientClass} transform scale-x-0 group-hover:
+        <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${gradientClass} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300`}></div>
+      </div>
+    </div>
+  );
+}
