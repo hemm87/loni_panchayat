@@ -23,21 +23,17 @@ async function seedDataIfEmpty() {
     await batch.commit();
 
     console.log('Mock data seeded.');
-  } else {
-    console.log('Properties collection already has data. Skipping seed.');
   }
 }
 
-let seeded = false;
+// Ensure data is seeded only once
+const seedPromise = seedDataIfEmpty();
+
 export const getProperties = async (): Promise<Property[]> => {
+  await seedPromise;
   const { firestore } = getFirebase();
   if (!firestore) return [];
   
-  if (!seeded) {
-    await seedDataIfEmpty();
-    seeded = true;
-  }
-
   const propertiesCol = collection(firestore, 'properties');
   const propertiesSnapshot = await getDocs(propertiesCol);
   const propertiesList = propertiesSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Property);

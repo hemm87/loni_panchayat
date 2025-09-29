@@ -38,6 +38,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function fetchData() {
+      setLoading(true);
       const [props, payments] = await Promise.all([
         getProperties(),
         getRecentPayments()
