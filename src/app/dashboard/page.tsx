@@ -10,6 +10,7 @@ import { doc, setDoc, collection, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import type { Property, TaxRecord } from '@/lib/types';
 import { PropertiesTable } from '@/components/properties/properties-table';
+import { StatsCard } from '@/components/ui/stats-card';
 
 // Helper function to map tax types to Hindi names
 function getTaxHindiName(taxType: string): string {
@@ -224,20 +225,14 @@ const Dashboard = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {stats.map((stat, index) => (
-            <div
+            <StatsCard
               key={index}
-              className="bg-white rounded-xl shadow-md p-6 border-l-4 hover:shadow-lg transition-shadow"
-              style={{ borderColor: stat.color.replace('bg-', '') }}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-4xl">{stat.icon}</span>
-                <div className={`${stat.color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
-                  {stat.value}
-                </div>
-              </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-1">{stat.title}</h3>
-              <p className="text-gray-600">{stat.titleHi}</p>
-            </div>
+              title={stat.title}
+              titleHi={stat.titleHi}
+              value={stat.value}
+              icon={stat.icon}
+              color={stat.color}
+            />
           ))}
         </div>
 
@@ -921,5 +916,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
-    
