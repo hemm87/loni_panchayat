@@ -2,10 +2,25 @@
 import React, { useState } from 'react';
 import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { getAuth, signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import { useUser } from '@/firebase';
 
 const Dashboard = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const router = useRouter();
+  const { user } = useUser();
+
+  const handleLogout = async () => {
+    const auth = getAuth();
+    try {
+      await signOut(auth);
+      router.push('/');
+    } catch (error) {
+      console.error('Error signing out: ', error);
+    }
+  };
 
   // Sample data for charts
   const revenueData = [
@@ -73,7 +88,10 @@ const Dashboard = () => {
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
-          <button className="w-full flex items-center gap-4 px-4 py-4 rounded-lg text-red-600 hover:bg-red-50 transition-all">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-4 px-4 py-4 rounded-lg text-red-600 hover:bg-red-50 transition-all"
+          >
             <LogOut className="w-6 h-6" />
             <div>
               <div className="font-semibold text-base">Logout</div>
@@ -102,11 +120,11 @@ const Dashboard = () => {
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <p className="font-semibold text-gray-800">Admin User</p>
-                <p className="text-sm text-gray-600">admin@lonipanchayat.in</p>
+                <p className="font-semibold text-gray-800">{user?.displayName || 'Admin User'}</p>
+                <p className="text-sm text-gray-600">{user?.email || 'admin@lonipanchayat.in'}</p>
               </div>
               <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                A
+                {user?.displayName?.charAt(0) || 'A'}
               </div>
             </div>
           </div>
