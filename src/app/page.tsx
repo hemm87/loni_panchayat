@@ -28,11 +28,11 @@ import { Label } from '@/components/ui/label';
 import { Scale, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { getFirebase } from '@/firebase/provider';
 
 
-async function upsertUserProfile(result: UserCredential) {
+async function updateUserOnLogin(result: UserCredential) {
   const { firestore } = getFirebase();
   if (!firestore) throw new Error("Firestore not initialized");
 
@@ -41,19 +41,21 @@ async function upsertUserProfile(result: UserCredential) {
   
   const docSnap = await getDoc(userRef);
   if (docSnap.exists()) {
-    // User already exists, just update last login or other fields if needed
-    const userData = {
+    // User exists, update last login
+    await updateDoc(userRef, {
       lastLogin: new Date().toISOString(),
-    };
-    await setDoc(userRef, userData, { merge: true });
+    });
   } else {
-    // New user, create the profile with a default role
+    // This case should ideally not happen if users are pre-registered by an Admin.
+    // For now, we'll log an error or handle as a special case.
+    console.warn(`User with UID ${user.uid} is not registered in the database.`);
+    // Optionally, create a default user profile, but this might contradict the new user flow.
     const userData = {
       uid: user.uid,
       email: user.email,
       displayName: user.displayName,
       photoURL: user.photoURL,
-      role: 'Citizen', // Assign default role
+      role: 'Viewer', // Assign a default, least-privileged role
       createdAt: new Date().toISOString(),
     };
     await setDoc(userRef, userData);
@@ -79,14 +81,12 @@ export default function LoginPage() {
     getRedirectResult(auth)
       .then((result) => {
         if (result) {
-          // This is the signed-in user
           const user = result.user;
           toast({
             title: 'Sign In Successful',
             description: `Welcome back, ${user.displayName || user.email}!`,
           });
-          // Create or update user profile in Firestore
-          upsertUserProfile(result);
+          updateUserOnLogin(result);
         }
       })
       .catch(error => {
@@ -113,8 +113,7 @@ export default function LoginPage() {
     const auth = getAuth();
     try {
       const credential = await signInWithEmailAndPassword(auth, email, password);
-      await upsertUserProfile(credential);
-      // router push is handled by the useEffect
+      await updateUserOnLogin(credential);
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -142,9 +141,7 @@ export default function LoginPage() {
         'recaptcha-container',
         {
           size: 'invisible',
-          callback: (response: any) => {
-            // reCAPTCHA solved, allow signInWithPhoneNumber.
-          },
+          callback: (response: any) => {},
         }
       );
     }
@@ -156,9 +153,8 @@ export default function LoginPage() {
     const auth = getAuth();
     const appVerifier = window.recaptchaVerifier;
     try {
-      // Use E.164 format for phone numbers
       const formattedPhoneNumber = `+${phoneNumber.replace(/\D/g, '')}`;
-      if (formattedPhoneNumber.length < 10) { // Simple validation
+      if (formattedPhoneNumber.length < 10) { 
         throw new Error("Invalid phone number provided.");
       }
       const confirmation = await signInWithPhoneNumber(
@@ -189,8 +185,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const credential = await confirmationResult.confirm(otp);
-      await upsertUserProfile(credential);
-      // router push is handled by the useEffect
+      await updateUserOnLogin(credential);
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -280,12 +275,6 @@ export default function LoginPage() {
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Login with Google
                 </Button>
-                <div className="mt-4 text-center text-sm">
-                  Don&apos;t have an account?{' '}
-                  <Link href="#" className="underline">
-                    Sign up
-                  </Link>
-                </div>
               </div>
             </TabsContent>
             <TabsContent value="phone">

@@ -1,6 +1,6 @@
 export type TaxRecord = {
   id: string;
-  taxType: string;
+  taxType: 'Property Tax' | 'Business Tax' | 'Land Tax' | 'Water Tax' | 'Lighting Tax' | 'Other';
   hindiName: string;
   assessedAmount: number;
   paymentStatus: 'Paid' | 'Unpaid' | 'Partial';
@@ -13,13 +13,16 @@ export type TaxRecord = {
 export type Property = {
   id: string;
   ownerName: string;
+  fatherName: string;
   mobileNumber: string;
   houseNo: string;
+  address: string;
   aadhaarHash: string; // Storing a hash, not the real number
   propertyType: 'Residential' | 'Commercial' | 'Agricultural';
   area: number; // in sq.ft
   photoUrl: string;
   photoHint: string;
+  documents?: string[];
   taxes: TaxRecord[];
 };
 

@@ -7,7 +7,7 @@
       "properties": {
         "uid": {
           "type": "string",
-          "description": "The user's unique ID."
+          "description": "The user's unique ID from Firebase Auth."
         },
         "email": {
           "type": "string",
@@ -25,11 +25,19 @@
         },
         "role": {
           "type": "string",
-          "enum": ["Admin", "Citizen"],
+          "enum": ["Admin", "Data Entry", "Tax Collector", "Viewer"],
           "description": "The user's role in the system."
+        },
+        "lastLogin": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
         }
       },
-      "required": ["uid", "email", "role"]
+      "required": ["uid", "email", "role", "createdAt"]
     },
     "taxRecord": {
       "title": "Tax Record",
@@ -37,7 +45,7 @@
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "taxType": { "type": "string" },
+        "taxType": { "enum": ["Property Tax", "Business Tax", "Land Tax", "Water Tax", "Lighting Tax", "Other"] },
         "hindiName": { "type": "string" },
         "assessedAmount": { "type": "number" },
         "paymentStatus": { "enum": ["Paid", "Unpaid", "Partial"] },
@@ -55,13 +63,19 @@
       "properties": {
         "id": { "type": "string" },
         "ownerName": { "type": "string" },
+        "fatherName": { "type": "string" },
         "mobileNumber": { "type": "string" },
         "houseNo": { "type": "string" },
+        "address": { "type": "string" },
         "aadhaarHash": { "type": "string" },
         "propertyType": { "enum": ["Residential", "Commercial", "Agricultural"] },
         "area": { "type": "number" },
         "photoUrl": { "type": "string", "format": "uri" },
         "photoHint": { "type": "string" },
+        "documents": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" }
+        },
         "taxes": {
           "type": "array",
           "items": { "$ref": "#/entities/taxRecord" }
