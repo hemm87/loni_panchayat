@@ -7,7 +7,10 @@ import { useRouter } from 'next/navigation';
 import { useUser, useCollection, useFirestore } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { Property } from '@/lib/types';
-import { format, getMonth, parseISO } from 'date-fns';
+import { getMonth } from 'date-fns';
+import { RegisterPropertyForm } from '@/components/properties/register-property-form';
+import PropertiesPage from './properties/page';
+
 
 const Dashboard = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
@@ -58,7 +61,8 @@ const Dashboard = () => {
           }
           if (t.paymentDate) {
             try {
-              const month = getMonth(parseISO(t.paymentDate));
+              // Assuming paymentDate is 'YYYY-MM-DD'
+              const month = getMonth(new Date(t.paymentDate));
               monthlyRevenue[month] = (monthlyRevenue[month] || 0) + t.amountPaid;
             } catch (e) {
               console.error(`Invalid date format for paymentDate: ${t.paymentDate}`);
@@ -66,20 +70,17 @@ const Dashboard = () => {
           }
         });
       } else {
-        allPaid = false; // No taxes filed is not "all paid"
+        allPaid = false; 
       }
-
-      if (allPaid) {
+      
+      const hasTaxes = p.taxes && p.taxes.length > 0;
+      if (hasTaxes && allPaid) {
         paidTaxesCount++;
-      }
-      if (hasPending) {
+      } else {
+        // Properties with no taxes or any unpaid/partial tax are pending.
         pendingTaxesCount++;
       }
     });
-    
-    // If a property has no taxes, it's considered pending.
-    pendingTaxesCount += properties.filter(p => !p.taxes || p.taxes.length === 0).length;
-
 
     const calculatedStats = [
       { title: 'Total Users Registered', titleHi: 'कुल उपयोगकर्ता', value: totalUsers.toLocaleString(), color: 'bg-blue-500', icon: '👤' },
@@ -92,7 +93,7 @@ const Dashboard = () => {
     const calculatedRevenueData = monthNames.map((monthName, index) => ({
         month: monthName,
         revenue: monthlyRevenue[index] || 0,
-    })).slice(0, 6); // Show first 6 months for now as per original design
+    })).slice(0, 6);
 
     return { stats: calculatedStats, revenueData: calculatedRevenueData };
 
@@ -108,10 +109,105 @@ const Dashboard = () => {
     { id: 'settings', icon: Settings, label: 'Settings', labelHi: 'सेटिंग्स' },
   ];
 
+  const renderContent = () => {
+    switch (activeMenu) {
+      case 'dashboard':
+        return (
+          <>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {stats.map((stat, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-xl shadow-md p-6 border-l-4 hover:shadow-lg transition-shadow"
+                  style={{ borderColor: stat.color.replace('bg-', '') }}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-4xl">{stat.icon}</span>
+                    <div className={`${stat.color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
+                      {stat.value}
+                    </div>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-1">{stat.title}</h3>
+                  <p className="text-gray-600">{stat.titleHi}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Revenue Chart */}
+            <div className="bg-white rounded-xl shadow-md p-6 mb-8">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">
+                Monthly Revenue Collection • मासिक राजस्व संग्रह
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={revenueData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="revenue" fill="#f97316" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">
+                Quick Actions • त्वरित कार्य
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  onClick={() => setActiveMenu('register')}
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-6 rounded-xl font-bold text-lg hover:shadow-lg transition-all transform hover:scale-105"
+                >
+                  <div className="text-3xl mb-2">➕</div>
+                  <div>Register New User</div>
+                  <div className="text-sm opacity-90">नया उपयोगकर्ता पंजीकरण</div>
+                </button>
+                <button
+                  onClick={() => setActiveMenu('bill')}
+                  className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-6 rounded-xl font-bold text-lg hover:shadow-lg transition-all transform hover:scale-105"
+                >
+                  <div className="text-3xl mb-2">📑</div>
+                  <div>Generate Bill</div>
+                  <div className="text-sm opacity-90">रसीद बनाएँ</div>
+                </button>
+                <button
+                  onClick={() => setActiveMenu('reports')}
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-6 rounded-xl font-bold text-lg hover:shadow-lg transition-all transform hover:scale-105"
+                >
+                  <div className="text-3xl mb-2">📊</div>
+                  <div>View Reports</div>
+                  <div className="text-sm opacity-90">रिपोर्ट देखें</div>
+                </button>
+              </div>
+            </div>
+          </>
+        );
+      case 'register':
+        return <RegisterPropertyForm onFormSubmit={() => setActiveMenu('users')} />;
+      case 'users':
+        return <PropertiesPage />;
+      default:
+        return (
+            <div className="bg-white rounded-xl shadow-md p-12 text-center">
+              <div className="text-6xl mb-4">🚧</div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                {menuItems.find(item => item.id === activeMenu)?.label}
+              </h3>
+              <p className="text-xl text-gray-600 mb-2">
+                {menuItems.find(item => item.id === activeMenu)?.labelHi}
+              </p>
+              <p className="text-gray-500">This section is under development</p>
+            </div>
+        );
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'w-72' : 'w-0'} bg-white shadow-lg transition-all duration-300 overflow-hidden`}>
+      <aside className={`${sidebarOpen ? 'w-72' : 'w-0'} bg-white shadow-lg transition-all duration-300 overflow-hidden relative`}>
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white text-xl font-bold">
@@ -192,92 +288,7 @@ const Dashboard = () => {
 
         {/* Dashboard Content */}
         <main className="flex-1 overflow-y-auto p-6">
-          {activeMenu === 'dashboard' && (
-            <>
-              {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {stats.map((stat, index) => (
-                  <div
-                    key={index}
-                    className="bg-white rounded-xl shadow-md p-6 border-l-4 hover:shadow-lg transition-shadow"
-                    style={{ borderColor: stat.color.replace('bg-', '') }}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-4xl">{stat.icon}</span>
-                      <div className={`${stat.color} text-white px-3 py-1 rounded-full text-sm font-bold`}>
-                        {stat.value}
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-800 mb-1">{stat.title}</h3>
-                    <p className="text-gray-600">{stat.titleHi}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Revenue Chart */}
-              <div className="bg-white rounded-xl shadow-md p-6 mb-8">
-                <h3 className="text-xl font-bold text-gray-800 mb-4">
-                  Monthly Revenue Collection • मासिक राजस्व संग्रह
-                </h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={revenueData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="revenue" fill="#f97316" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-xl font-bold text-gray-800 mb-4">
-                  Quick Actions • त्वरित कार्य
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <button
-                    onClick={() => setActiveMenu('register')}
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-6 rounded-xl font-bold text-lg hover:shadow-lg transition-all transform hover:scale-105"
-                  >
-                    <div className="text-3xl mb-2">➕</div>
-                    <div>Register New User</div>
-                    <div className="text-sm opacity-90">नया उपयोगकर्ता पंजीकरण</div>
-                  </button>
-                  <button
-                    onClick={() => setActiveMenu('bill')}
-                    className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-6 rounded-xl font-bold text-lg hover:shadow-lg transition-all transform hover:scale-105"
-                  >
-                    <div className="text-3xl mb-2">📑</div>
-                    <div>Generate Bill</div>
-                    <div className="text-sm opacity-90">रसीद बनाएँ</div>
-                  </button>
-                  <button
-                    onClick={() => setActiveMenu('reports')}
-                    className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-6 rounded-xl font-bold text-lg hover:shadow-lg transition-all transform hover:scale-105"
-                  >
-                    <div className="text-3xl mb-2">📊</div>
-                    <div>View Reports</div>
-                    <div className="text-sm opacity-90">रिपोर्ट देखें</div>
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Placeholder content for other sections */}
-          {activeMenu !== 'dashboard' && (
-            <div className="bg-white rounded-xl shadow-md p-12 text-center">
-              <div className="text-6xl mb-4">🚧</div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                {menuItems.find(item => item.id === activeMenu)?.label}
-              </h3>
-              <p className="text-xl text-gray-600 mb-2">
-                {menuItems.find(item => item.id === activeMenu)?.labelHi}
-              </p>
-              <p className="text-gray-500">This section is under development</p>
-            </div>
-          )}
+          {renderContent()}
         </main>
       </div>
     </div>
