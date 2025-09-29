@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Property, TaxRecord } from '@/lib/types';
 import { PropertiesTable } from '@/components/properties/properties-table';
 import { StatsCard } from '@/components/ui/stats-card';
+import { DashboardSkeleton } from '@/components/ui/loading-skeletons';
 
 // Helper function to map tax types to Hindi names
 function getTaxHindiName(taxType: string): string {
@@ -818,6 +819,16 @@ const Dashboard = () => {
       </div>
     </div>
   );
+
+  if (collectionLoading) {
+    return (
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-y-auto p-6">
+            <DashboardSkeleton />
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
