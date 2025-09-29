@@ -304,33 +304,33 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Full Name • पूरा नाम *</label>
-              <input type="text" name="ownerName" value={formData.ownerName} onChange={handleInputChange} placeholder="Enter full name" required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
+              <input type="text" name="ownerName" value={formData.ownerName} onChange={(e) => handleInputChange(e)} placeholder="Enter full name" required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Father's/Husband's Name • पिता/पति का नाम *</label>
-              <input type="text" name="fatherName" value={formData.fatherName} onChange={handleInputChange} placeholder="Enter father's/husband's name" required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
+              <input type="text" name="fatherName" value={formData.fatherName} onChange={(e) => handleInputChange(e)} placeholder="Enter father's/husband's name" required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
             </div>
             <div>
               <label htmlFor="mobileNumber" className="block text-sm font-bold text-gray-700 mb-2">Mobile Number • मोबाइल नंबर *</label>
-              <input type="tel" name="mobileNumber" value={formData.mobileNumber} onChange={handleInputChange} placeholder="10-digit mobile number" pattern="[0-9]{10}" maxLength={10} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
+              <input type="tel" name="mobileNumber" value={formData.mobileNumber} onChange={(e) => handleInputChange(e)} placeholder="10-digit mobile number" pattern="[0-9]{10}" maxLength={10} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
               <p className="text-xs text-gray-500 mt-1">Enter a 10-digit mobile number without country code.</p>
             </div>
             <div>
               <label htmlFor="aadhaarHash" className="block text-sm font-bold text-gray-700 mb-2">Aadhar Number • आधार नंबर</label>
-              <input type="tel" name="aadhaarHash" value={formData.aadhaarHash} onChange={handleInputChange} placeholder="12-digit Aadhar number" pattern="[0-9]{12}" maxLength={12} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
+              <input type="tel" name="aadhaarHash" value={formData.aadhaarHash} onChange={(e) => handleInputChange(e)} placeholder="12-digit Aadhar number" pattern="[0-9]{12}" maxLength={12} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
               <p className="text-xs text-gray-500 mt-1">Enter 12-digit Aadhar number without spaces.</p>
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-bold text-gray-700 mb-2">Address • पता *</label>
-              <textarea name="address" value={formData.address} onChange={handleInputChange} placeholder="Complete address" rows={3} maxLength={200} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"></textarea>
+              <textarea name="address" value={formData.address} onChange={(e) => handleInputChange(e)} placeholder="Complete address" rows={3} maxLength={200} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"></textarea>
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">House/Property Number • संपत्ति नंबर *</label>
-              <input type="text" name="houseNo" value={formData.houseNo} onChange={handleInputChange} placeholder="e.g., Plot-101" required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
+              <input type="text" name="houseNo" value={formData.houseNo} onChange={(e) => handleInputChange(e)} placeholder="e.g., Plot-101" required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Property Type • संपत्ति का प्रकार *</label>
-              <select name="propertyType" value={formData.propertyType} onChange={handleInputChange} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg">
+              <select name="propertyType" value={formData.propertyType} onChange={(e) => handleInputChange(e)} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg">
                 <option value="">Select Type</option>
                 <option value="Residential">Residential - आवासीय</option>
                 <option value="Commercial">Commercial - व्यावसायिक</option>
@@ -339,7 +339,7 @@ const Dashboard = () => {
             </div>
              <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Area (sq. ft) • क्षेत्रफल</label>
-                <input type="number" name="area" value={formData.area} onChange={handleInputChange} placeholder="Area in square feet" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg" />
+                <input type="number" name="area" value={formData.area} onChange={(e) => handleInputChange(e)} placeholder="Area in square feet" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg" />
             </div>
         </div>
 
