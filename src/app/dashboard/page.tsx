@@ -1,19 +1,18 @@
-
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Filter, Download, Printer, Edit, Trash2, Eye, Save, Calendar, IndianRupee } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { useUser, useFirestore } from '@/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection } from '@/firebase';
+import { doc, setDoc, collection } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import type { Property } from '@/lib/types';
+import { PropertiesTable } from '@/components/properties/properties-table';
 
 const Dashboard = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
   const { user } = useUser();
   const firestore = useFirestore();
@@ -352,9 +351,9 @@ const Dashboard = () => {
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
             >
               <option value="">Select Type</option>
-              <option value="residential">Residential - आवासीय</option>
-              <option value="commercial">Commercial - व्यावसायिक</option>
-              <option value="agricultural">Agricultural - कृषि</option>
+              <option value="Residential">Residential - आवासीय</option>
+              <option value="Commercial">Commercial - व्यावसायिक</option>
+              <option value="Agricultural">Agricultural - कृषि</option>
             </select>
           </div>
 
@@ -395,6 +394,13 @@ const Dashboard = () => {
     </div>
   );
 
+  const propertiesQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'properties');
+  }, [firestore]);
+
+  const { data: properties, loading: collectionLoading } = useCollection<Property>(propertiesQuery);
+
   // All Users Page
   const UsersPage = () => (
     <div className="bg-white rounded-xl shadow-md p-6">
@@ -408,35 +414,7 @@ const Dashboard = () => {
         </button>
       </div>
 
-      <div className="flex gap-4 mb-6">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search by name, property, phone... • नाम, संपत्ति, फोन से खोजें..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-          />
-        </div>
-        <button className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-bold hover:bg-gray-300 transition-all flex items-center gap-2">
-          <Filter className="w-5 h-5" />
-          Filter
-        </button>
-      </div>
-
-      <div className="text-center py-12 text-gray-400">
-        <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
-        <p className="text-lg">No users registered yet</p>
-        <p>अभी तक कोई उपयोगकर्ता पंजीकृत नहीं है</p>
-        <p className="mt-4 text-sm">Connect Firebase to display users from database</p>
-        <button
-          onClick={() => setActiveMenu('register')}
-          className="mt-6 bg-blue-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-600 transition-all"
-        >
-          Register First User • पहला उपयोगकर्ता पंजीकृत करें
-        </button>
-      </div>
+       <PropertiesTable data={properties || []} />
     </div>
   );
 
