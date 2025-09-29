@@ -137,3 +137,5 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
     </div>
   );
 }
+
+    
