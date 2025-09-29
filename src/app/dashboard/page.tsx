@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useMemo } from 'react';
 import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Filter, Download, Printer, Edit, Trash2, Eye, Save, Calendar, IndianRupee, PlusCircle, MinusCircle } from 'lucide-react';
@@ -9,6 +10,20 @@ import { doc, setDoc, collection, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import type { Property, TaxRecord } from '@/lib/types';
 import { PropertiesTable } from '@/components/properties/properties-table';
+
+// Helper function to map tax types to Hindi names
+function getTaxHindiName(taxType: string): string {
+  const mapping: Record<string, string> = {
+    'Property Tax': 'संपत्ति कर',
+    'Water Tax': 'जल कर',
+    'Sanitation Tax': 'स्वच्छता कर',
+    'Lighting Tax': 'प्रकाश कर',
+    'Land Tax': 'भूमि कर',
+    'Business Tax': 'व्यापार कर',
+    'Other': 'अन्य',
+  };
+  return mapping[taxType] || '';
+}
 
 const Dashboard = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
@@ -31,7 +46,7 @@ const Dashboard = () => {
     propertyType: '' as Property['propertyType'],
     area: '',
   });
-  const [taxes, setTaxes] = useState([initialTaxState]);
+  const [taxes, setTaxes] = useState<Omit<TaxRecord, 'id' | 'hindiName' | 'paymentStatus' | 'amountPaid' | 'assessmentYear' | 'paymentDate' | 'receiptNumber'>[]>([initialTaxState]);
 
   // Form states for Bill Page
   const [billData, setBillData] = useState({
@@ -72,7 +87,7 @@ const Dashboard = () => {
   const handleTaxChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const newTaxes = [...taxes];
-    newTaxes[index] = { ...newTaxes[index], [name]: name === 'assessedAmount' ? parseFloat(value) || 0 : value };
+    newTaxes[index] = { ...newTaxes[index], [name]: name === 'assessedAmount' ? parseFloat(value) || 0 : value as any };
     setTaxes(newTaxes);
   };
 
@@ -97,43 +112,46 @@ const Dashboard = () => {
       toast({ variant: 'destructive', title: 'Error', description: 'Firestore is not initialized.' });
       return;
     }
-
+  
     const propertyId = `PROP${Date.now()}`;
-    const newProperty: Omit<Property, 'id'> = {
-        ...formData,
-        area: Number(formData.area),
-        photoUrl: `https://picsum.photos/seed/${propertyId}/600/400`,
-        photoHint: 'new property',
-        taxes: taxes.filter(t => t.assessedAmount > 0).map(t => ({
-            id: `TAX${Date.now()}${Math.random().toString(36).substring(2, 8)}`,
-            taxType: t.taxType,
-            hindiName: '', // This can be populated based on taxType if needed
-            assessedAmount: Number(t.assessedAmount),
-            paymentStatus: 'Unpaid',
-            amountPaid: 0,
-            assessmentYear: new Date().getFullYear(),
-        })),
+    const propertyData = {
+      ...formData,
+      area: Number(formData.area),
+      photoUrl: `https://picsum.photos/seed/${propertyId}/600/400`,
+      photoHint: 'new property',
+      taxes: taxes.filter(t => t.assessedAmount > 0).map((t, index) => ({
+        id: `TAX${Date.now()}${index}`,
+        taxType: t.taxType,
+        hindiName: getTaxHindiName(t.taxType),
+        assessedAmount: Number(t.assessedAmount),
+        paymentStatus: 'Unpaid' as const,
+        amountPaid: 0,
+        assessmentYear: new Date().getFullYear(),
+        paymentDate: null,
+        receiptNumber: null,
+      })),
     };
-
+  
     try {
-        await setDoc(doc(firestore, 'properties', propertyId), newProperty);
-        toast({
-            title: 'Success!',
-            description: `Property ${propertyId} has been registered.`,
-        });
-        setFormData({ // Reset form
-            ownerName: '', fatherName: '', mobileNumber: '', houseNo: '',
-            address: '', aadhaarHash: '', propertyType: '' as Property['propertyType'], area: ''
-        });
-        setTaxes([initialTaxState]);
-        setActiveMenu('users'); // Switch to users page
+      await setDoc(doc(firestore, 'properties', propertyId), propertyData);
+      toast({
+        title: 'Success!',
+        description: `Property ${propertyId} has been registered.`,
+      });
+      // Reset form...
+      setFormData({
+        ownerName: '', fatherName: '', mobileNumber: '', houseNo: '',
+        address: '', aadhaarHash: '', propertyType: '' as Property['propertyType'], area: ''
+      });
+      setTaxes([initialTaxState]);
+      setActiveMenu('users');
     } catch (error: any) {
-        console.error("Error adding document: ", error);
-        toast({
-            variant: 'destructive',
-            title: 'Registration Failed',
-            description: error.message,
-        });
+      console.error("Error adding document: ", error);
+      toast({
+        variant: 'destructive',
+        title: 'Registration Failed',
+        description: error.message,
+      });
     }
   };
 
@@ -401,21 +419,31 @@ const Dashboard = () => {
   );
 
   // All Users Page
-  const UsersPage = () => (
-    <div className="bg-white rounded-xl shadow-md p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
-          All Users / Properties • सभी उपयोगकर्ता / संपत्ति
-        </h2>
-        <button className="bg-orange-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-orange-600 transition-all flex items-center gap-2">
-          <Download className="w-5 h-5" />
-          Export • निर्यात करें
-        </button>
-      </div>
+  const UsersPage = () => {
+      if (!firestore) {
+        return (
+          <div className="flex items-center justify-center h-96">
+            <p className="text-muted-foreground">Firestore is not initialized</p>
+          </div>
+        );
+      }
 
-       <PropertiesTable data={properties || []} />
-    </div>
-  );
+      return (
+        <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">
+              All Users / Properties • सभी उपयोगकर्ता / संपत्ति
+            </h2>
+            <button className="bg-orange-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-orange-600 transition-all flex items-center gap-2">
+              <Download className="w-5 h-5" />
+              Export • निर्यात करें
+            </button>
+          </div>
+
+           <PropertiesTable data={properties || []} />
+        </div>
+      );
+  }
 
   // Generate Bill Page
   const BillPage = () => (

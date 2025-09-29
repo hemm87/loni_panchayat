@@ -1,3 +1,4 @@
+
 export type TaxRecord = {
   id: string;
   taxType: 'Property Tax' | 'Water Tax' | 'Sanitation Tax' | 'Lighting Tax' | 'Land Tax' | 'Business Tax' | 'Other';
@@ -5,8 +6,8 @@ export type TaxRecord = {
   assessedAmount: number;
   paymentStatus: 'Paid' | 'Unpaid' | 'Partial';
   amountPaid: number;
-  paymentDate?: string;
-  receiptNumber?: string;
+  paymentDate: string | null;
+  receiptNumber: string | null;
   assessmentYear: number;
 };
 
@@ -34,3 +35,5 @@ export type Payment = {
   date: string;
   taxType: string;
 };
+
+    
