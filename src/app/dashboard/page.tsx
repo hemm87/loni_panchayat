@@ -311,16 +311,18 @@ const Dashboard = () => {
               <input type="text" name="fatherName" value={formData.fatherName} onChange={handleInputChange} placeholder="Enter father's/husband's name" required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Mobile Number • मोबाइल नंबर *</label>
-              <input type="tel" name="mobileNumber" value={formData.mobileNumber} onChange={handleInputChange} placeholder="10-digit mobile number" pattern="[0-9]{10}" required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
+              <label htmlFor="mobileNumber" className="block text-sm font-bold text-gray-700 mb-2">Mobile Number • मोबाइल नंबर *</label>
+              <input type="tel" name="mobileNumber" value={formData.mobileNumber} onChange={handleInputChange} placeholder="10-digit mobile number" pattern="[0-9]{10}" maxLength={10} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
+              <p className="text-xs text-gray-500 mt-1">Enter a 10-digit mobile number without country code.</p>
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Aadhar Number • आधार नंबर</label>
-              <input type="text" name="aadhaarHash" value={formData.aadhaarHash} onChange={handleInputChange} placeholder="12-digit Aadhar number" pattern="[0-9]{12}" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
+              <label htmlFor="aadhaarHash" className="block text-sm font-bold text-gray-700 mb-2">Aadhar Number • आधार नंबर</label>
+              <input type="tel" name="aadhaarHash" value={formData.aadhaarHash} onChange={handleInputChange} placeholder="12-digit Aadhar number" pattern="[0-9]{12}" maxLength={12} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
+              <p className="text-xs text-gray-500 mt-1">Enter 12-digit Aadhar number without spaces.</p>
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-bold text-gray-700 mb-2">Address • पता *</label>
-              <textarea name="address" value={formData.address} onChange={(e) => handleInputChange(e)} placeholder="Complete address" rows={3} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"></textarea>
+              <textarea name="address" value={formData.address} onChange={(e) => handleInputChange(e)} placeholder="Complete address" rows={3} maxLength={200} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"></textarea>
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">House/Property Number • संपत्ति नंबर *</label>
