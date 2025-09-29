@@ -28,7 +28,7 @@ import { Label } from '@/components/ui/label';
 import { Scale, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { getFirebase } from '@/firebase/provider';
 
 
@@ -39,14 +39,25 @@ async function upsertUserProfile(result: UserCredential) {
   const user = result.user;
   const userRef = doc(firestore, 'users', user.uid);
   
-  const userData = {
-    uid: user.uid,
-    email: user.email,
-    displayName: user.displayName,
-    photoURL: user.photoURL,
-  };
-
-  await setDoc(userRef, userData, { merge: true });
+  const docSnap = await getDoc(userRef);
+  if (docSnap.exists()) {
+    // User already exists, just update last login or other fields if needed
+    const userData = {
+      lastLogin: new Date().toISOString(),
+    };
+    await setDoc(userRef, userData, { merge: true });
+  } else {
+    // New user, create the profile with a default role
+    const userData = {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      role: 'Citizen', // Assign default role
+      createdAt: new Date().toISOString(),
+    };
+    await setDoc(userRef, userData);
+  }
 }
 
 export default function LoginPage() {

@@ -22,9 +22,14 @@
           "type": "string",
           "format": "uri",
           "description": "The URL of the user's profile picture."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["Admin", "Citizen"],
+          "description": "The user's role in the system."
         }
       },
-      "required": ["uid", "email"]
+      "required": ["uid", "email", "role"]
     },
     "taxRecord": {
       "title": "Tax Record",
