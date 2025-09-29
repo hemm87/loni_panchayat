@@ -130,15 +130,61 @@ const Dashboard = () => {
     // TODO: Add Firebase Firestore integration here
     alert('Bill generation will be implemented with Firebase');
   };
+  
+  const propertiesQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'properties');
+  }, [firestore]);
+
+  const { data: properties, loading: collectionLoading } = useCollection<Property>(propertiesQuery);
 
   // Dashboard Page
   const DashboardPage = () => {
-    // TODO: Fetch these stats from Firebase
+    const { totalUsers, paidTaxes, pendingTaxes, totalRevenue, monthlyRevenueData } = useMemo(() => {
+        if (!properties) {
+          return { totalUsers: 0, paidTaxes: 0, pendingTaxes: 0, totalRevenue: 0, monthlyRevenueData: [] };
+        }
+    
+        const totalUsers = properties.length;
+        let paidTaxes = 0;
+        let pendingTaxes = 0;
+        let totalRevenue = 0;
+        const monthlyRevenue: { [key: string]: number } = {};
+    
+        properties.forEach(prop => {
+          const hasUnpaid = prop.taxes?.some(t => t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial');
+          if (hasUnpaid) {
+            pendingTaxes++;
+          } else if (prop.taxes?.length > 0) {
+            paidTaxes++;
+          }
+    
+          prop.taxes?.forEach(t => {
+            totalRevenue += t.amountPaid;
+            if (t.paymentDate) {
+              const month = new Date(t.paymentDate).toLocaleString('hi-IN', { month: 'short' });
+              if (monthlyRevenue[month]) {
+                monthlyRevenue[month] += t.amountPaid;
+              } else {
+                monthlyRevenue[month] = t.amountPaid;
+              }
+            }
+          });
+        });
+    
+        const monthlyRevenueData = Object.keys(monthlyRevenue).map(month => ({
+          month,
+          revenue: monthlyRevenue[month],
+        }));
+    
+        return { totalUsers, paidTaxes, pendingTaxes, totalRevenue, monthlyRevenueData };
+      }, [properties]);
+    
     const stats = [
-      { title: 'Total Users', titleHi: 'कुल उपयोगकर्ता', value: '0', color: 'bg-blue-500', icon: '👤' },
-      { title: 'Paid Taxes', titleHi: 'भरे हुए कर', value: '0', color: 'bg-green-500', icon: '✅' },
-      { title: 'Pending Taxes', titleHi: 'लंबित कर', value: '0', color: 'bg-orange-500', icon: '⏳' },
-      { title: 'Total Revenue', titleHi: 'कुल राजस्व', value: '₹0', color: 'bg-purple-500', icon: '💰' },
+      { title: 'Total Users', titleHi: 'कुल उपयोगकर्ता', value: totalUsers.toLocaleString('en-IN'), color: 'bg-blue-500', icon: '👤' },
+      { title: 'Paid Taxes', titleHi: 'भरे हुए कर', value: paidTaxes.toLocaleString('en-IN'), color: 'bg-green-500', icon: '✅' },
+      { title: 'Pending Taxes', titleHi: 'लंबित कर', value: pendingTaxes.toLocaleString('en-IN'), color: 'bg-orange-500', icon: '⏳' },
+      { title: 'Total Revenue', titleHi: 'कुल राजस्व', value: `₹${totalRevenue.toLocaleString('en-IN')}`, color: 'bg-purple-500', icon: '💰' },
     ];
 
     return (
@@ -169,9 +215,21 @@ const Dashboard = () => {
             <h3 className="text-xl font-bold text-gray-800 mb-4">
               Monthly Revenue • मासिक राजस्व
             </h3>
-            <div className="h-64 flex items-center justify-center text-gray-400">
-              <p>Connect Firebase to display revenue charts</p>
-            </div>
+            {monthlyRevenueData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={monthlyRevenueData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`} />
+                    <Bar dataKey="revenue" fill="#f97316" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-64 flex items-center justify-center text-gray-400">
+                    <p>No revenue data available to display chart.</p>
+                </div>
+              )}
           </div>
 
           <div className="bg-white rounded-xl shadow-md p-6">
@@ -394,13 +452,6 @@ const Dashboard = () => {
     </div>
   );
 
-  const propertiesQuery = useMemo(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'properties');
-  }, [firestore]);
-
-  const { data: properties, loading: collectionLoading } = useCollection<Property>(propertiesQuery);
-
   // All Users Page
   const UsersPage = () => (
     <div className="bg-white rounded-xl shadow-md p-6">
@@ -439,7 +490,9 @@ const Dashboard = () => {
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
             >
               <option value="">-- Select User from Database --</option>
-              {/* TODO: Populate from Firebase */}
+              {properties?.map(prop => (
+                  <option key={prop.id} value={prop.id}>{prop.ownerName} ({prop.id})</option>
+              ))}
             </select>
           </div>
 
@@ -456,9 +509,13 @@ const Dashboard = () => {
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
               >
                 <option value="">Select Type</option>
-                <option value="property">Property Tax</option>
-                <option value="water">Water Tax</option>
-                <option value="other">Other Tax</option>
+                <option value="Property Tax">Property Tax</option>
+                <option value="Water Tax">Water Tax</option>
+                <option value="Sanitation Tax">Sanitation Tax</option>
+                <option value="Lighting Tax">Lighting Tax</option>
+                <option value="Land Tax">Land Tax</option>
+                <option value="Business Tax">Business Tax</option>
+                <option value="Other">Other</option>
               </select>
             </div>
 
