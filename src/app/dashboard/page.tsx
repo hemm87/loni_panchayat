@@ -1,13 +1,13 @@
 'use client';
 import React, { useState, useMemo } from 'react';
-import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Filter, Download, Printer, Edit, Trash2, Eye, Save, Calendar, IndianRupee } from 'lucide-react';
+import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Filter, Download, Printer, Edit, Trash2, Eye, Save, Calendar, IndianRupee, PlusCircle, MinusCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useCollection } from '@/firebase';
-import { doc, setDoc, collection } from 'firebase/firestore';
+import { doc, setDoc, collection, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import type { Property } from '@/lib/types';
+import type { Property, TaxRecord } from '@/lib/types';
 import { PropertiesTable } from '@/components/properties/properties-table';
 
 const Dashboard = () => {
@@ -18,18 +18,20 @@ const Dashboard = () => {
   const firestore = useFirestore();
   const { toast } = useToast();
   
+  const initialTaxState = { taxType: 'Property Tax' as TaxRecord['taxType'], assessedAmount: '' };
+  
   // Form states for Register Page
   const [formData, setFormData] = useState({
-    fullName: '',
-    fatherHusbandName: '',
-    mobile: '',
-    aadhar: '',
+    ownerName: '',
+    fatherName: '',
+    mobileNumber: '',
+    houseNo: '',
     address: '',
-    ward: '',
-    propertyNumber: '',
-    propertyType: '',
-    annualTax: ''
+    aadhaarHash: '',
+    propertyType: '' as Property['propertyType'],
+    area: '',
   });
+  const [taxes, setTaxes] = useState([initialTaxState]);
 
   // Form states for Bill Page
   const [billData, setBillData] = useState({
@@ -62,13 +64,30 @@ const Dashboard = () => {
   ];
 
   // Handle form input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, form = 'register') => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    if (form === 'register') {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    } else if (form === 'bill') {
-      setBillData(prev => ({ ...prev, [name]: value }));
-    }
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleTaxChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    const newTaxes = [...taxes];
+    newTaxes[index] = { ...newTaxes[index], [name]: value };
+    setTaxes(newTaxes);
+  };
+
+  const addTaxField = () => {
+    setTaxes([...taxes, initialTaxState]);
+  };
+
+  const removeTaxField = (index: number) => {
+    const newTaxes = taxes.filter((_, i) => i !== index);
+    setTaxes(newTaxes);
+  };
+  
+  const handleBillInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setBillData(prev => ({ ...prev, [name]: value }));
   };
 
   // Handle form submissions (Firebase integration point)
@@ -81,25 +100,19 @@ const Dashboard = () => {
 
     const propertyId = `PROP${Date.now()}`;
     const newProperty: Omit<Property, 'id'> = {
-        ownerName: formData.fullName,
-        fatherName: formData.fatherHusbandName,
-        mobileNumber: formData.mobile,
-        houseNo: formData.propertyNumber,
-        address: `${formData.address}, Ward ${formData.ward}`,
-        aadhaarHash: formData.aadhar, // Note: In a real app, this should be hashed.
-        propertyType: formData.propertyType as "Residential" | "Commercial" | "Agricultural",
-        area: 0, // The form doesn't have an area field, defaulting to 0
+        ...formData,
+        area: Number(formData.area),
         photoUrl: `https://picsum.photos/seed/${propertyId}/600/400`,
         photoHint: 'new property',
-        taxes: formData.annualTax ? [{
-            id: `TAX${Date.now()}`,
-            taxType: 'Property Tax',
-            hindiName: 'घर कर',
-            assessedAmount: Number(formData.annualTax),
+        taxes: taxes.filter(t => t.assessedAmount).map(t => ({
+            id: `TAX${Date.now()}${Math.random()}`,
+            taxType: t.taxType,
+            hindiName: '', // This can be populated based on taxType if needed
+            assessedAmount: Number(t.assessedAmount),
             paymentStatus: 'Unpaid',
             amountPaid: 0,
             assessmentYear: new Date().getFullYear(),
-        }] : [],
+        })),
     };
 
     try {
@@ -109,9 +122,10 @@ const Dashboard = () => {
             description: `Property ${propertyId} has been registered.`,
         });
         setFormData({ // Reset form
-            fullName: '', fatherHusbandName: '', mobile: '', aadhar: '',
-            address: '', ward: '', propertyNumber: '', propertyType: '', annualTax: ''
+            ownerName: '', fatherName: '', mobileNumber: '', houseNo: '',
+            address: '', aadhaarHash: '', propertyType: '' as Property['propertyType'], area: ''
         });
+        setTaxes([initialTaxState]);
         setActiveMenu('users'); // Switch to users page
     } catch (error: any) {
         console.error("Error adding document: ", error);
@@ -286,151 +300,83 @@ const Dashboard = () => {
       </h2>
       
       <form onSubmit={handleRegisterSubmit} className="space-y-6">
+        {/* Personal & Property Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Full Name • पूरा नाम *
-            </label>
-            <input
-              type="text"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleInputChange}
-              placeholder="Enter full name"
-              required
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Father's/Husband's Name • पिता/पति का नाम *
-            </label>
-            <input
-              type="text"
-              name="fatherHusbandName"
-              value={formData.fatherHusbandName}
-              onChange={handleInputChange}
-              placeholder="Enter father's/husband's name"
-              required
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Mobile Number • मोबाइल नंबर *
-            </label>
-            <input
-              type="tel"
-              name="mobile"
-              value={formData.mobile}
-              onChange={handleInputChange}
-              placeholder="10-digit mobile number"
-              pattern="[0-9]{10}"
-              required
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Aadhar Number • आधार नंबर
-            </label>
-            <input
-              type="text"
-              name="aadhar"
-              value={formData.aadhar}
-              onChange={handleInputChange}
-              placeholder="12-digit Aadhar number"
-              pattern="[0-9]{12}"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Address • पता *
-            </label>
-            <textarea
-              name="address"
-              value={formData.address}
-              onChange={(e) => handleInputChange(e)}
-              placeholder="Complete address"
-              rows={3}
-              required
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-            ></textarea>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Ward Number • वार्ड नंबर *
-            </label>
-            <select
-              name="ward"
-              value={formData.ward}
-              onChange={(e) => handleInputChange(e)}
-              required
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-            >
-              <option value="">Select Ward</option>
-              <option value="1">Ward 1</option>
-              <option value="2">Ward 2</option>
-              <option value="3">Ward 3</option>
-              <option value="4">Ward 4</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Property Number • संपत्ति नंबर *
-            </label>
-            <input
-              type="text"
-              name="propertyNumber"
-              value={formData.propertyNumber}
-              onChange={handleInputChange}
-              placeholder="e.g., Plot-101"
-              required
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Property Type • संपत्ति का प्रकार *
-            </label>
-            <select
-              name="propertyType"
-              value={formData.propertyType}
-              onChange={(e) => handleInputChange(e)}
-              required
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-            >
-              <option value="">Select Type</option>
-              <option value="Residential">Residential - आवासीय</option>
-              <option value="Commercial">Commercial - व्यावसायिक</option>
-              <option value="Agricultural">Agricultural - कृषि</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Annual Tax Amount • वार्षिक कर राशि *
-            </label>
-            <input
-              type="number"
-              name="annualTax"
-              value={formData.annualTax}
-              onChange={handleInputChange}
-              placeholder="Enter amount in ₹"
-              required
-              min="0"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Full Name • पूरा नाम *</label>
+              <input type="text" name="ownerName" value={formData.ownerName} onChange={handleInputChange} placeholder="Enter full name" required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Father's/Husband's Name • पिता/पति का नाम *</label>
+              <input type="text" name="fatherName" value={formData.fatherName} onChange={handleInputChange} placeholder="Enter father's/husband's name" required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Mobile Number • मोबाइल नंबर *</label>
+              <input type="tel" name="mobileNumber" value={formData.mobileNumber} onChange={handleInputChange} placeholder="10-digit mobile number" pattern="[0-9]{10}" required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Aadhar Number • आधार नंबर</label>
+              <input type="text" name="aadhaarHash" value={formData.aadhaarHash} onChange={handleInputChange} placeholder="12-digit Aadhar number" pattern="[0-9]{12}" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-bold text-gray-700 mb-2">Address • पता *</label>
+              <textarea name="address" value={formData.address} onChange={(e) => handleInputChange(e)} placeholder="Complete address" rows={3} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"></textarea>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">House/Property Number • संपत्ति नंबर *</label>
+              <input type="text" name="houseNo" value={formData.houseNo} onChange={handleInputChange} placeholder="e.g., Plot-101" required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Property Type • संपत्ति का प्रकार *</label>
+              <select name="propertyType" value={formData.propertyType} onChange={(e) => handleInputChange(e)} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg">
+                <option value="">Select Type</option>
+                <option value="Residential">Residential - आवासीय</option>
+                <option value="Commercial">Commercial - व्यावसायिक</option>
+                <option value="Agricultural">Agricultural - कृषि</option>
+              </select>
+            </div>
+             <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Area (sq. ft) • क्षेत्रफल</label>
+                <input type="number" name="area" value={formData.area} onChange={handleInputChange} placeholder="Area in square feet" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg" />
+            </div>
         </div>
+
+        {/* Taxes Section */}
+        <div className="space-y-4 pt-4 border-t-2 border-gray-200 mt-6">
+          <h3 className="text-xl font-bold text-gray-800">Taxes • कर</h3>
+          {taxes.map((tax, index) => (
+            <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Tax Type</label>
+                 <select name="taxType" value={tax.taxType} onChange={(e) => handleTaxChange(index, e)} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg">
+                    <option value="Property Tax">Property Tax</option>
+                    <option value="Water Tax">Water Tax</option>
+                    <option value="Sanitation Tax">Sanitation Tax</option>
+                    <option value="Lighting Tax">Lighting Tax</option>
+                    <option value="Land Tax">Land Tax</option>
+                    <option value="Business Tax">Business Tax</option>
+                    <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Annual Amount</label>
+                <input type="number" name="assessedAmount" value={tax.assessedAmount} onChange={(e) => handleTaxChange(index, e)} placeholder="Amount in ₹" required min="0" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
+              </div>
+              <div className="flex items-end h-full">
+                {taxes.length > 1 && (
+                  <button type="button" onClick={() => removeTaxField(index)} className="p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all">
+                    <MinusCircle className="w-6 h-6" />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+          <button type="button" onClick={addTaxField} className="flex items-center gap-2 text-blue-600 font-bold hover:text-blue-800 transition-all">
+            <PlusCircle className="w-6 h-6" />
+            Add Another Tax • एक और कर जोड़ें
+          </button>
+        </div>
+
 
         <div className="flex gap-4 pt-4">
           <button
@@ -485,7 +431,7 @@ const Dashboard = () => {
             <select
               name="userId"
               value={billData.userId}
-              onChange={(e) => handleInputChange(e, 'bill')}
+              onChange={(e) => handleBillInputChange(e)}
               required
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
             >
@@ -504,7 +450,7 @@ const Dashboard = () => {
               <select
                 name="billType"
                 value={billData.billType}
-                onChange={(e) => handleInputChange(e, 'bill')}
+                onChange={(e) => handleBillInputChange(e)}
                 required
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
               >
@@ -527,7 +473,7 @@ const Dashboard = () => {
                 type="number"
                 name="amount"
                 value={billData.amount}
-                onChange={(e) => handleInputChange(e, 'bill')}
+                onChange={(e) => handleBillInputChange(e)}
                 placeholder="Enter amount"
                 required
                 min="0"
@@ -542,7 +488,7 @@ const Dashboard = () => {
               <select
                 name="paymentMode"
                 value={billData.paymentMode}
-                onChange={(e) => handleInputChange(e, 'bill')}
+                onChange={(e) => handleBillInputChange(e)}
                 required
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
               >
@@ -561,7 +507,7 @@ const Dashboard = () => {
                 type="date"
                 name="date"
                 value={billData.date}
-                onChange={(e) => handleInputChange(e, 'bill')}
+                onChange={(e) => handleBillInputChange(e)}
                 required
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
               />
@@ -575,7 +521,7 @@ const Dashboard = () => {
             <textarea
               name="remarks"
               value={billData.remarks}
-              onChange={(e) => handleInputChange(e, 'bill')}
+              onChange={(e) => handleBillInputChange(e)}
               placeholder="Additional remarks (optional)"
               rows={3}
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
