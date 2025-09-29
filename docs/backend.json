@@ -45,7 +45,7 @@
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "taxType": { "enum": ["Property Tax", "Business Tax", "Land Tax", "Water Tax", "Lighting Tax", "Other"] },
+        "taxType": { "enum": ["Property Tax", "Water Tax", "Sanitation Tax", "Lighting Tax", "Land Tax", "Business Tax", "Other"] },
         "hindiName": { "type": "string" },
         "assessedAmount": { "type": "number" },
         "paymentStatus": { "enum": ["Paid", "Unpaid", "Partial"] },
@@ -81,7 +81,7 @@
           "items": { "$ref": "#/entities/taxRecord" }
         }
       },
-      "required": ["id", "ownerName", "propertyType", "area"]
+      "required": ["id", "ownerName", "fatherName", "address", "propertyType", "area"]
     }
   },
   "auth": {

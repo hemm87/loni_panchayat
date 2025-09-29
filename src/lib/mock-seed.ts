@@ -4,6 +4,8 @@ export const MOCK_PROPERTIES_FOR_SEED: Property[] = [
     {
       id: 'PROP001',
       ownerName: 'Amit Kumar',
+      fatherName: 'Suresh Kumar',
+      address: '123, Gandhi Nagar, Loni',
       mobileNumber: '9876543210',
       houseNo: 'H-12',
       aadhaarHash: '...1234',
@@ -14,7 +16,7 @@ export const MOCK_PROPERTIES_FOR_SEED: Property[] = [
       taxes: [
         {
           id: 'TAX001',
-          taxType: 'House Tax',
+          taxType: 'Property Tax',
           hindiName: 'घर कर',
           assessedAmount: 5000,
           paymentStatus: 'Paid',
@@ -39,6 +41,8 @@ export const MOCK_PROPERTIES_FOR_SEED: Property[] = [
     {
       id: 'PROP002',
       ownerName: 'Sunita Sharma',
+      fatherName: 'Ram Sharma',
+      address: '45, Nehru Market, Loni',
       mobileNumber: '9123456789',
       houseNo: 'B-45',
       aadhaarHash: '...5678',
@@ -49,7 +53,7 @@ export const MOCK_PROPERTIES_FOR_SEED: Property[] = [
       taxes: [
         {
           id: 'TAX003',
-          taxType: 'Profession Tax',
+          taxType: 'Business Tax',
           hindiName: 'व्यवसाय कर',
           assessedAmount: 15000,
           paymentStatus: 'Unpaid',
@@ -70,6 +74,8 @@ export const MOCK_PROPERTIES_FOR_SEED: Property[] = [
     {
       id: 'PROP003',
       ownerName: 'Rajesh Singh',
+      fatherName: 'Vikram Singh',
+      address: 'Khasra No 7, Village Loni',
       mobileNumber: '9988776655',
       houseNo: 'L-7, Khet',
       aadhaarHash: '...9012',
@@ -94,6 +100,8 @@ export const MOCK_PROPERTIES_FOR_SEED: Property[] = [
     {
       id: 'PROP004',
       ownerName: 'Meena Devi',
+      fatherName: 'Anil Paswan',
+      address: '101, Ambedkar Colony, Loni',
       mobileNumber: '9234567890',
       houseNo: 'C-101',
       aadhaarHash: '...3456',
@@ -104,7 +112,7 @@ export const MOCK_PROPERTIES_FOR_SEED: Property[] = [
       taxes: [
         {
           id: 'TAX006',
-          taxType: 'House Tax',
+          taxType: 'Property Tax',
           hindiName: 'घर कर',
           assessedAmount: 4200,
           paymentStatus: 'Unpaid',
@@ -116,6 +124,8 @@ export const MOCK_PROPERTIES_FOR_SEED: Property[] = [
     {
       id: 'PROP005',
       ownerName: 'Sanjay Gupta',
+      fatherName: 'Dinesh Gupta',
+      address: 'Shop 5, Main Market, Loni',
       mobileNumber: '9345678901',
       houseNo: 'Shop-5, Market',
       aadhaarHash: '...7890',
@@ -126,7 +136,7 @@ export const MOCK_PROPERTIES_FOR_SEED: Property[] = [
       taxes: [
         {
           id: 'TAX007',
-          taxType: 'Trade License Fee',
+          taxType: 'Business Tax',
           hindiName: 'व्यापार लाइसेंस शुल्क',
           assessedAmount: 2500,
           paymentStatus: 'Paid',
@@ -137,8 +147,8 @@ export const MOCK_PROPERTIES_FOR_SEED: Property[] = [
         },
         {
           id: 'TAX008',
-          taxType: 'Advertisement Tax',
-          hindiName: 'विज्ञापन कर',
+          taxType: 'Lighting Tax',
+          hindiName: 'प्रकाश कर',
           assessedAmount: 1000,
           paymentStatus: 'Unpaid',
           amountPaid: 0,

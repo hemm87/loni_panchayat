@@ -1,6 +1,6 @@
 export type TaxRecord = {
   id: string;
-  taxType: 'Property Tax' | 'Business Tax' | 'Land Tax' | 'Water Tax' | 'Lighting Tax' | 'Other';
+  taxType: 'Property Tax' | 'Water Tax' | 'Sanitation Tax' | 'Lighting Tax' | 'Land Tax' | 'Business Tax' | 'Other';
   hindiName: string;
   assessedAmount: number;
   paymentStatus: 'Paid' | 'Unpaid' | 'Partial';
