@@ -46,7 +46,7 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
   const filteredData = data.filter(
     property =>
       property.ownerName.toLowerCase().includes(filter.toLowerCase()) ||
-      property.id.toLowerCase().includes(filter.toLowerCase())
+      (property.id && property.id.toLowerCase().includes(filter.toLowerCase()))
   );
 
   return (
@@ -137,5 +137,3 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
     </div>
   );
 }
-
-    
