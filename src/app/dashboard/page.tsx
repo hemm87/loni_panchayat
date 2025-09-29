@@ -5,7 +5,10 @@ import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import type { Property } from '@/lib/types';
 
 const Dashboard = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
@@ -13,6 +16,8 @@ const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
   const { user } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
   
   // Form states for Register Page
   const [formData, setFormData] = useState({
@@ -68,13 +73,57 @@ const Dashboard = () => {
   };
 
   // Handle form submissions (Firebase integration point)
-  const handleRegisterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleRegisterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('Register User Data:', formData);
-    // TODO: Add Firebase Firestore integration here
-    // Example: await addDoc(collection(db, "users"), formData);
-    alert('User registration will be implemented with Firebase');
+    if (!firestore) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Firestore is not initialized.' });
+      return;
+    }
+
+    const propertyId = `PROP${Date.now()}`;
+    const newProperty: Omit<Property, 'id'> = {
+        ownerName: formData.fullName,
+        fatherName: formData.fatherHusbandName,
+        mobileNumber: formData.mobile,
+        houseNo: formData.propertyNumber,
+        address: `${formData.address}, Ward ${formData.ward}`,
+        aadhaarHash: formData.aadhar, // Note: In a real app, this should be hashed.
+        propertyType: formData.propertyType as "Residential" | "Commercial" | "Agricultural",
+        area: 0, // The form doesn't have an area field, defaulting to 0
+        photoUrl: `https://picsum.photos/seed/${propertyId}/600/400`,
+        photoHint: 'new property',
+        taxes: formData.annualTax ? [{
+            id: `TAX${Date.now()}`,
+            taxType: 'Property Tax',
+            hindiName: 'घर कर',
+            assessedAmount: Number(formData.annualTax),
+            paymentStatus: 'Unpaid',
+            amountPaid: 0,
+            assessmentYear: new Date().getFullYear(),
+        }] : [],
+    };
+
+    try {
+        await setDoc(doc(firestore, 'properties', propertyId), newProperty);
+        toast({
+            title: 'Success!',
+            description: `Property ${propertyId} has been registered.`,
+        });
+        setFormData({ // Reset form
+            fullName: '', fatherHusbandName: '', mobile: '', aadhar: '',
+            address: '', ward: '', propertyNumber: '', propertyType: '', annualTax: ''
+        });
+        setActiveMenu('users'); // Switch to users page
+    } catch (error: any) {
+        console.error("Error adding document: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Registration Failed',
+            description: error.message,
+        });
+    }
   };
+
 
   const handleBillSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -249,7 +298,7 @@ const Dashboard = () => {
             <textarea
               name="address"
               value={formData.address}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange(e)}
               placeholder="Complete address"
               rows={3}
               required
@@ -264,7 +313,7 @@ const Dashboard = () => {
             <select
               name="ward"
               value={formData.ward}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange(e)}
               required
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
             >
@@ -298,7 +347,7 @@ const Dashboard = () => {
             <select
               name="propertyType"
               value={formData.propertyType}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange(e)}
               required
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
             >
