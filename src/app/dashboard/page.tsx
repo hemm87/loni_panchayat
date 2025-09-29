@@ -322,7 +322,7 @@ const Dashboard = () => {
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-bold text-gray-700 mb-2">Address • पता *</label>
-              <textarea name="address" value={formData.address} onChange={(e) => handleInputChange(e)} placeholder="Complete address" rows={3} maxLength={200} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"></textarea>
+              <textarea name="address" value={formData.address} onChange={handleInputChange} placeholder="Complete address" rows={3} maxLength={200} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"></textarea>
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">House/Property Number • संपत्ति नंबर *</label>
@@ -330,7 +330,7 @@ const Dashboard = () => {
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Property Type • संपत्ति का प्रकार *</label>
-              <select name="propertyType" value={formData.propertyType} onChange={(e) => handleInputChange(e)} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg">
+              <select name="propertyType" value={formData.propertyType} onChange={handleInputChange} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg">
                 <option value="">Select Type</option>
                 <option value="Residential">Residential - आवासीय</option>
                 <option value="Commercial">Commercial - व्यावसायिक</option>
