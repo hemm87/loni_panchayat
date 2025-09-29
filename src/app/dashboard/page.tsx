@@ -1,7 +1,7 @@
 
 'use client';
 import React, { useState, useMemo } from 'react';
-import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Download, Printer, Save, PlusCircle, MinusCircle } from 'lucide-react';
+import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Download, Printer, Save, PlusCircle, MinusCircle, Plus } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -13,6 +13,7 @@ import { PropertiesTable } from '@/components/properties/properties-table';
 import { StatsCard } from '@/components/ui/stats-card';
 import { DashboardSkeleton } from '@/components/ui/loading-skeletons';
 import { NoPropertiesState, NoReportsState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/ui/page-header';
 
 // Helper function to map tax types to Hindi names
 function getTaxHindiName(taxType: string): string {
@@ -431,11 +432,19 @@ const Dashboard = () => {
   
     return (
       <div className="bg-white rounded-xl shadow-md p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">
-            All Users / Properties • सभी उपयोगकर्ता / संपत्ति
-          </h2>
-        </div>
+         <PageHeader
+          title="Property Records"
+          titleHi="संपत्ति रिकॉर्ड"
+          description="View and manage all registered properties"
+          descriptionHi="सभी पंजीकृत संपत्तियों को देखें और प्रबंधित करें"
+          action={{
+            label: "Add Property",
+            labelHi: "संपत्ति जोड़ें",
+            onClick: () => setActiveMenu('register'),
+            icon: <Plus className="w-5 h-5" />,
+            variant: "default"
+          }}
+        />
   
         <PropertiesTable data={properties || []} />
       </div>
