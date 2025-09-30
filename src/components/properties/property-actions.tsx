@@ -93,7 +93,7 @@ export function PropertyActions({ property }: PropertyActionsProps) {
       const propertyRef = doc(firestore, 'properties', property.id);
       await deleteDoc(propertyRef);
       toast({ title: 'Success', description: 'Property deleted successfully.' });
-    } catch (error: any) => {
+    } catch (error: any) {
       toast({ variant: 'destructive', title: 'Error', description: error.message });
     }
   };
