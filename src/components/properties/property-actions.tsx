@@ -7,6 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   Dialog,
@@ -26,18 +27,18 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger,
   } from "@/components/ui/alert-dialog"
   
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Edit, Trash2, DollarSign } from 'lucide-react';
 import type { Property, TaxRecord } from '@/lib/types';
 import { useFirestore } from '@/firebase';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 interface PropertyActionsProps {
   property: Property;
@@ -48,7 +49,15 @@ export function PropertyActions({ property }: PropertyActionsProps) {
   const { toast } = useToast();
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = React.useState(false);
+
   const [editedProperty, setEditedProperty] = React.useState<Property>(property);
+  const [paymentAmounts, setPaymentAmounts] = React.useState<Record<string, number>>({});
+
+  React.useEffect(() => {
+    // When a new property is selected, reset the payment amounts
+    setPaymentAmounts({});
+  }, [property]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -89,6 +98,44 @@ export function PropertyActions({ property }: PropertyActionsProps) {
     }
   };
 
+  const handlePaymentAmountChange = (taxId: string, amount: string) => {
+    setPaymentAmounts(prev => ({
+        ...prev,
+        [taxId]: parseFloat(amount) || 0,
+    }))
+  }
+
+  const handleRecordPayment = async () => {
+    if (!firestore) return;
+
+    const updatedTaxes = property.taxes.map(tax => {
+        const paymentAmount = paymentAmounts[tax.id] || 0;
+        if (paymentAmount > 0) {
+            const newAmountPaid = tax.amountPaid + paymentAmount;
+            const isPaid = newAmountPaid >= tax.assessedAmount;
+            
+            return {
+                ...tax,
+                amountPaid: newAmountPaid,
+                paymentStatus: isPaid ? 'Paid' : 'Partial' as 'Paid' | 'Partial',
+                paymentDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+                receiptNumber: `REC-${Date.now()}`
+            };
+        }
+        return tax;
+    });
+
+    try {
+        const propertyRef = doc(firestore, 'properties', property.id);
+        await updateDoc(propertyRef, { taxes: updatedTaxes });
+        toast({ title: "Success", description: "Payments recorded successfully."});
+        setIsPaymentDialogOpen(false);
+    } catch (error: any) {
+        toast({ variant: "destructive", title: "Error", description: error.message });
+    }
+  }
+
+
   return (
     <>
       <DropdownMenu>
@@ -99,6 +146,11 @@ export function PropertyActions({ property }: PropertyActionsProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => setIsPaymentDialogOpen(true)}>
+            <DollarSign className="mr-2 h-4 w-4" />
+            <span>Record Payment</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => setIsEditDialogOpen(true)}>
             <Edit className="mr-2 h-4 w-4" />
             <span>Edit Property</span>
@@ -167,6 +219,69 @@ export function PropertyActions({ property }: PropertyActionsProps) {
         </DialogContent>
       </Dialog>
 
+      {/* Payment Dialog */}
+      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+                <DialogTitle>Record Payment for {property.ownerName}</DialogTitle>
+                <DialogDescription>
+                    Enter the amount being paid for each tax. The status will be updated automatically.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto">
+                {property.taxes.length > 0 ? property.taxes.map(tax => {
+                    const due = tax.assessedAmount - tax.amountPaid;
+                    return (
+                        <div key={tax.id} className="grid grid-cols-5 items-center gap-4 p-4 rounded-lg bg-muted/50">
+                            <div className="col-span-2">
+                                <p className="font-semibold">{tax.taxType} <span className="text-xs">({tax.assessmentYear})</span></p>
+                                <p className="text-sm text-muted-foreground">Due: ₹{due.toLocaleString()}</p>
+                            </div>
+                            <div>
+                                {tax.paymentStatus === 'Paid' ? (
+                                    <Badge variant="secondary" className="bg-green-100 text-green-800">Paid</Badge>
+                                ) : tax.paymentStatus === 'Partial' ? (
+                                     <Badge variant="outline" className="border-yellow-400 text-yellow-600">Partial</Badge>
+                                ) : (
+                                    <Badge variant="destructive">Unpaid</Badge>
+                                )}
+                            </div>
+                            <div className="col-span-2">
+                                <Label htmlFor={`payment-${tax.id}`} className="sr-only">Payment Amount</Label>
+                                <div className="relative">
+                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">₹</span>
+                                    <Input 
+                                        id={`payment-${tax.id}`}
+                                        type="number"
+                                        placeholder="0.00"
+                                        className="pl-7"
+                                        value={paymentAmounts[tax.id] || ''}
+                                        onChange={e => handlePaymentAmountChange(tax.id, e.target.value)}
+                                        disabled={tax.paymentStatus === 'Paid'}
+                                        max={due}
+                                        min="0"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }) : (
+                    <p className="text-center text-muted-foreground py-8">No taxes associated with this property.</p>
+                )}
+            </div>
+            <DialogFooter>
+                <DialogClose asChild>
+                    <Button type="button" variant="secondary">Cancel</Button>
+                </DialogClose>
+                <Button type="button" onClick={handleRecordPayment} disabled={Object.values(paymentAmounts).every(v => v === 0)}>
+                    <DollarSign className="mr-2 h-4 w-4" />
+                    Save Payments
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
       {/* Delete Confirmation Dialog */}
        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
@@ -188,3 +303,5 @@ export function PropertyActions({ property }: PropertyActionsProps) {
     </>
   );
 }
+
+    
