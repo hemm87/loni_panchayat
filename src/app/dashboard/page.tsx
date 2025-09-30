@@ -1,33 +1,19 @@
 
 'use client';
 import React, { useState, useMemo } from 'react';
-import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Download, Printer, Save, PlusCircle, MinusCircle, Plus } from 'lucide-react';
+import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Download, Printer, Plus } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useCollection } from '@/firebase';
-import { doc, setDoc, collection } from 'firebase/firestore';
-import { useToast } from '@/hooks/use-toast';
-import type { Property, TaxRecord } from '@/lib/types';
+import { collection } from 'firebase/firestore';
+import type { Property } from '@/lib/types';
 import { PropertiesTable } from '@/components/properties/properties-table';
+import { RegisterPropertyForm } from '@/components/properties/register-property-form';
 import { StatsCard } from '@/components/ui/stats-card';
 import { DashboardSkeleton } from '@/components/ui/loading-skeletons';
 import { NoPropertiesState, NoReportsState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
-
-// Helper function to map tax types to Hindi names
-function getTaxHindiName(taxType: string): string {
-  const mapping: Record<string, string> = {
-    'Property Tax': 'संपत्ति कर',
-    'Water Tax': 'जल कर',
-    'Sanitation Tax': 'स्वच्छता कर',
-    'Lighting Tax': 'प्रकाश कर',
-    'Land Tax': 'भूमि कर',
-    'Business Tax': 'व्यापार कर',
-    'Other': 'अन्य',
-  };
-  return mapping[taxType] || '';
-}
 
 const Dashboard = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
@@ -35,22 +21,6 @@ const Dashboard = () => {
   const router = useRouter();
   const { user } = useUser();
   const firestore = useFirestore();
-  const { toast } = useToast();
-  
-  const initialTaxState: Omit<TaxRecord, 'id' | 'hindiName' | 'paymentStatus' | 'amountPaid' | 'assessmentYear' | 'paymentDate' | 'receiptNumber'> = { taxType: 'Property Tax', assessedAmount: 0 };
-  
-  // Form states for Register Page
-  const [formData, setFormData] = useState({
-    ownerName: '',
-    fatherName: '',
-    mobileNumber: '',
-    houseNo: '',
-    address: '',
-    aadhaarHash: '',
-    propertyType: '' as Property['propertyType'],
-    area: '',
-  });
-  const [taxes, setTaxes] = useState<Omit<TaxRecord, 'id' | 'hindiName' | 'paymentStatus' | 'amountPaid' | 'assessmentYear' | 'paymentDate' | 'receiptNumber'>[]>([initialTaxState]);
 
   // Form states for Bill Page
   const [billData, setBillData] = useState({
@@ -81,84 +51,11 @@ const Dashboard = () => {
     { id: 'reports', icon: BarChart3, label: 'Reports', labelHi: 'रिपोर्ट्स' },
     { id: 'settings', icon: Settings, label: 'Settings', labelHi: 'सेटिंग्स' },
   ];
-
-  // Handle form input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleTaxChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    const newTaxes = [...taxes];
-    newTaxes[index] = { ...newTaxes[index], [name]: name === 'assessedAmount' ? parseFloat(value) || 0 : value as any };
-    setTaxes(newTaxes);
-  };
-
-  const addTaxField = () => {
-    setTaxes([...taxes, initialTaxState]);
-  };
-
-  const removeTaxField = (index: number) => {
-    const newTaxes = taxes.filter((_, i) => i !== index);
-    setTaxes(newTaxes);
-  };
   
   const handleBillInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setBillData(prev => ({ ...prev, [name]: value }));
   };
-
-  // Handle form submissions (Firebase integration point)
-  const handleRegisterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!firestore) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Firestore is not initialized.' });
-      return;
-    }
-  
-    const propertyId = `PROP${Date.now()}`;
-    const propertyData = {
-      ...formData,
-      area: Number(formData.area),
-      photoUrl: `https://picsum.photos/seed/${propertyId}/600/400`,
-      photoHint: 'new property',
-      taxes: taxes.filter(t => t.assessedAmount > 0).map((t, index) => ({
-        id: `TAX${Date.now()}${index}`,
-        taxType: t.taxType,
-        hindiName: getTaxHindiName(t.taxType),
-        assessedAmount: Number(t.assessedAmount),
-        paymentStatus: 'Unpaid' as const,
-        amountPaid: 0,
-        assessmentYear: new Date().getFullYear(),
-        paymentDate: null,
-        receiptNumber: null,
-      })),
-    };
-  
-    try {
-      await setDoc(doc(firestore, 'properties', propertyId), propertyData);
-      toast({
-        title: 'Success!',
-        description: `Property ${propertyId} has been registered.`,
-      });
-      // Reset form...
-      setFormData({
-        ownerName: '', fatherName: '', mobileNumber: '', houseNo: '',
-        address: '', aadhaarHash: '', propertyType: '' as Property['propertyType'], area: ''
-      });
-      setTaxes([initialTaxState]);
-      setActiveMenu('users');
-    } catch (error: any) {
-      console.error("Error adding document: ", error);
-      toast({
-        variant: 'destructive',
-        title: 'Registration Failed',
-        description: error.message,
-      });
-    }
-  };
-
 
   const handleBillSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -310,110 +207,10 @@ const Dashboard = () => {
 
   // Register New User Page
   const RegisterPage = () => (
-    <div className="bg-white rounded-xl shadow-md p-8">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">
-        Register New User • नया उपयोगकर्ता पंजीकरण
-      </h2>
-      
-      <form onSubmit={handleRegisterSubmit} className="space-y-6">
-        {/* Personal & Property Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Full Name • पूरा नाम *</label>
-              <input type="text" name="ownerName" value={formData.ownerName} onChange={(e) => handleInputChange(e)} placeholder="Enter full name" required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Father's/Husband's Name • पिता/पति का नाम *</label>
-              <input type="text" name="fatherName" value={formData.fatherName} onChange={(e) => handleInputChange(e)} placeholder="Enter father's/husband's name" required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
-            </div>
-            <div>
-              <label htmlFor="mobileNumber" className="block text-sm font-bold text-gray-700 mb-2">Mobile Number • मोबाइल नंबर *</label>
-              <input type="tel" name="mobileNumber" value={formData.mobileNumber} onChange={(e) => handleInputChange(e)} placeholder="10-digit mobile number" pattern="[0-9]{10}" maxLength={10} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
-              <p className="text-xs text-gray-500 mt-1">Enter a 10-digit mobile number without country code.</p>
-            </div>
-            <div>
-              <label htmlFor="aadhaarHash" className="block text-sm font-bold text-gray-700 mb-2">Aadhar Number • आधार नंबर</label>
-              <input type="tel" name="aadhaarHash" value={formData.aadhaarHash} onChange={(e) => handleInputChange(e)} placeholder="12-digit Aadhar number" pattern="[0-9]{12}" maxLength={12} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
-              <p className="text-xs text-gray-500 mt-1">Enter 12-digit Aadhar number without spaces.</p>
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-bold text-gray-700 mb-2">Address • पता *</label>
-              <textarea name="address" value={formData.address} onChange={(e) => handleInputChange(e)} placeholder="Complete address" rows={3} maxLength={200} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"></textarea>
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">House/Property Number • संपत्ति नंबर *</label>
-              <input type="text" name="houseNo" value={formData.houseNo} onChange={(e) => handleInputChange(e)} placeholder="e.g., Plot-101" required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Property Type • संपत्ति का प्रकार *</label>
-              <select name="propertyType" value={formData.propertyType} onChange={(e) => handleInputChange(e)} required className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg">
-                <option value="">Select Type</option>
-                <option value="Residential">Residential - आवासीय</option>
-                <option value="Commercial">Commercial - व्यावसायिक</option>
-                <option value="Agricultural">Agricultural - कृषि</option>
-              </select>
-            </div>
-             <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Area (sq. ft) • क्षेत्रफल</label>
-                <input type="number" name="area" value={formData.area} onChange={(e) => handleInputChange(e)} placeholder="Area in square feet" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg" />
-            </div>
-        </div>
-
-        {/* Taxes Section */}
-        <div className="space-y-4 pt-4 border-t-2 border-gray-200 mt-6">
-          <h3 className="text-xl font-bold text-gray-800">Taxes • कर</h3>
-          {taxes.map((tax, index) => (
-            <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Tax Type</label>
-                 <select name="taxType" value={tax.taxType} onChange={(e) => handleTaxChange(index, e)} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg">
-                    <option value="Property Tax">Property Tax</option>
-                    <option value="Water Tax">Water Tax</option>
-                    <option value="Sanitation Tax">Sanitation Tax</option>
-                    <option value="Lighting Tax">Lighting Tax</option>
-                    <option value="Land Tax">Land Tax</option>
-                    <option value="Business Tax">Business Tax</option>
-                    <option value="Other">Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Annual Amount</label>
-                <input type="number" name="assessedAmount" value={tax.assessedAmount} onChange={(e) => handleTaxChange(index, e)} placeholder="Amount in ₹" required min="0" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
-              </div>
-              <div className="flex items-end h-full">
-                {taxes.length > 1 && (
-                  <button type="button" onClick={() => removeTaxField(index)} className="p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all">
-                    <MinusCircle className="w-6 h-6" />
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-          <button type="button" onClick={addTaxField} className="flex items-center gap-2 text-blue-600 font-bold hover:text-blue-800 transition-all">
-            <PlusCircle className="w-6 h-6" />
-            Add Another Tax • एक और कर जोड़ें
-          </button>
-        </div>
-
-
-        <div className="flex gap-4 pt-4">
-          <button
-            type="submit"
-            className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-lg font-bold text-lg hover:shadow-lg transition-all flex items-center justify-center gap-2"
-          >
-            <Save className="w-6 h-6" />
-            Save & Register • सहेजें और पंजीकृत करें
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveMenu('dashboard')}
-            className="px-8 py-4 bg-gray-200 text-gray-700 rounded-lg font-bold text-lg hover:bg-gray-300 transition-all"
-          >
-            Cancel • रद्द करें
-          </button>
-        </div>
-      </form>
-    </div>
+     <RegisterPropertyForm 
+        onFormSubmit={() => setActiveMenu('users')} 
+        onCancel={() => setActiveMenu('dashboard')}
+      />
   );
 
   // All Users Page
