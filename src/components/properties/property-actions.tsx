@@ -93,7 +93,7 @@ export function PropertyActions({ property }: PropertyActionsProps) {
       const propertyRef = doc(firestore, 'properties', property.id);
       await deleteDoc(propertyRef);
       toast({ title: 'Success', description: 'Property deleted successfully.' });
-    } catch (error: any) {
+    } catch (error: any) => {
       toast({ variant: 'destructive', title: 'Error', description: error.message });
     }
   };
@@ -274,7 +274,7 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                     <Button type="button" variant="secondary">Cancel</Button>
                 </DialogClose>
                 <Button type="button" onClick={handleRecordPayment} disabled={Object.values(paymentAmounts).every(v => v === 0)}>
-                    <DollarSign className="mr-2 h-4 w-4" />
+                    <span className="mr-2">₹</span>
                     Save Payments
                 </Button>
             </DialogFooter>
@@ -303,5 +303,3 @@ export function PropertyActions({ property }: PropertyActionsProps) {
     </>
   );
 }
-
-    
