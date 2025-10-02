@@ -1,87 +1,187 @@
 {
   "entities": {
-    "user": {
+    "User": {
       "title": "User",
-      "description": "A user of the application.",
+      "description": "A user of the tax application.",
       "type": "object",
       "properties": {
-        "uid": {
+        "displayName": {
           "type": "string",
-          "description": "The user's unique ID from Firebase Auth."
+          "description": "User's full name."
         },
         "email": {
           "type": "string",
           "format": "email",
-          "description": "The user's email address."
+          "description": "User's email address."
         },
-        "displayName": {
+        "address": {
           "type": "string",
-          "description": "The user's display name."
+          "description": "User's mailing address."
         },
-        "photoURL": {
+        "taxID": {
           "type": "string",
-          "format": "uri",
-          "description": "The URL of the user's profile picture."
+          "description": "User's tax identification number."
         },
-        "role": {
+        "filingStatus": {
           "type": "string",
-          "enum": ["Admin", "Data Entry", "Tax Collector", "Viewer"],
-          "description": "The user's role in the system."
-        },
-        "lastLogin": {
-          "type": "string",
-          "format": "date-time"
+          "description": "User's tax filing status (e.g., Single, Married Filing Jointly)."
         },
         "createdAt": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "The timestamp when the user was created."
         }
       },
-      "required": ["uid", "email", "role", "createdAt"]
+      "required": ["displayName", "createdAt"]
     },
-    "taxRecord": {
-      "title": "Tax Record",
-      "description": "A record of a tax assessment for a property.",
+    "TaxYear": {
+      "title": "Tax Year",
+      "description": "Represents a specific tax filing year for a user.",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "taxType": { "enum": ["Property Tax", "Water Tax", "Sanitation Tax", "Lighting Tax", "Land Tax", "Business Tax", "Other"] },
-        "hindiName": { "type": "string" },
-        "assessedAmount": { "type": "number" },
-        "paymentStatus": { "enum": ["Paid", "Unpaid", "Partial"] },
-        "amountPaid": { "type": "number" },
-        "paymentDate": { "type": "string", "format": "date" },
-        "receiptNumber": { "type": "string" },
-        "assessmentYear": { "type": "number" }
-      },
-      "required": ["id", "taxType", "assessedAmount", "paymentStatus", "amountPaid", "assessmentYear"]
-    },
-    "property": {
-      "title": "Property",
-      "description": "A property in the system, which can be residential, commercial, or agricultural.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "ownerName": { "type": "string" },
-        "fatherName": { "type": "string" },
-        "mobileNumber": { "type": "string" },
-        "houseNo": { "type": "string" },
-        "address": { "type": "string" },
-        "aadhaarHash": { "type": "string" },
-        "propertyType": { "enum": ["Residential", "Commercial", "Agricultural"] },
-        "area": { "type": "number" },
-        "photoUrl": { "type": "string", "format": "uri" },
-        "photoHint": { "type": "string" },
-        "documents": {
-          "type": "array",
-          "items": { "type": "string", "format": "uri" }
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User."
         },
-        "taxes": {
-          "type": "array",
-          "items": { "$ref": "#/entities/taxRecord" }
+        "year": {
+          "type": "integer",
+          "description": "The tax year."
+        },
+        "notes": {
+          "type": "string",
+          "description": "General notes for the tax year."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the tax year record was created."
         }
       },
-      "required": ["id", "ownerName", "fatherName", "address", "propertyType", "area"]
+      "required": ["userId", "year", "createdAt"]
+    },
+    "Income": {
+      "title": "Income",
+      "description": "An income record for a user in a specific tax year.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User."
+        },
+        "taxYearId": {
+          "type": "string",
+          "description": "Reference to the TaxYear."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of income."
+        },
+        "dateReceived": {
+          "type": "string",
+          "format": "date",
+          "description": "The date the income was received."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the income."
+        },
+        "incomeType": {
+          "type": "string",
+          "description": "The type of income (e.g., Salary, Freelance, Investment)."
+        },
+        "source": {
+          "type": "string",
+          "description": "The source of the income (e.g., Employer name)."
+        },
+        "isTaxable": {
+          "type": "boolean",
+          "description": "Whether the income is taxable."
+        }
+      },
+      "required": ["userId", "taxYearId", "amount", "dateReceived", "description", "incomeType"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "An expense record for a user in a specific tax year.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User."
+        },
+        "taxYearId": {
+          "type": "string",
+          "description": "Reference to the TaxYear."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of the expense."
+        },
+        "dateIncurred": {
+          "type": "string",
+          "format": "date",
+          "description": "The date the expense was incurred."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the expense."
+        },
+        "expenseCategory": {
+          "type": "string",
+          "description": "The category of the expense (e.g., Office Supplies, Travel)."
+        },
+        "vendor": {
+          "type": "string",
+          "description": "The vendor or person paid."
+        },
+        "isDeductible": {
+          "type": "boolean",
+          "description": "Whether the expense is tax-deductible."
+        }
+      },
+      "required": ["userId", "taxYearId", "amount", "dateIncurred", "description", "expenseCategory"]
+    },
+    "Document": {
+      "title": "Document",
+      "description": "A file uploaded by a user, potentially linked to income or an expense.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User."
+        },
+        "incomeId": {
+          "type": "string",
+          "description": "Optional reference to an Income record."
+        },
+        "expenseId": {
+          "type": "string",
+          "description": "Optional reference to an Expense record."
+        },
+        "fileName": {
+          "type": "string",
+          "description": "The name of the uploaded file."
+        },
+        "fileUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "The URL to access the file in storage."
+        },
+        "uploadedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the file was uploaded."
+        },
+        "documentType": {
+          "type": "string",
+          "description": "The type of document (e.g., Receipt, Invoice, W-2)."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the document."
+        }
+      },
+      "required": ["userId", "fileName", "fileUrl", "uploadedAt"]
     }
   },
   "auth": {
@@ -89,16 +189,24 @@
   },
   "firestore": {
     "/users/{userId}": {
-      "schema": {
-        "$ref": "#/entities/user"
-      },
-      "description": "Stores user profile information."
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profiles."
     },
-    "/properties/{propertyId}": {
-      "schema": {
-        "$ref": "#/entities/property"
-      },
-      "description": "Stores property records."
+    "/users/{userId}/taxYears/{taxYearId}": {
+      "schema": { "$ref": "#/entities/TaxYear" },
+      "description": "Stores tax year information for each user."
+    },
+    "/users/{userId}/taxYears/{taxYearId}/incomes/{incomeId}": {
+      "schema": { "$ref": "#/entities/Income" },
+      "description": "Stores income records for a specific tax year."
+    },
+    "/users/{userId}/taxYears/{taxYearId}/expenses/{expenseId}": {
+      "schema": { "$ref": "#/entities/Expense" },
+      "description": "Stores expense records for a specific tax year."
+    },
+    "/users/{userId}/documents/{documentId}": {
+      "schema": { "$ref": "#/entities/Document" },
+      "description": "Stores documents uploaded by a user."
     }
   }
 }
