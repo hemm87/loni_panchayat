@@ -252,6 +252,5 @@ export function GenerateBillForm({ properties, onFormSubmit, onCancel }: Generat
       </div>
     </div>
   );
-}
 
     
