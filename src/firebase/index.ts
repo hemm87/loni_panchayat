@@ -1,25 +1,11 @@
 import { initializeApp, getApps, getApp, type FirebaseOptions } from 'firebase/app';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 export function initializeFirebase(firebaseConfig: FirebaseOptions) {
   const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
   const auth = getAuth(app);
   const firestore = getFirestore(app);
-
-  if (process.env.NEXT_PUBLIC_EMULATOR_HOST) {
-    const host = process.env.NEXT_PUBLIC_EMULATOR_HOST;
-    // @ts-ignore
-    if (!auth.emulatorConfig) {
-      connectAuthEmulator(auth, `http://${host}:9099`, {
-        disableWarnings: true,
-      });
-    }
-    // @ts-ignore
-    if (!firestore.emulatorConfig) {
-      connectFirestoreEmulator(firestore, host, 8080);
-    }
-  }
 
   return { app, auth, firestore };
 }
