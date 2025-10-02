@@ -33,7 +33,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MoreHorizontal, Edit, Trash2, DollarSign } from 'lucide-react';
+import { MoreHorizontal, Edit, Trash2, DollarSign, Eye } from 'lucide-react';
 import type { Property, TaxRecord } from '@/lib/types';
 import { useFirestore } from '@/firebase';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
@@ -50,12 +50,14 @@ export function PropertyActions({ property }: PropertyActionsProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = React.useState(false);
+  const [isViewTaxesDialogOpen, setIsViewTaxesDialogOpen] = React.useState(false);
 
   const [editedProperty, setEditedProperty] = React.useState<Property>(property);
   const [paymentAmounts, setPaymentAmounts] = React.useState<Record<string, number>>({});
 
   React.useEffect(() => {
-    // When a new property is selected, reset the payment amounts
+    // When a new property is selected, reset the payment amounts and edited state
+    setEditedProperty(property);
     setPaymentAmounts({});
   }, [property]);
 
@@ -146,6 +148,10 @@ export function PropertyActions({ property }: PropertyActionsProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => setIsViewTaxesDialogOpen(true)}>
+            <Eye className="mr-2 h-4 w-4" />
+            <span>View Taxes</span>
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setIsPaymentDialogOpen(true)}>
             <DollarSign className="mr-2 h-4 w-4" />
             <span>Record Payment</span>
@@ -161,6 +167,78 @@ export function PropertyActions({ property }: PropertyActionsProps) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* View Taxes Dialog */}
+      <Dialog open={isViewTaxesDialogOpen} onOpenChange={setIsViewTaxesDialogOpen}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Tax Details for {property.ownerName}</DialogTitle>
+            <DialogDescription>
+                A complete record of all taxes associated with property ID: {property.id}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+            {property.taxes?.length > 0 ? (
+                <div className="border rounded-lg">
+                    <table className="w-full text-sm">
+                        <thead className="bg-muted/50">
+                            <tr className="border-b">
+                                <th className="p-3 text-left font-semibold">Tax / Year</th>
+                                <th className="p-3 text-left font-semibold">Status</th>
+                                <th className="p-3 text-right font-semibold">Assessed</th>
+                                <th className="p-3 text-right font-semibold">Paid</th>
+                                <th className="p-3 text-right font-semibold">Due</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {property.taxes.map(tax => {
+                            const due = tax.assessedAmount - tax.amountPaid;
+                            return (
+                            <tr key={tax.id} className="border-b last:border-b-0">
+                                <td className="p-3">
+                                    <p className="font-medium">{tax.taxType}</p>
+                                    <p className="text-xs text-muted-foreground">{tax.assessmentYear}</p>
+                                </td>
+                                <td className="p-3">
+                                    {tax.paymentStatus === 'Paid' ? (
+                                        <Badge variant="secondary" className="bg-green-100 text-green-800">Paid</Badge>
+                                    ) : tax.paymentStatus === 'Partial' ? (
+                                        <Badge variant="outline" className="border-yellow-400 text-yellow-600">Partial</Badge>
+                                    ) : (
+                                        <Badge variant="destructive">Unpaid</Badge>
+                                    )}
+                                </td>
+                                <td className="p-3 text-right font-mono">₹{tax.assessedAmount.toLocaleString('en-IN')}</td>
+                                <td className="p-3 text-right font-mono">₹{tax.amountPaid.toLocaleString('en-IN')}</td>
+                                <td className={`p-3 text-right font-mono font-semibold ${due > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                                    ₹{due.toLocaleString('en-IN')}
+                                </td>
+                            </tr>
+                            )
+                        })}
+                        </tbody>
+                        <tfoot>
+                            <tr className="bg-muted/50 font-bold">
+                                <td colSpan={2} className="p-3 text-right">Total</td>
+                                <td className="p-3 text-right font-mono">₹{property.taxes.reduce((acc, t) => acc + t.assessedAmount, 0).toLocaleString('en-IN')}</td>
+                                <td className="p-3 text-right font-mono">₹{property.taxes.reduce((acc, t) => acc + t.amountPaid, 0).toLocaleString('en-IN')}</td>
+                                <td className="p-3 text-right font-mono">₹{property.taxes.reduce((acc, t) => acc + (t.assessedAmount - t.amountPaid), 0).toLocaleString('en-IN')}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-8">No taxes associated with this property.</p>
+            )}
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="secondary">Close</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -229,7 +307,7 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                 </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto">
-                {property.taxes.length > 0 ? property.taxes.map(tax => {
+                {property.taxes?.filter(t => t.paymentStatus !== 'Paid').length > 0 ? property.taxes.filter(t => t.paymentStatus !== 'Paid').map(tax => {
                     const due = tax.assessedAmount - tax.amountPaid;
                     return (
                         <div key={tax.id} className="grid grid-cols-5 items-center gap-4 p-4 rounded-lg bg-muted/50">
@@ -238,9 +316,7 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                                 <p className="text-sm text-muted-foreground">Due: ₹{due.toLocaleString()}</p>
                             </div>
                             <div>
-                                {tax.paymentStatus === 'Paid' ? (
-                                    <Badge variant="secondary" className="bg-green-100 text-green-800">Paid</Badge>
-                                ) : tax.paymentStatus === 'Partial' ? (
+                                {tax.paymentStatus === 'Partial' ? (
                                      <Badge variant="outline" className="border-yellow-400 text-yellow-600">Partial</Badge>
                                 ) : (
                                     <Badge variant="destructive">Unpaid</Badge>
@@ -257,7 +333,6 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                                         className="pl-7"
                                         value={paymentAmounts[tax.id] || ''}
                                         onChange={e => handlePaymentAmountChange(tax.id, e.target.value)}
-                                        disabled={tax.paymentStatus === 'Paid'}
                                         max={due}
                                         min="0"
                                     />
@@ -266,7 +341,7 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                         </div>
                     )
                 }) : (
-                    <p className="text-center text-muted-foreground py-8">No taxes associated with this property.</p>
+                    <p className="text-center text-muted-foreground py-8">All taxes for this property are paid.</p>
                 )}
             </div>
             <DialogFooter>
