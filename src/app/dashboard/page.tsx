@@ -51,7 +51,7 @@ const Dashboard = () => {
   const { data: properties, loading: collectionLoading } = useCollection<Property>(propertiesQuery);
 
   // Dashboard Page
-  const DashboardPage = () => {
+  const DashboardPage = ({ properties }: { properties: Property[] }) => {
     const { totalUsers, paidTaxes, pendingTaxes, totalRevenue, monthlyRevenueData } = useMemo(() => {
         if (!properties) {
           return { totalUsers: 0, paidTaxes: 0, pendingTaxes: 0, totalRevenue: 0, monthlyRevenueData: [] };
@@ -193,7 +193,7 @@ const Dashboard = () => {
   );
 
   // All Users Page
-  const UsersPage = () => {
+  const UsersPage = ({ properties }: { properties: Property[] }) => {
     if (!firestore) {
       return (
         <div className="flex items-center justify-center h-96">
@@ -228,9 +228,9 @@ const Dashboard = () => {
   };
 
   // Generate Bill Page
-  const BillPage = () => (
+  const BillPage = ({ properties }: { properties: Property[] }) => (
     <GenerateBillForm 
-      properties={properties || []} 
+      properties={properties}
       onFormSubmit={() => {
         setActiveMenu('users');
       }} 
@@ -558,10 +558,10 @@ const Dashboard = () => {
 
         {/* Dashboard Content */}
         <main className="flex-1 overflow-y-auto p-6">
-          {activeMenu === 'dashboard' && <DashboardPage />}
+          {activeMenu === 'dashboard' && <DashboardPage properties={properties || []} />}
           {activeMenu === 'register' && <RegisterPage />}
-          {activeMenu === 'users' && <UsersPage />}
-          {activeMenu === 'bill' && <BillPage />}
+          {activeMenu === 'users' && <UsersPage properties={properties || []} />}
+          {activeMenu === 'bill' && <BillPage properties={properties || []} />}
           {activeMenu === 'reports' && <ReportsPage />}
           {activeMenu === 'settings' && <SettingsPage />}
         </main>
@@ -571,5 +571,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
-    
