@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -39,26 +40,31 @@ async function updateUserOnLogin(result: UserCredential) {
   const user = result.user;
   const userRef = doc(firestore, 'users', user.uid);
   
-  const docSnap = await getDoc(userRef);
-  if (docSnap.exists()) {
-    // User exists, update last login
-    await updateDoc(userRef, {
-      lastLogin: new Date().toISOString(),
-    });
-  } else {
-    // This case should ideally not happen if users are pre-registered by an Admin.
-    // For now, we'll log an error or handle as a special case.
-    console.warn(`User with UID ${user.uid} is not registered in the database.`);
-    // Optionally, create a default user profile, but this might contradict the new user flow.
-    const userData = {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName,
-      photoURL: user.photoURL,
-      role: 'Viewer', // Assign a default, least-privileged role
-      createdAt: new Date().toISOString(),
-    };
-    await setDoc(userRef, userData);
+  try {
+    const docSnap = await getDoc(userRef);
+    if (docSnap.exists()) {
+      // User exists, update last login
+      await updateDoc(userRef, {
+        lastLogin: new Date().toISOString(),
+      });
+    } else {
+      // User does not exist, create a new profile.
+      // This is expected for first-time sign-ins, especially with Google.
+      const userData = {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        role: 'Viewer', // Assign a default, least-privileged role
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+      };
+      await setDoc(userRef, userData);
+    }
+  } catch (error) {
+    console.error("Error updating user on login: ", error);
+    // We can decide if we want to throw the error or handle it silently.
+    // For now, logging should be sufficient.
   }
 }
 
@@ -135,8 +141,8 @@ export default function LoginPage() {
 
   const generateRecaptcha = () => {
     const auth = getAuth();
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(
+    if (!(window as any).recaptchaVerifier) {
+      (window as any).recaptchaVerifier = new RecaptchaVerifier(
         auth,
         'recaptcha-container',
         {
@@ -151,7 +157,7 @@ export default function LoginPage() {
     setLoading(true);
     generateRecaptcha();
     const auth = getAuth();
-    const appVerifier = window.recaptchaVerifier;
+    const appVerifier = (window as any).recaptchaVerifier;
     try {
       const formattedPhoneNumber = `+${phoneNumber.replace(/\D/g, '')}`;
       if (formattedPhoneNumber.length < 10) { 
