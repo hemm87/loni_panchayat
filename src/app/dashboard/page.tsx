@@ -1,7 +1,7 @@
 
 'use client';
 import React, { useState, useMemo } from 'react';
-import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Download, Printer, Plus, Save } from 'lucide-react';
+import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Download, Plus } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -10,6 +10,7 @@ import { collection } from 'firebase/firestore';
 import type { Property } from '@/lib/types';
 import { PropertiesTable } from '@/components/properties/properties-table';
 import { RegisterPropertyForm } from '@/components/properties/register-property-form';
+import { GenerateBillForm } from '@/components/billing/generate-bill-form';
 import { StatsCard } from '@/components/ui/stats-card';
 import { DashboardSkeleton } from '@/components/ui/loading-skeletons';
 import { NoPropertiesState, NoReportsState } from '@/components/ui/empty-state';
@@ -21,16 +22,6 @@ const Dashboard = () => {
   const router = useRouter();
   const { user } = useUser();
   const firestore = useFirestore();
-
-  // Form states for Bill Page
-  const [billData, setBillData] = useState({
-    userId: '',
-    billType: '',
-    amount: '',
-    paymentMode: '',
-    date: '',
-    remarks: ''
-  });
 
   const handleLogout = async () => {
     const auth = getAuth();
@@ -51,18 +42,6 @@ const Dashboard = () => {
     { id: 'reports', icon: BarChart3, label: 'Reports', labelHi: 'रिपोर्ट्स' },
     { id: 'settings', icon: Settings, label: 'Settings', labelHi: 'सेटिंग्स' },
   ];
-  
-  const handleBillInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setBillData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleBillSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log('Bill Data:', billData);
-    // TODO: Add Firebase Firestore integration here
-    alert('Bill generation will be implemented with Firebase');
-  };
   
   const propertiesQuery = useMemo(() => {
     if (!firestore) return null;
@@ -147,7 +126,7 @@ const Dashboard = () => {
                   <BarChart data={monthlyRevenueData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
-                    <YAxis />
+                    <YAxis tickFormatter={(value) => `₹${Number(value).toLocaleString('en-IN')}`} />
                     <Tooltip formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`} />
                     <Bar dataKey="revenue" fill="#f97316" radius={[4, 4, 0, 0]} />
                   </BarChart>
@@ -250,149 +229,13 @@ const Dashboard = () => {
 
   // Generate Bill Page
   const BillPage = () => (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-xl shadow-md p-8 mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
-          Generate Bill / Receipt • रसीद बनाएँ
-        </h2>
-
-        <form onSubmit={handleBillSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Select User • उपयोगकर्ता चुनें *
-            </label>
-            <select
-              name="userId"
-              value={billData.userId}
-              onChange={(e) => handleBillInputChange(e)}
-              required
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-            >
-              <option value="">-- Select User from Database --</option>
-              {properties?.map(prop => (
-                  <option key={prop.id} value={prop.id}>{prop.ownerName} ({prop.id})</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Bill Type • बिल का प्रकार *
-              </label>
-              <select
-                name="billType"
-                value={billData.billType}
-                onChange={(e) => handleBillInputChange(e)}
-                required
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-              >
-                <option value="">Select Type</option>
-                <option value="Property Tax">Property Tax</option>
-                <option value="Water Tax">Water Tax</option>
-                <option value="Sanitation Tax">Sanitation Tax</option>
-                <option value="Lighting Tax">Lighting Tax</option>
-                <option value="Land Tax">Land Tax</option>
-                <option value="Business Tax">Business Tax</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Amount • राशि (₹) *
-              </label>
-              <input
-                type="number"
-                name="amount"
-                value={billData.amount}
-                onChange={(e) => handleBillInputChange(e)}
-                placeholder="Enter amount in ₹"
-                required
-                min="0"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Payment Mode • भुगतान मोड *
-              </label>
-              <select
-                name="paymentMode"
-                value={billData.paymentMode}
-                onChange={(e) => handleBillInputChange(e)}
-                required
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-              >
-                <option value="">Select Mode</option>
-                <option value="cash">Cash - नकद</option>
-                <option value="online">Online - ऑनलाइन</option>
-                <option value="cheque">Cheque - चेक</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Date • तारीख *
-              </label>
-              <input
-                type="date"
-                name="date"
-                value={billData.date}
-                onChange={(e) => handleBillInputChange(e)}
-                required
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Remarks • टिप्पणी
-            </label>
-            <textarea
-              name="remarks"
-              value={billData.remarks}
-              onChange={(e) => handleBillInputChange(e)}
-              placeholder="Additional remarks (optional)"
-              rows={3}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
-            ></textarea>
-          </div>
-
-          <div className="flex gap-4">
-            <button
-              type="submit"
-              className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-4 rounded-lg font-bold text-lg hover:shadow-lg transition-all flex items-center justify-center gap-2"
-            >
-              <FileText className="w-6 h-6" />
-              Generate Receipt • रसीद बनाएँ
-            </button>
-            <button
-              type="button"
-              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-lg font-bold text-lg hover:shadow-lg transition-all flex items-center justify-center gap-2"
-            >
-              <Printer className="w-6 h-6" />
-              Print Receipt • रसीद प्रिंट करें
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-md p-8 border-4 border-dashed border-gray-300">
-        <div className="text-center mb-6">
-          <h3 className="text-2xl font-bold text-gray-800">लॉनी ग्राम पंचायत</h3>
-          <p className="text-lg text-gray-600">Loni Gram Panchayat</p>
-          <p className="text-gray-600">Tax Receipt Preview • कर रसीद पूर्वावलोकन</p>
-        </div>
-        <div className="text-center text-gray-500 py-12">
-          <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
-          <p className="text-lg">Receipt will appear here after generation</p>
-          <p>रसीद बनाने के बाद यहां दिखाई देगी</p>
-        </div>
-      </div>
-    </div>
+    <GenerateBillForm 
+      properties={properties || []} 
+      onFormSubmit={() => {
+        setActiveMenu('users');
+      }} 
+      onCancel={() => setActiveMenu('dashboard')}
+    />
   );
 
   // Reports Page

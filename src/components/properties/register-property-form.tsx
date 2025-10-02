@@ -11,24 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Save, PlusCircle, MinusCircle } from 'lucide-react';
 import type { Property, TaxRecord } from '@/lib/types';
+import { getTaxHindiName } from '@/lib/utils';
+
 
 interface RegisterPropertyFormProps {
     onFormSubmit: () => void;
     onCancel: () => void;
-}
-
-// Helper function to map tax types to Hindi names
-function getTaxHindiName(taxType: string): string {
-  const mapping: Record<string, string> = {
-    'Property Tax': 'संपत्ति कर',
-    'Water Tax': 'जल कर',
-    'Sanitation Tax': 'स्वच्छता कर',
-    'Lighting Tax': 'प्रकाश कर',
-    'Land Tax': 'भूमि कर',
-    'Business Tax': 'व्यापार कर',
-    'Other': 'अन्य',
-  };
-  return mapping[taxType] || '';
 }
 
 export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropertyFormProps) {
@@ -51,17 +39,27 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
 
   const [taxes, setTaxes] = useState<Omit<TaxRecord, 'id' | 'hindiName' | 'paymentStatus' | 'amountPaid' | 'assessmentYear' | 'paymentDate' | 'receiptNumber'>[]>([initialTaxState]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleTaxChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleSelectChange = (value: Property['propertyType']) => {
+    setFormData(prev => ({...prev, propertyType: value}));
+  };
+
+  const handleTaxChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const newTaxes = [...taxes];
     newTaxes[index] = { ...newTaxes[index], [name]: name === 'assessedAmount' ? parseFloat(value) || 0 : value as any };
     setTaxes(newTaxes);
   };
+  
+  const handleTaxTypeChange = (index: number, value: TaxRecord['taxType']) => {
+    const newTaxes = [...taxes];
+    newTaxes[index] = { ...newTaxes[index], taxType: value };
+    setTaxes(newTaxes);
+  }
 
   const addTaxField = () => {
     setTaxes([...taxes, initialTaxState]);
@@ -158,7 +156,7 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
             </div>
             <div>
               <Label className="block text-sm font-bold text-gray-700 mb-2">Property Type • संपत्ति का प्रकार *</Label>
-              <Select name="propertyType" value={formData.propertyType} onValueChange={(value) => setFormData(prev => ({...prev, propertyType: value as Property['propertyType']}))} required>
+              <Select name="propertyType" value={formData.propertyType} onValueChange={handleSelectChange} required>
                 <SelectTrigger className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg h-auto">
                     <SelectValue placeholder="Select Type" />
                 </SelectTrigger>
@@ -181,7 +179,7 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
             <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
               <div>
                 <Label className="block text-sm font-bold text-gray-700 mb-1">Tax Type</Label>
-                 <Select name="taxType" value={tax.taxType} onValueChange={(value) => handleTaxChange(index, { target: { name: 'taxType', value } } as any)}>
+                 <Select name="taxType" value={tax.taxType} onValueChange={(value: TaxRecord['taxType']) => handleTaxTypeChange(index, value)}>
                     <SelectTrigger className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg h-auto">
                       <SelectValue placeholder="Select Tax Type" />
                     </SelectTrigger>
@@ -202,14 +200,14 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
               </div>
               <div className="flex items-end h-full">
                 {taxes.length > 1 && (
-                  <Button type="button" onClick={() => removeTaxField(index)} className="p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all">
+                  <Button type="button" variant="destructive" onClick={() => removeTaxField(index)} className="p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all">
                     <MinusCircle className="w-6 h-6" />
                   </Button>
                 )}
               </div>
             </div>
           ))}
-          <Button type="button" onClick={addTaxField} className="flex items-center gap-2 text-blue-600 font-bold hover:text-blue-800 transition-all">
+          <Button type="button" variant="ghost" onClick={addTaxField} className="flex items-center gap-2 text-blue-600 font-bold hover:text-blue-800 transition-all">
             <PlusCircle className="w-6 h-6" />
             Add Another Tax • एक और कर जोड़ें
           </Button>
@@ -238,3 +236,5 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
     </div>
   );
 }
+
+    
