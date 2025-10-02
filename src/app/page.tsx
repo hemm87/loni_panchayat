@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -68,9 +69,11 @@ async function updateUserOnLogin(result: UserCredential) {
   }
 }
 
-export default function LoginPage() {
+function LoginPageContent() {
   const { user, loading: userLoading } = useUser();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -110,9 +113,14 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!userLoading && user) {
-      router.push('/dashboard');
+        const menu = searchParams.get('menu');
+        if (menu === 'register') {
+            router.push('/dashboard?menu=register');
+        } else {
+            router.push('/dashboard');
+        }
     }
-  }, [user, userLoading, router]);
+  }, [user, userLoading, router, searchParams]);
 
   const handleEmailLogin = async () => {
     setLoading(true);
@@ -354,6 +362,14 @@ export default function LoginPage() {
       </Card>
     </div>
   );
+}
+
+export default function LoginPage() {
+    return (
+        <React.Suspense fallback={<div className="flex min-h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+            <LoginPageContent />
+        </React.Suspense>
+    )
 }
 
 declare global {

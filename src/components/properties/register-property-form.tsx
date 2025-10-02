@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Save, PlusCircle, MinusCircle } from 'lucide-react';
 import type { Property, TaxRecord } from '@/lib/types';
 import { getTaxHindiName } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 
 interface RegisterPropertyFormProps {
@@ -22,6 +23,7 @@ interface RegisterPropertyFormProps {
 export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropertyFormProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const initialTaxState: Omit<TaxRecord, 'id' | 'hindiName' | 'paymentStatus' | 'amountPaid' | 'assessmentYear' | 'paymentDate' | 'receiptNumber'> = { taxType: 'Property Tax', assessedAmount: 0 };

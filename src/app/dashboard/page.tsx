@@ -50,6 +50,14 @@ const Dashboard = () => {
 
   const { data: properties, loading: collectionLoading } = useCollection<Property>(propertiesQuery);
 
+  const handleMenuClick = (id: string) => {
+    if (id === 'users') {
+        router.push('/dashboard/properties');
+    } else {
+        setActiveMenu(id);
+    }
+  }
+
   // Dashboard Page
   const DashboardPage = ({ properties }: { properties: Property[] }) => {
     const { totalUsers, paidTaxes, pendingTaxes, totalRevenue, monthlyRevenueData } = useMemo(() => {
@@ -187,52 +195,17 @@ const Dashboard = () => {
   // Register New User Page
   const RegisterPage = () => (
      <RegisterPropertyForm 
-        onFormSubmit={() => setActiveMenu('users')} 
+        onFormSubmit={() => router.push('/dashboard/properties')} 
         onCancel={() => setActiveMenu('dashboard')}
       />
   );
-
-  // All Users Page
-  const UsersPage = ({ properties }: { properties: Property[] }) => {
-    if (!firestore) {
-      return (
-        <div className="flex items-center justify-center h-96">
-          <p className="text-muted-foreground">Firestore is not initialized</p>
-        </div>
-      );
-    }
-  
-    if (!properties || properties.length === 0) {
-      return <NoPropertiesState onAddNew={() => setActiveMenu('register')} />;
-    }
-  
-    return (
-      <div className="bg-white rounded-xl shadow-md p-6">
-         <PageHeader
-          title="Property Records"
-          titleHi="संपत्ति रिकॉर्ड"
-          description="View and manage all registered properties"
-          descriptionHi="सभी पंजीकृत संपत्तियों को देखें और प्रबंधित करें"
-          action={{
-            label: "Add Property",
-            labelHi: "संपत्ति जोड़ें",
-            onClick: () => setActiveMenu('register'),
-            icon: <Plus className="w-5 h-5" />,
-            variant: "default"
-          }}
-        />
-  
-        <PropertiesTable data={properties || []} />
-      </div>
-    );
-  };
 
   // Generate Bill Page
   const BillPage = ({ properties }: { properties: Property[] }) => (
     <GenerateBillForm 
       properties={properties}
       onFormSubmit={() => {
-        setActiveMenu('users');
+        router.push('/dashboard/properties');
       }} 
       onCancel={() => setActiveMenu('dashboard')}
     />
@@ -474,6 +447,24 @@ const Dashboard = () => {
     )
   }
 
+  const renderContent = () => {
+    switch (activeMenu) {
+      case 'dashboard':
+        return <DashboardPage properties={properties || []} />;
+      case 'register':
+        return <RegisterPage />;
+      case 'bill':
+        return <BillPage properties={properties || []} />;
+      case 'reports':
+        return <ReportsPage />;
+      case 'settings':
+        return <SettingsPage />;
+      default:
+        return <DashboardPage properties={properties || []} />;
+    }
+  };
+
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
@@ -496,7 +487,7 @@ const Dashboard = () => {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveMenu(item.id)}
+                onClick={() => handleMenuClick(item.id)}
                 className={`w-full flex items-center gap-4 px-4 py-4 mb-2 rounded-lg text-left transition-all ${
                   activeMenu === item.id
                     ? 'bg-orange-500 text-white shadow-md'
@@ -558,12 +549,7 @@ const Dashboard = () => {
 
         {/* Dashboard Content */}
         <main className="flex-1 overflow-y-auto p-6">
-          {activeMenu === 'dashboard' && <DashboardPage properties={properties || []} />}
-          {activeMenu === 'register' && <RegisterPage />}
-          {activeMenu === 'users' && <UsersPage properties={properties || []} />}
-          {activeMenu === 'bill' && <BillPage properties={properties || []} />}
-          {activeMenu === 'reports' && <ReportsPage />}
-          {activeMenu === 'settings' && <SettingsPage />}
+          {renderContent()}
         </main>
       </div>
     </div>
@@ -571,3 +557,5 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+    
