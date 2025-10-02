@@ -197,7 +197,7 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
                 </Select>
               </div>
               <div>
-                <Label className="block text-sm font-bold text-gray-700 mb-1">Annual Amount</Label>
+                <Label className="block text-sm font-bold text-gray-700 mb-1">Annual Amount (₹)</Label>
                 <Input type="number" name="assessedAmount" value={tax.assessedAmount} onChange={(e) => handleTaxChange(index, e)} placeholder="Amount in ₹" required min="0" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"/>
               </div>
               <div className="flex items-end h-full">
@@ -238,3 +238,5 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
     </div>
   );
 }
+
+    

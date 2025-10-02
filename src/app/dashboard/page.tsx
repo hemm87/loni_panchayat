@@ -300,14 +300,14 @@ const Dashboard = () => {
 
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
-                Amount • राशि *
+                Amount • राशि (₹) *
               </label>
               <input
                 type="number"
                 name="amount"
                 value={billData.amount}
                 onChange={(e) => handleBillInputChange(e)}
-                placeholder="Enter amount"
+                placeholder="Enter amount in ₹"
                 required
                 min="0"
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-lg"
