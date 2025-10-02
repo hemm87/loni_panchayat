@@ -238,5 +238,3 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
     </div>
   );
 }
-
-    
