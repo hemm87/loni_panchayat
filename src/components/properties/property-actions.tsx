@@ -35,7 +35,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MoreHorizontal, Edit, Trash2, DollarSign, Eye } from 'lucide-react';
 import type { Property, TaxRecord } from '@/lib/types';
-import { useFirestore } from '@/firebase';
+import { getFirebase } from '@/firebase';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -45,7 +45,6 @@ interface PropertyActionsProps {
 }
 
 export function PropertyActions({ property }: PropertyActionsProps) {
-  const firestore = useFirestore();
   const { toast } = useToast();
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
@@ -71,6 +70,7 @@ export function PropertyActions({ property }: PropertyActionsProps) {
   };
 
   const handleUpdate = async () => {
+    const { firestore } = getFirebase();
     if (!firestore) return;
     try {
       const propertyRef = doc(firestore, 'properties', property.id);
@@ -90,6 +90,7 @@ export function PropertyActions({ property }: PropertyActionsProps) {
   };
 
   const handleDelete = async () => {
+    const { firestore } = getFirebase();
     if (!firestore) return;
     try {
       const propertyRef = doc(firestore, 'properties', property.id);
@@ -108,6 +109,7 @@ export function PropertyActions({ property }: PropertyActionsProps) {
   }
 
   const handleRecordPayment = async () => {
+    const { firestore } = getFirebase();
     if (!firestore) return;
 
     const updatedTaxes = property.taxes.map(tax => {
@@ -378,5 +380,3 @@ export function PropertyActions({ property }: PropertyActionsProps) {
     </>
   );
 }
-
-    

@@ -1,7 +1,7 @@
 
 'use client';
 import { useState } from 'react';
-import { useFirestore } from '@/firebase';
+import { getFirebase } from '@/firebase';
 import { doc, updateDoc, getDoc, arrayUnion } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,6 @@ interface GenerateBillFormProps {
 }
 
 export function GenerateBillForm({ properties, onFormSubmit, onCancel }: GenerateBillFormProps) {
-  const firestore = useFirestore();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -45,6 +44,7 @@ export function GenerateBillForm({ properties, onFormSubmit, onCancel }: Generat
 
   const handleBillSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const { firestore } = getFirebase();
     if (!firestore || !billData.propertyId) {
         toast({
             variant: 'destructive',
@@ -252,5 +252,3 @@ export function GenerateBillForm({ properties, onFormSubmit, onCancel }: Generat
       </div>
     </div>
   );
-
-    

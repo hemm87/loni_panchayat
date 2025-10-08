@@ -1,7 +1,7 @@
 
 'use client';
 import { useState } from 'react';
-import { useFirestore } from '@/firebase';
+import { getFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,6 @@ interface RegisterPropertyFormProps {
 }
 
 export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropertyFormProps) {
-  const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -74,6 +73,7 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
   
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const { firestore } = getFirebase();
     if (!firestore) {
         toast({
             variant: 'destructive',
@@ -238,5 +238,3 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
     </div>
   );
 }
-
-    

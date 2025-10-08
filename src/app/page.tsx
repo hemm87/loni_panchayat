@@ -16,7 +16,7 @@ import {
   type ConfirmationResult,
   type UserCredential,
 } from 'firebase/auth';
-import { useUser } from '@/firebase';
+import { useUser, getFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -31,7 +31,6 @@ import { Scale, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
-import { getFirebase } from '@/firebase/provider';
 
 
 async function updateUserOnLogin(result: UserCredential) {
