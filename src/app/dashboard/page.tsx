@@ -5,7 +5,7 @@ import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { useUser, useFirestore, useCollection } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { Property } from '@/lib/types';
 import { PropertiesTable } from '@/components/properties/properties-table';
@@ -43,12 +43,12 @@ const Dashboard = () => {
     { id: 'settings', icon: Settings, label: 'Settings', labelHi: 'सेटिंग्स' },
   ];
   
-  const propertiesQuery = useMemo(() => {
+  const propertiesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return collection(firestore, 'properties');
   }, [firestore]);
 
-  const { data: properties, loading: collectionLoading } = useCollection<Property>(propertiesQuery);
+  const { data: properties, isLoading: collectionLoading } = useCollection<Property>(propertiesQuery);
 
   const handleMenuClick = (id: string) => {
     if (id === 'users') {
@@ -557,5 +557,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
-    
