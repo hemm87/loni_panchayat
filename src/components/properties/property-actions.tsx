@@ -24,21 +24,21 @@ import {
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
-    AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
+    AlertDialogFooter,
   } from "@/components/ui/alert-dialog"
   
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MoreHorizontal, Edit, Trash2, DollarSign, Eye } from 'lucide-react';
-import type { Property, TaxRecord } from '@/lib/types';
-import { initializeFirebase } from '@/firebase';
+import { MoreHorizontal, Edit, Trash2, DollarSign, Eye, Printer, Loader2 } from 'lucide-react';
+import type { Property, TaxRecord, PanchayatSettings } from '@/lib/types';
+import { initializeFirebase, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { generateBillPdf } from '@/lib/pdf-generator';
 
 interface PropertyActionsProps {
   property: Property;
@@ -50,9 +50,20 @@ export function PropertyActions({ property }: PropertyActionsProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = React.useState(false);
   const [isViewTaxesDialogOpen, setIsViewTaxesDialogOpen] = React.useState(false);
+  const [isPrinting, setIsPrinting] = React.useState(false);
 
   const [editedProperty, setEditedProperty] = React.useState<Property>(property);
   const [paymentAmounts, setPaymentAmounts] = React.useState<Record<string, number>>({});
+
+  const { firestore } = initializeFirebase();
+
+  const settingsDocRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'panchayat-settings', 'config');
+  }, [firestore]);
+
+  const { data: settings } = useDoc<PanchayatSettings>(settingsDocRef);
+
 
   React.useEffect(() => {
     // When a new property is selected, reset the payment amounts and edited state
@@ -70,7 +81,6 @@ export function PropertyActions({ property }: PropertyActionsProps) {
   };
 
   const handleUpdate = async () => {
-    const { firestore } = initializeFirebase();
     if (!firestore) return;
     try {
       const propertyRef = doc(firestore, 'properties', property.id);
@@ -90,7 +100,6 @@ export function PropertyActions({ property }: PropertyActionsProps) {
   };
 
   const handleDelete = async () => {
-    const { firestore } = initializeFirebase();
     if (!firestore) return;
     try {
       const propertyRef = doc(firestore, 'properties', property.id);
@@ -109,7 +118,6 @@ export function PropertyActions({ property }: PropertyActionsProps) {
   }
 
   const handleRecordPayment = async () => {
-    const { firestore } = initializeFirebase();
     if (!firestore) return;
 
     const updatedTaxes = property.taxes.map(tax => {
@@ -136,6 +144,24 @@ export function PropertyActions({ property }: PropertyActionsProps) {
         setIsPaymentDialogOpen(false);
     } catch (error: any) {
         toast({ variant: "destructive", title: "Error", description: error.message });
+    }
+  }
+
+  const handlePrintBill = async () => {
+    if (!property || !settings) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Property or settings data is missing.'});
+        return;
+    }
+    setIsPrinting(true);
+    try {
+        // We pass only the unpaid taxes to the PDF generator
+        const unpaidTaxes = property.taxes.filter(t => t.paymentStatus !== 'Paid');
+        await generateBillPdf(property, unpaidTaxes, settings);
+    } catch (error) {
+        console.error("Failed to generate PDF", error);
+        toast({ variant: 'destructive', title: 'PDF Generation Failed', description: 'Could not generate the bill.' });
+    } finally {
+        setIsPrinting(false);
     }
   }
 
@@ -198,7 +224,7 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                             return (
                             <tr key={tax.id} className="border-b last:border-b-0">
                                 <td className="p-3">
-                                    <p className="font-medium">{tax.taxType}</p>
+                                    <p className="font-medium">{tax.taxType} ({tax.hindiName})</p>
                                     <p className="text-xs text-muted-foreground">{tax.assessmentYear}</p>
                                 </td>
                                 <td className="p-3">
@@ -233,7 +259,16 @@ export function PropertyActions({ property }: PropertyActionsProps) {
               <p className="text-center text-muted-foreground py-8">No taxes associated with this property.</p>
             )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="sm:justify-between">
+            <Button 
+                onClick={handlePrintBill} 
+                disabled={isPrinting}
+                variant="default"
+                className="bg-blue-600 hover:bg-blue-700"
+            >
+                {isPrinting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Printer className="mr-2 h-4 w-4" />}
+                Print Bill
+            </Button>
             <DialogClose asChild>
               <Button type="button" variant="secondary">Close</Button>
             </DialogClose>
