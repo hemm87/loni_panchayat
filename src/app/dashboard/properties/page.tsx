@@ -1,7 +1,7 @@
 
 'use client';
 import { useMemo, useState, useEffect } from 'react';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { PropertiesTable } from '@/components/properties/properties-table';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,12 +31,12 @@ export default function PropertiesPage() {
   const firestore = useFirestore();
   const router = useRouter();
 
-  const propertiesQuery = useMemo(() => {
+  const propertiesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return collection(firestore, 'properties');
   }, [firestore]);
 
-  const { data: properties, loading: collectionLoading } = useCollection<Property>(propertiesQuery);
+  const { data: properties, isLoading: collectionLoading } = useCollection<Property>(propertiesQuery);
   
   if (collectionLoading) {
     return <PropertiesSkeleton />;
@@ -60,7 +60,7 @@ export default function PropertiesPage() {
           action={{
             label: "Add Property",
             labelHi: "संपत्ति जोड़ें",
-            onClick: () => router.push('/?menu=register'), // A bit of a hack
+            onClick: () => router.push('/dashboard?menu=register'), // A bit of a hack
             icon: <Plus className="w-5 h-5" />,
             variant: "default"
           }}
@@ -70,10 +70,8 @@ export default function PropertiesPage() {
         {properties && properties.length > 0 ? (
             <PropertiesTable data={properties || []} />
         ) : (
-            <NoPropertiesState onAddNew={() => router.push('/?menu=register')} />
+            <NoPropertiesState onAddNew={() => router.push('/dashboard?menu=register')} />
         )}
     </div>
   );
 }
-
-    
