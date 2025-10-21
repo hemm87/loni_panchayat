@@ -1,7 +1,7 @@
 
 'use client';
 import React, { useState, useMemo } from 'react';
-import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Download, Plus, Save } from 'lucide-react';
+import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Download, Plus, Save, Building } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -82,7 +82,7 @@ const Dashboard = () => {
           prop.taxes?.forEach(t => {
             totalRevenue += t.amountPaid;
             if (t.paymentDate) {
-              const month = new Date(t.paymentDate).toLocaleString('hi-IN', { month: 'short' });
+              const month = new Date(t.paymentDate).toLocaleString('default', { month: 'short' });
               if (monthlyRevenue[month]) {
                 monthlyRevenue[month] += t.amountPaid;
               } else {
@@ -101,7 +101,7 @@ const Dashboard = () => {
       }, [properties]);
     
     const stats = [
-      { title: 'Total Users', titleHi: 'कुल उपयोगकर्ता', value: totalUsers.toLocaleString('en-IN'), color: 'bg-blue-500', icon: '👤' },
+      { title: 'Total Users', titleHi: 'कुल उपयोगकर्ता', value: totalUsers.toLocaleString('en-IN'), color: 'bg-blue-500', icon: '👥' },
       { title: 'Paid Taxes', titleHi: 'भरे हुए कर', value: paidTaxes.toLocaleString('en-IN'), color: 'bg-green-500', icon: '✅' },
       { title: 'Pending Taxes', titleHi: 'लंबित कर', value: pendingTaxes.toLocaleString('en-IN'), color: 'bg-orange-500', icon: '⏳' },
       { title: 'Total Revenue', titleHi: 'कुल राजस्व', value: `₹${totalRevenue.toLocaleString('en-IN')}`, color: 'bg-purple-500', icon: '💰' },
@@ -125,7 +125,7 @@ const Dashboard = () => {
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-border">
             <h3 className="text-xl font-bold text-gray-800 mb-4">
               Monthly Revenue • मासिक राजस्व
             </h3>
@@ -135,8 +135,8 @@ const Dashboard = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis tickFormatter={(value) => `₹${Number(value).toLocaleString('en-IN')}`} />
-                    <Tooltip formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`} />
-                    <Bar dataKey="revenue" fill="#f97316" radius={[4, 4, 0, 0]} />
+                    <Tooltip formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Revenue']} />
+                    <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
@@ -146,7 +146,7 @@ const Dashboard = () => {
               )}
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-border">
             <h3 className="text-xl font-bold text-gray-800 mb-4">
               Tax Distribution • कर वितरण
             </h3>
@@ -157,34 +157,34 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-md p-6">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-border">
           <h3 className="text-xl font-bold text-gray-800 mb-4">
             Quick Actions • त्वरित कार्य
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <button
               onClick={() => setActiveMenu('register')}
-              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-6 rounded-xl font-bold text-lg hover:shadow-lg transition-all transform hover:scale-105"
+              className="group bg-background border-2 border-dashed border-gray-300 hover:border-primary hover:bg-primary/5 transition-all p-6 rounded-xl text-center"
             >
-              <div className="text-3xl mb-2">➕</div>
-              <div>Register New User</div>
-              <div className="text-sm opacity-90">नया उपयोगकर्ता</div>
+              <UserPlus className="w-12 h-12 mx-auto text-primary mb-2 transition-transform group-hover:scale-110" />
+              <p className="font-bold text-lg text-foreground">Register New User</p>
+              <p className="text-sm text-muted-foreground">नया उपयोगकर्ता</p>
             </button>
             <button
               onClick={() => setActiveMenu('bill')}
-              className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-6 rounded-xl font-bold text-lg hover:shadow-lg transition-all transform hover:scale-105"
+              className="group bg-background border-2 border-dashed border-gray-300 hover:border-green-500 hover:bg-green-500/5 transition-all p-6 rounded-xl text-center"
             >
-              <div className="text-3xl mb-2">📑</div>
-              <div>Generate Bill</div>
-              <div className="text-sm opacity-90">रसीद बनाएँ</div>
+              <FileText className="w-12 h-12 mx-auto text-green-500 mb-2 transition-transform group-hover:scale-110" />
+              <p className="font-bold text-lg text-foreground">Generate Bill</p>
+              <p className="text-sm text-muted-foreground">रसीद बनाएँ</p>
             </button>
             <button
               onClick={() => setActiveMenu('reports')}
-              className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-6 rounded-xl font-bold text-lg hover:shadow-lg transition-all transform hover:scale-105"
+              className="group bg-background border-2 border-dashed border-gray-300 hover:border-purple-500 hover:bg-purple-500/5 transition-all p-6 rounded-xl text-center"
             >
-              <div className="text-3xl mb-2">📊</div>
-              <div>View Reports</div>
-              <div className="text-sm opacity-90">रिपोर्ट देखें</div>
+              <BarChart3 className="w-12 h-12 mx-auto text-purple-500 mb-2 transition-transform group-hover:scale-110" />
+              <p className="font-bold text-lg text-foreground">View Reports</p>
+              <p className="text-sm text-muted-foreground">रिपोर्ट देखें</p>
             </button>
           </div>
         </div>
@@ -214,7 +214,7 @@ const Dashboard = () => {
   // Reports Page
   const ReportsPage = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-md p-6">
+      <div className="bg-white rounded-xl shadow-lg p-6 border border-border">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">
           Reports & Analytics • रिपोर्ट्स और विश्लेषण
         </h2>
@@ -226,7 +226,7 @@ const Dashboard = () => {
             </label>
             <input
               type="date"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
             />
           </div>
           <div>
@@ -235,14 +235,14 @@ const Dashboard = () => {
             </label>
             <input
               type="date"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
             />
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">
               Report Type • रिपोर्ट प्रकार
             </label>
-            <select className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none">
+            <select className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none">
               <option>All Reports</option>
               <option>Revenue Report</option>
               <option>Tax Collection</option>
@@ -252,17 +252,13 @@ const Dashboard = () => {
         </div>
 
         <div className="flex gap-4">
-          <button className="bg-blue-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-600 transition-all flex items-center gap-2">
+          <button className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-bold hover:bg-primary/90 transition-all flex items-center gap-2">
             <Search className="w-5 h-5" />
             Generate Report • रिपोर्ट बनाएँ
           </button>
-          <button className="bg-green-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-600 transition-all flex items-center gap-2">
+          <button className="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition-all flex items-center gap-2">
             <Download className="w-5 h-5" />
             Export PDF
-          </button>
-          <button className="bg-purple-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-purple-600 transition-all flex items-center gap-2">
-            <Download className="w-5 h-5" />
-            Export Excel
           </button>
         </div>
       </div>
@@ -273,7 +269,7 @@ const Dashboard = () => {
   // Settings Page
   const SettingsPage = () => (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-xl shadow-md p-8">
+      <div className="bg-white rounded-xl shadow-lg p-8 border border-border">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">
           Settings • सेटिंग्स
         </h2>
@@ -287,7 +283,7 @@ const Dashboard = () => {
                 <input
                   type="text"
                   defaultValue="Loni Gram Panchayat"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
                 />
               </div>
               <div>
@@ -295,7 +291,7 @@ const Dashboard = () => {
                 <input
                   type="text"
                   placeholder="Enter district name"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
                 />
               </div>
               <div>
@@ -303,7 +299,7 @@ const Dashboard = () => {
                 <input
                   type="text"
                   placeholder="Enter state name"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
                 />
               </div>
               <div>
@@ -311,7 +307,7 @@ const Dashboard = () => {
                 <input
                   type="text"
                   placeholder="Enter PIN code"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
                 />
               </div>
             </div>
@@ -327,7 +323,7 @@ const Dashboard = () => {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
                 />
               </div>
               <div>
@@ -337,7 +333,7 @@ const Dashboard = () => {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
                 />
               </div>
               <div>
@@ -347,7 +343,7 @@ const Dashboard = () => {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
                 />
               </div>
             </div>
@@ -361,70 +357,15 @@ const Dashboard = () => {
                   <p className="font-bold text-gray-800">Admin User</p>
                   <p className="text-sm text-gray-600">admin@lonipanchayat.in</p>
                 </div>
-                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-600 transition-all">
+                <button className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-bold hover:bg-primary/90 transition-all">
                   Change Password
                 </button>
               </div>
             </div>
           </div>
-
-          <div className="border-b pb-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Receipt Settings • रसीद सेटिंग्स</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Receipt Prefix</label>
-                <input
-                  type="text"
-                  placeholder="e.g., LGP/2025/"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Starting Number</label>
-                <input
-                  type="number"
-                  placeholder="1"
-                  min="1"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="border-b pb-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Notifications • सूचनाएं</h3>
-            <div className="space-y-3">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" className="w-5 h-5 text-orange-500" defaultChecked />
-                <span className="text-gray-700">SMS notifications for tax reminders</span>
-              </label>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" className="w-5 h-5 text-orange-500" defaultChecked />
-                <span className="text-gray-700">Email notifications for payments</span>
-              </label>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" className="w-5 h-5 text-orange-500" />
-                <span className="text-gray-700">WhatsApp notifications</span>
-              </label>
-            </div>
-          </div>
-
-          <div className="border-b pb-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Backup & Data • बैकअप और डेटा</h3>
-            <div className="space-y-4">
-              <button className="w-full bg-blue-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-600 transition-all flex items-center justify-center gap-2">
-                <Download className="w-5 h-5" />
-                Download Database Backup • डेटाबेस बैकअप डाउनलोड करें
-              </button>
-              <button className="w-full bg-green-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-600 transition-all flex items-center justify-center gap-2">
-                <Download className="w-5 h-5" />
-                Export All Data to Excel • सभी डेटा एक्सेल में निर्यात करें
-              </button>
-            </div>
-          </div>
-
+          
           <div className="flex gap-4">
-            <button className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-lg font-bold text-lg hover:shadow-lg transition-all flex items-center justify-center gap-2">
+            <button className="flex-1 bg-primary text-primary-foreground px-8 py-4 rounded-lg font-bold text-lg hover:shadow-lg transition-all flex items-center justify-center gap-2">
               <Save className="w-6 h-6" />
               Save Settings • सेटिंग्स सहेजें
             </button>
@@ -471,8 +412,8 @@ const Dashboard = () => {
       <aside className={`${sidebarOpen ? 'w-72' : 'w-0'} bg-white shadow-lg transition-all duration-300 overflow-hidden relative`}>
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white text-xl font-bold">
-              🏛️
+            <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-white text-xl font-bold">
+              <Building />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-800">Loni Panchayat</h1>
@@ -488,16 +429,16 @@ const Dashboard = () => {
               <button
                 key={item.id}
                 onClick={() => handleMenuClick(item.id)}
-                className={`w-full flex items-center gap-4 px-4 py-4 mb-2 rounded-lg text-left transition-all ${
+                className={`w-full flex items-center gap-4 px-4 py-4 mb-2 rounded-lg text-left transition-all font-semibold ${
                   activeMenu === item.id
-                    ? 'bg-orange-500 text-white shadow-md'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-primary/90 text-primary-foreground shadow-lg'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-primary'
                 }`}
               >
                 <Icon className="w-6 h-6" />
                 <div className="flex-1">
-                  <div className="font-semibold text-base">{item.label}</div>
-                  <div className="text-sm opacity-90">{item.labelHi}</div>
+                  <div className="text-base">{item.label}</div>
+                  <div className="text-sm opacity-80">{item.labelHi}</div>
                 </div>
               </button>
             );
@@ -507,11 +448,11 @@ const Dashboard = () => {
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-4 py-4 rounded-lg text-red-600 hover:bg-red-50 transition-all"
+            className="w-full flex items-center gap-4 px-4 py-4 rounded-lg text-red-600 hover:bg-red-50 transition-all font-semibold"
           >
             <LogOut className="w-6 h-6" />
             <div>
-              <div className="font-semibold text-base">Logout</div>
+              <div className="text-base">Logout</div>
               <div className="text-sm">लॉगआउट</div>
             </div>
           </button>
@@ -535,12 +476,12 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600">Welcome back! • स्वागत है</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="font-semibold text-gray-800">{user?.displayName || 'Admin User'}</p>
                 <p className="text-sm text-gray-600">{user?.email || 'admin@lonipanchayat.in'}</p>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-white font-bold text-xl uppercase">
                 {user?.displayName?.charAt(0) || 'A'}
               </div>
             </div>

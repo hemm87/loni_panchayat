@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -53,10 +54,10 @@ export function PageHeader({
           ))}
         </div>
       )}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           {showBackButton && (
-            <Button variant="outline" size="icon" onClick={onBack}>
+            <Button variant="outline" size="icon" onClick={onBack} className="shrink-0">
               <ArrowLeft className="h-5 w-5" />
               <span className="sr-only">Back</span>
             </Button>
@@ -78,7 +79,7 @@ export function PageHeader({
             variant={action.variant || 'default'}
             className="shrink-0"
           >
-            {action.icon && <span className="mr-2">{action.icon}</span>}
+            {action.icon}
             <div className="flex flex-col text-left -space-y-1">
                 <span>{action.label}</span>
                 <span className="text-xs opacity-80">{action.labelHi}</span>
