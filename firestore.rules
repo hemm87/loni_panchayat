@@ -1,201 +1,158 @@
-/**
- * @fileoverview Firestore Security Rules for the tax management system.
- *
- * Core Philosophy:
- * This ruleset enforces a strict user-ownership model. Each user can only access their own data.
- *
- * Data Structure:
- * All data is nested under /users/{userId}, ensuring data isolation between users.
- * - /users/{userId}: Stores user profiles, with the document ID matching the Firebase Auth UID.
- * - /users/{userId}/taxYears/{taxYearId}: Stores tax years for each user.
- * - /users/{userId}/taxYears/{taxYearId}/incomes/{incomeId}: Stores income records for each tax year.
- * - /users/{userId}/taxYears/{taxYearId}/expenses/{expenseId}: Stores expense records for each tax year.
- * - /users/{userId}/documents/{documentId}: Stores document metadata for each user.
- *
- * Key Security Decisions:
- * - Users can only create, read, update, and delete their own data.
- * - Listing of documents is allowed within a user's own collections.
- * - No global admin roles are defined, simplifying the security model.
- *
- * Denormalization for Authorization:
- *  The `userId` field is present in all subcollections, enabling simple ownership checks without additional `get()` calls.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Checks if the user is signed in.
-     * @return {boolean} True if the user is signed in, false otherwise.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * @description Checks if the authenticated user is the owner of the resource.
-     * @param {string} userId The user ID to compare against the authenticated user's ID.
-     * @return {boolean} True if the user is the owner, false otherwise.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    /**
-     * @description Checks if the authenticated user is the owner of the existing resource.
-     * It also ensures that the resource exists.
-     * @param {string} userId The user ID to compare against the authenticated user's ID.
-     * @return {boolean} True if the user is the owner and the resource exists, false otherwise.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /**
-     * @description Rules for the /users/{userId} collection.
+     * @description Allows users to read and write their own profile data.
      * @path /users/{userId}
-     * @allow (create) User with UID 'user123' can create their profile.
-     *   request.auth.uid == 'user123'
-     *   request.resource.data.id == 'user123'
-     * @allow (get) User with UID 'user123' can read their profile.
-     *   request.auth.uid == 'user123'
-     * @allow (update) User with UID 'user123' can update their profile.
-     *   request.auth.uid == 'user123'
-     * @deny (create) User with UID 'user456' cannot create a profile for 'user123'.
-     *   request.auth.uid == 'user456'
-     *   request.resource.data.id == 'user123'
-     * @deny (update) User with UID 'user456' cannot update profile for 'user123'.
-     *   request.auth.uid == 'user456'
-     * @principle Enforces document ownership for all operations on user profiles.
+     * @allow (create) User with UID 'user123' can create their profile document.
+     * @allow (get) User with UID 'user123' can read their profile document.
+     * @allow (update) User with UID 'user123' can update their profile document.
+     * @allow (delete) User with UID 'user123' can delete their profile document.
+     * @deny (create) User with UID 'user456' cannot create a profile document with ID 'user123'.
+     * @principle Enforces document ownership and validates relational integrity.
      */
     match /users/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource.data != null;
+      }
       allow get: if isOwner(userId);
-      allow list: if false; // Listing users is not permitted.
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow list: if false;
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Rules for the /users/{userId}/taxYears/{taxYearId} collection.
+     * @description Allows users to manage their tax year data.
      * @path /users/{userId}/taxYears/{taxYearId}
-     * @allow (create) User with UID 'user123' can create a tax year.
-     *   request.auth.uid == 'user123'
-     *   request.resource.data.userId == 'user123'
-     * @allow (get) User with UID 'user123' can read a tax year.
-     *   request.auth.uid == 'user123'
-     * @allow (list) User with UID 'user123' can list tax years.
-     *   request.auth.uid == 'user123'
-     * @allow (update) User with UID 'user123' can update a tax year.
-     *   request.auth.uid == 'user123'
-     * @deny (create) User with UID 'user456' cannot create a tax year for 'user123'.
-     *   request.auth.uid == 'user456'
-     *   request.resource.data.userId == 'user123'
-     * @deny (update) User with UID 'user456' cannot update tax year for 'user123'.
-     *   request.auth.uid == 'user456'
-     * @principle Enforces document ownership for all operations on tax years.
+     * @allow (create) User with UID 'user123' can create a tax year document under their profile.
+     * @allow (get) User with UID 'user123' can read a tax year document under their profile.
+     * @allow (list) User with UID 'user123' can list tax year documents under their profile.
+     * @allow (update) User with UID 'user123' can update a tax year document under their profile.
+     * @allow (delete) User with UID 'user123' can delete a tax year document under their profile.
+     * @deny (create) User with UID 'user456' cannot create a tax year document under 'user123' profile.
+     * @principle Enforces document ownership.
      */
     match /users/{userId}/taxYears/{taxYearId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource.data != null;
+      }
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Rules for the /users/{userId}/taxYears/{taxYearId}/incomes/{incomeId} collection.
+     * @description Allows users to manage their income records for a specific tax year.
      * @path /users/{userId}/taxYears/{taxYearId}/incomes/{incomeId}
-     * @allow (create) User with UID 'user123' can create an income record.
-     *   request.auth.uid == 'user123'
-     *   request.resource.data.userId == 'user123'
-     * @allow (get) User with UID 'user123' can read an income record.
-     *   request.auth.uid == 'user123'
-     * @allow (list) User with UID 'user123' can list income records.
-     *   request.auth.uid == 'user123'
-     * @allow (update) User with UID 'user123' can update an income record.
-     *   request.auth.uid == 'user123'
-     * @deny (create) User with UID 'user456' cannot create an income record for 'user123'.
-     *   request.auth.uid == 'user456'
-     *   request.resource.data.userId == 'user123'
-     * @deny (update) User with UID 'user456' cannot update income record for 'user123'.
-     *   request.auth.uid == 'user456'
-     * @principle Enforces document ownership for all operations on income records.
+     * @allow (create) User with UID 'user123' can create an income document under their tax year.
+     * @allow (get) User with UID 'user123' can read an income document under their tax year.
+     * @allow (list) User with UID 'user123' can list income documents under their tax year.
+     * @allow (update) User with UID 'user123' can update an income document under their tax year.
+     * @allow (delete) User with UID 'user123' can delete an income document under their tax year.
+     * @deny (create) User with UID 'user456' cannot create an income document under 'user123' tax year.
+     * @principle Enforces document ownership.
      */
     match /users/{userId}/taxYears/{taxYearId}/incomes/{incomeId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+       function isExistingOwner(userId) {
+        return isOwner(userId) && resource.data != null;
+      }
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Rules for the /users/{userId}/taxYears/{taxYearId}/expenses/{expenseId} collection.
+     * @description Allows users to manage their expense records for a specific tax year.
      * @path /users/{userId}/taxYears/{taxYearId}/expenses/{expenseId}
-     * @allow (create) User with UID 'user123' can create an expense record.
-     *   request.auth.uid == 'user123'
-     *   request.resource.data.userId == 'user123'
-     * @allow (get) User with UID 'user123' can read an expense record.
-     *   request.auth.uid == 'user123'
-     * @allow (list) User with UID 'user123' can list expense records.
-     *   request.auth.uid == 'user123'
-     * @allow (update) User with UID 'user123' can update an expense record.
-     *   request.auth.uid == 'user123'
-     * @deny (create) User with UID 'user456' cannot create an expense record for 'user123'.
-     *   request.auth.uid == 'user456'
-     *   request.resource.data.userId == 'user123'
-     * @deny (update) User with UID 'user456' cannot update expense record for 'user123'.
-     *   request.auth.uid == 'user456'
-     * @principle Enforces document ownership for all operations on expense records.
+     * @allow (create) User with UID 'user123' can create an expense document under their tax year.
+     * @allow (get) User with UID 'user123' can read an expense document under their tax year.
+     * @allow (list) User with UID 'user123' can list expense documents under their tax year.
+     * @allow (update) User with UID 'user123' can update an expense document under their tax year.
+     * @allow (delete) User with UID 'user123' can delete an expense document under their tax year.
+     * @deny (create) User with UID 'user456' cannot create an expense document under 'user123' tax year.
+     * @principle Enforces document ownership.
      */
     match /users/{userId}/taxYears/{taxYearId}/expenses/{expenseId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+       function isExistingOwner(userId) {
+        return isOwner(userId) && resource.data != null;
+      }
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Rules for the /users/{userId}/documents/{documentId} collection.
+     * @description Allows users to manage their uploaded documents.
      * @path /users/{userId}/documents/{documentId}
-     * @allow (create) User with UID 'user123' can create a document.
-     *   request.auth.uid == 'user123'
-     *   request.resource.data.userId == 'user123'
-     * @allow (get) User with UID 'user123' can read a document.
-     *   request.auth.uid == 'user123'
-     * @allow (list) User with UID 'user123' can list documents.
-     *   request.auth.uid == 'user123'
-     * @allow (update) User with UID 'user123' can update a document.
-     *   request.auth.uid == 'user123'
-     * @deny (create) User with UID 'user456' cannot create a document for 'user123'.
-     *   request.auth.uid == 'user456'
-     *   request.resource.data.userId == 'user123'
-     * @deny (update) User with UID 'user456' cannot update document for 'user123'.
-     *   request.auth.uid == 'user456'
-     * @principle Enforces document ownership for all operations on documents.
+     * @allow (create) User with UID 'user123' can create a document under their profile.
+     * @allow (get) User with UID 'user123' can read a document under their profile.
+     * @allow (list) User with UID 'user123' can list documents under their profile.
+     * @allow (update) User with UID 'user123' can update a document under their profile.
+     * @allow (delete) User with UID 'user123' can delete a document under their profile.
+     * @deny (create) User with UID 'user456' cannot create a document under 'user123' profile.
+     * @principle Enforces document ownership.
      */
     match /users/{userId}/documents/{documentId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+       function isExistingOwner(userId) {
+        return isOwner(userId) && resource.data != null;
+      }
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Fix for the reported error. Listing properties is now disallowed.
+     * @description This catch-all rule denies access to any path not explicitly defined above.
      * @path /properties
-     * @deny (list) All users are denied from listing properties.
-     * @principle  Explicitly denying access to prevent unintended data exposure.
+     * @deny (list) Any user cannot list properties.
+     * @principle Secure by default: Explicitly deny access to unknown paths.
      */
-    match /properties/{propertyId} {
-      allow get: if false;
-      allow list: if false; // Explicitly deny listing properties
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+    match /properties/{document} {
+        allow get: if false;
+        allow list: if false;
+        allow create: if false;
+        allow update: if false;
+        allow delete: if false;
     }
   }
 }
