@@ -16,7 +16,7 @@ import {
   type ConfirmationResult,
   type UserCredential,
 } from 'firebase/auth';
-import { useUser, getFirebase } from '@/firebase';
+import { useUser, initializeFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -34,7 +34,7 @@ import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 
 
 async function updateUserOnLogin(result: UserCredential) {
-  const { firestore } = getFirebase();
+  const { firestore } = initializeFirebase();
   if (!firestore) throw new Error("Firestore not initialized");
 
   const user = result.user;
@@ -69,7 +69,7 @@ async function updateUserOnLogin(result: UserCredential) {
 }
 
 function LoginPageContent() {
-  const { user, loading: userLoading } = useUser();
+  const { user, isUserLoading: userLoading } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
 
