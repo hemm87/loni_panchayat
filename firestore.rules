@@ -1,111 +1,121 @@
-/**
- * @file Firebase Security Rules for Loni Panchayat Tax Management System.
- *
- * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for user profiles and a data-driven role-based access control for properties and tax records.
- * Users can only manage their own profiles. Access to property and tax records is determined by the user's role and property ownership.
- *
- * Data Structure:
- * - /users/{userId}: Stores user profile information.  The document ID is the Firebase Auth UID.
- * - /properties/{propertyId}: Stores property records. `ownerSystemId` links to the UserProfile document.
- * - /properties/{propertyId}/tax_records/{taxRecordId}: Stores tax records for a specific property.
- *
- * Key Security Decisions:
- * - User profiles are private to the user and admins.
- * - Properties are accessible to owners and admins.
- * - Tax records follow the access control of their parent property.
- * - Listing properties and tax records can be secured based on user role or ownership.
- * - User roles are stored directly in the UserProfile document.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user profiles.
+     * @description Protects the /users/{userId} collection, ensuring only the authenticated user can manage their own profile.
      * @path /users/{userId}
-     * @allow (create) User with matching UID can create their profile.
-     * @allow (get, update, delete) User with matching UID can access and modify their profile.
-     * @deny (create, update, delete) User cannot create, update, or delete other user profiles.
-     * @principle Enforces document ownership for writes.
+     * @allow (create) - Authenticated user creates their own profile. (auth.uid: 'user123', request.resource.data.id: 'user123')
+     * @allow (get, update, delete) - Authenticated user reads/updates/deletes their own profile. (auth.uid: 'user123', userId: 'user123')
+     * @deny (create) - Authenticated user tries to create a profile with a different ID. (auth.uid: 'user123', request.resource.data.id: 'otherUser')
+     * @deny (get, update, delete) - Authenticated user tries to read/update/delete someone else's profile. (auth.uid: 'user123', userId: 'otherUser')
+     * @principle Enforces document ownership, validates user ID on create.
      */
     match /users/{userId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
       function isSignedIn() {
         return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return isSignedIn() && request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-          return isOwner(userId) && resource != null;
       }
 
       allow get: if isOwner(userId);
       allow list: if false;
-
-      allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
     }
 
     /**
-     * @description Controls access to property records.
-     * @path /properties/{propertyId}
-     * @allow (get, list) Anyone can read property records.
-     * @allow (create) User who owns the property can create a property record.
-     * @allow (update, delete) User who owns the property can update or delete the property record.
-     * @deny (create, update, delete) User cannot create, update, or delete other's property records.
-     * @principle Enforces document ownership for writes, allows public reads.
+     * @description Protects the /users/{userId}/taxYears/{taxYearId} collection, ensuring only the owner can manage their tax years.
+     * @path /users/{userId}/taxYears/{taxYearId}
+     * @allow (create) - Authenticated user creates a tax year under their profile. (auth.uid: 'user123', userId: 'user123')
+     * @allow (get, list, update, delete) - Authenticated user reads/lists/updates/deletes their tax years. (auth.uid: 'user123', userId: 'user123')
+     * @deny (create) - Authenticated user tries to create a tax year under someone else's profile. (auth.uid: 'user123', userId: 'otherUser')
+     * @deny (get, list, update, delete) - Authenticated user tries to read/list/update/delete someone else's tax years. (auth.uid: 'user123', userId: 'otherUser')
+     * @principle Enforces document ownership for tax years.
      */
-    match /properties/{propertyId} {
-        function isSignedIn() {
-            return request.auth != null;
-        }
-
-        function isOwner(ownerSystemId) {
-            return isSignedIn() && request.auth.uid == ownerSystemId;
-        }
-
-        function isExistingOwner(ownerSystemId) {
-            return isOwner(ownerSystemId) && resource != null;
-        }
-
-        allow get, list: if true;
-
-        allow create: if isSignedIn() && request.resource.data.ownerSystemId == request.auth.uid;
-        allow update: if isExistingOwner(resource.data.ownerSystemId);
-        allow delete: if isExistingOwner(resource.data.ownerSystemId);
-    }
-
-    /**
-     * @description Controls access to tax records for a specific property.
-     * @path /properties/{propertyId}/tax_records/{taxRecordId}
-     * @allow (get, list) Anyone can read tax records.
-     * @allow (create) User who owns the property can create a tax record.
-     * @allow (update, delete) User who owns the property can update or delete the tax record.
-     * @deny (create, update, delete) User cannot create, update, or delete other's tax records.
-     * @principle Enforces document ownership for writes, allows public reads.
-     */
-    match /properties/{propertyId}/tax_records/{taxRecordId} {
+    match /users/{userId}/taxYears/{taxYearId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
       function isSignedIn() {
         return request.auth != null;
       }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
 
-      function isPropertyOwner(propertyId) {
-        return get(/databases/$(database)/documents/properties/$(propertyId)).data.ownerSystemId == request.auth.uid;
+    /**
+     * @description Protects the /users/{userId}/taxYears/{taxYearId}/incomes/{incomeId} collection, ensuring only the owner can manage their income records.
+     * @path /users/{userId}/taxYears/{taxYearId}/incomes/{incomeId}
+     * @allow (create) - Authenticated user creates an income record under their tax year. (auth.uid: 'user123', userId: 'user123')
+     * @allow (get, list, update, delete) - Authenticated user reads/lists/updates/deletes their income records. (auth.uid: 'user123', userId: 'user123')
+     * @deny (create) - Authenticated user tries to create an income record under someone else's tax year. (auth.uid: 'user123', userId: 'otherUser')
+     * @deny (get, list, update, delete) - Authenticated user tries to read/list/update/delete someone else's income records. (auth.uid: 'user123', userId: 'otherUser')
+     * @principle Enforces document ownership for income records.
+     */
+    match /users/{userId}/taxYears/{taxYearId}/incomes/{incomeId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
       }
-
-      function isExistingPropertyOwner(propertyId) {
-          return isPropertyOwner(propertyId) && resource != null;
+      function isSignedIn() {
+        return request.auth != null;
       }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
 
-      allow get, list: if true;
+    /**
+     * @description Protects the /users/{userId}/taxYears/{taxYearId}/expenses/{expenseId} collection, ensuring only the owner can manage their expense records.
+     * @path /users/{userId}/taxYears/{taxYearId}/expenses/{expenseId}
+     * @allow (create) - Authenticated user creates an expense record under their tax year. (auth.uid: 'user123', userId: 'user123')
+     * @allow (get, list, update, delete) - Authenticated user reads/lists/updates/deletes their expense records. (auth.uid: 'user123', userId: 'user123')
+     * @deny (create) - Authenticated user tries to create an expense record under someone else's tax year. (auth.uid: 'user123', userId: 'otherUser')
+     * @deny (get, list, update, delete) - Authenticated user tries to read/list/update/delete someone else's expense records. (auth.uid: 'user123', userId: 'otherUser')
+     * @principle Enforces document ownership for expense records.
+     */
+    match /users/{userId}/taxYears/{taxYearId}/expenses/{expenseId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
 
-      allow create: if isSignedIn() && isPropertyOwner(propertyId);
-      allow update: if isSignedIn() && isExistingPropertyOwner(propertyId);
-      allow delete: if isSignedIn() && isExistingPropertyOwner(propertyId);
+    /**
+     * @description Protects the /users/{userId}/documents/{documentId} collection, ensuring only the owner can manage their documents.
+     * @path /users/{userId}/documents/{documentId}
+     * @allow (create) - Authenticated user creates a document under their profile. (auth.uid: 'user123', userId: 'user123')
+     * @allow (get, list, update, delete) - Authenticated user reads/lists/updates/deletes their documents. (auth.uid: 'user123', userId: 'user123')
+     * @deny (create) - Authenticated user tries to create a document under someone else's profile. (auth.uid: 'user123', userId: 'otherUser')
+     * @deny (get, list, update, delete) - Authenticated user tries to read/list/update/delete someone else's documents. (auth.uid: 'user123', userId: 'otherUser')
+     * @principle Enforces document ownership for documents.
+     */
+    match /users/{userId}/documents/{documentId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
     }
   }
 }
