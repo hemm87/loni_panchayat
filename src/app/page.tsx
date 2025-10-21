@@ -16,7 +16,7 @@ import {
   type ConfirmationResult,
   type UserCredential,
 } from 'firebase/auth';
-import { useUser, initializeFirebase } from '@/firebase';
+import { useUser, initializeFirebase, setDocumentNonBlocking } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -30,7 +30,7 @@ import { Label } from '@/components/ui/label';
 import { Scale, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 
 async function updateUserOnLogin(result: UserCredential) {
@@ -43,13 +43,12 @@ async function updateUserOnLogin(result: UserCredential) {
   try {
     const docSnap = await getDoc(userRef);
     if (docSnap.exists()) {
-      // User exists, update last login
-      await updateDoc(userRef, {
+      // User exists, update last login using non-blocking write
+      setDocumentNonBlocking(userRef, {
         lastLogin: new Date().toISOString(),
-      });
+      }, { merge: true });
     } else {
       // User does not exist, create a new profile.
-      // This is expected for first-time sign-ins, especially with Google.
       const userData = {
         uid: user.uid,
         email: user.email,
@@ -59,12 +58,13 @@ async function updateUserOnLogin(result: UserCredential) {
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
       };
-      await setDoc(userRef, userData);
+      // Use non-blocking write to create the document
+      setDocumentNonBlocking(userRef, userData, { merge: false });
     }
   } catch (error) {
-    console.error("Error updating user on login: ", error);
-    // We can decide if we want to throw the error or handle it silently.
-    // For now, logging should be sufficient.
+    console.error("Error checking user document: ", error);
+    // This catch block is for the initial getDoc. Write errors are handled
+    // by the non-blocking function's internal error emitter.
   }
 }
 
