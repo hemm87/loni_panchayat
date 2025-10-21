@@ -1,212 +1,205 @@
 {
   "entities": {
-    "User": {
-      "title": "User",
-      "description": "A user of the tax application.",
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
       "type": "object",
+      "description": "Represents a user in the Loni Panchayat Tax Management System.",
       "properties": {
-        "displayName": {
+        "id": {
           "type": "string",
-          "description": "User's full name."
+          "description": "Unique identifier for the UserProfile entity."
         },
         "email": {
           "type": "string",
-          "format": "email",
-          "description": "User's email address."
+          "description": "User's email address.",
+          "format": "email"
         },
-        "address": {
+        "phoneNumber": {
           "type": "string",
-          "description": "User's mailing address."
+          "description": "User's phone number."
         },
-        "taxID": {
+        "firstName": {
           "type": "string",
-          "description": "User's tax identification number."
+          "description": "User's first name."
         },
-        "filingStatus": {
+        "lastName": {
           "type": "string",
-          "description": "User's tax filing status (e.g., Single, Married Filing Jointly)."
+          "description": "User's last name."
         },
-        "createdAt": {
+        "role": {
           "type": "string",
-          "format": "date-time",
-          "description": "The timestamp when the user was created."
+          "description": "User's role (e.g., citizen, admin, operator, viewer)."
         }
       },
-      "required": ["displayName", "createdAt"]
+      "required": [
+        "id",
+        "email",
+        "firstName",
+        "lastName",
+        "role"
+      ]
     },
-    "TaxYear": {
-      "title": "Tax Year",
-      "description": "Represents a specific tax filing year for a user.",
+    "Property": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Property",
       "type": "object",
+      "description": "Represents a property registered in the system.",
       "properties": {
-        "userId": {
+        "id": {
           "type": "string",
-          "description": "Reference to the User."
+          "description": "Unique identifier for the Property entity."
         },
-        "year": {
-          "type": "integer",
-          "description": "The tax year."
-        },
-        "notes": {
+        "ownerSystemId": {
           "type": "string",
-          "description": "General notes for the tax year."
+          "description": "Reference to the UserProfile who owns the property. (Relationship: UserProfile 1:N Property)"
         },
-        "createdAt": {
+        "houseNo": {
           "type": "string",
-          "format": "date-time",
-          "description": "The timestamp when the tax year record was created."
-        }
-      },
-      "required": ["userId", "year", "createdAt"]
-    },
-    "Income": {
-      "title": "Income",
-      "description": "An income record for a user in a specific tax year.",
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "description": "Reference to the User."
+          "description": "House number or identifier."
         },
-        "taxYearId": {
+        "propertyType": {
           "type": "string",
-          "description": "Reference to the TaxYear."
+          "description": "Type of property (Residential/Commercial/Agricultural)."
         },
-        "amount": {
+        "area": {
           "type": "number",
-          "description": "The amount of income."
+          "description": "Area of the property (sq.ft or acres)."
         },
-        "dateReceived": {
+        "aadhaarNumber": {
           "type": "string",
-          "format": "date",
-          "description": "The date the income was received."
-        },
-        "description": {
-          "type": "string",
-          "description": "A description of the income."
-        },
-        "incomeType": {
-          "type": "string",
-          "description": "The type of income (e.g., Salary, Freelance, Investment)."
-        },
-        "source": {
-          "type": "string",
-          "description": "The source of the income (e.g., Employer name)."
-        },
-        "isTaxable": {
-          "type": "boolean",
-          "description": "Whether the income is taxable."
+          "description": "Aadhaar number of the property owner (encrypted)."
         }
       },
-      "required": ["userId", "taxYearId", "amount", "dateReceived", "description", "incomeType"]
+      "required": [
+        "id",
+        "ownerSystemId",
+        "houseNo",
+        "propertyType",
+        "area"
+      ]
     },
-    "Expense": {
-      "title": "Expense",
-      "description": "An expense record for a user in a specific tax year.",
+    "TaxRecord": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TaxRecord",
       "type": "object",
+      "description": "Represents a tax record for a property.",
       "properties": {
-        "userId": {
+        "id": {
           "type": "string",
-          "description": "Reference to the User."
+          "description": "Unique identifier for the TaxRecord entity."
         },
-        "taxYearId": {
+        "propertyId": {
           "type": "string",
-          "description": "Reference to the TaxYear."
+          "description": "Reference to the Property the tax record is for. (Relationship: Property 1:N TaxRecord)"
         },
-        "amount": {
+        "assessmentYear": {
           "type": "number",
-          "description": "The amount of the expense."
+          "description": "Year for which the tax is assessed."
         },
-        "dateIncurred": {
+        "taxType": {
           "type": "string",
-          "format": "date",
-          "description": "The date the expense was incurred."
+          "description": "Type of tax (e.g., House Tax, Land Tax)."
         },
-        "description": {
+        "assessedAmount": {
+          "type": "number",
+          "description": "Amount of tax assessed."
+        },
+        "amountDue": {
+          "type": "number",
+          "description": "Remaining amount of tax due."
+        },
+        "amountPaid": {
+          "type": "number",
+          "description": "Amount of tax paid."
+        },
+        "paymentStatus": {
           "type": "string",
-          "description": "A description of the expense."
+          "description": "Payment status (Paid/Unpaid/Partial)."
         },
-        "expenseCategory": {
+        "paymentDate": {
           "type": "string",
-          "description": "The category of the expense (e.g., Office Supplies, Travel)."
+          "description": "Date of payment.",
+          "format": "date-time"
         },
-        "vendor": {
+        "receiptNo": {
           "type": "string",
-          "description": "The vendor or person paid."
-        },
-        "isDeductible": {
-          "type": "boolean",
-          "description": "Whether the expense is tax-deductible."
+          "description": "Receipt number for the payment."
         }
       },
-      "required": ["userId", "taxYearId", "amount", "dateIncurred", "description", "expenseCategory"]
-    },
-    "Document": {
-      "title": "Document",
-      "description": "A file uploaded by a user, potentially linked to income or an expense.",
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "description": "Reference to the User."
-        },
-        "incomeId": {
-          "type": "string",
-          "description": "Optional reference to an Income record."
-        },
-        "expenseId": {
-          "type": "string",
-          "description": "Optional reference to an Expense record."
-        },
-        "fileName": {
-          "type": "string",
-          "description": "The name of the uploaded file."
-        },
-        "fileUrl": {
-          "type": "string",
-          "format": "uri",
-          "description": "The URL to access the file in storage."
-        },
-        "uploadedAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "The timestamp when the file was uploaded."
-        },
-        "documentType": {
-          "type": "string",
-          "description": "The type of document (e.g., Receipt, Invoice, W-2)."
-        },
-        "description": {
-          "type": "string",
-          "description": "A description of the document."
-        }
-      },
-      "required": ["userId", "fileName", "fileUrl", "uploadedAt"]
+      "required": [
+        "id",
+        "propertyId",
+        "assessmentYear",
+        "taxType",
+        "assessedAmount",
+        "amountDue",
+        "amountPaid",
+        "paymentStatus"
+      ]
     }
   },
   "auth": {
-    "providers": ["google.com", "password", "phone"]
+    "providers": [
+      "password",
+      "anonymous"
+    ]
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": { "$ref": "#/entities/User" },
-      "description": "Stores user profiles."
-    },
-    "/users/{userId}/taxYears/{taxYearId}": {
-      "schema": { "$ref": "#/entities/TaxYear" },
-      "description": "Stores tax year information for each user."
-    },
-    "/users/{userId}/taxYears/{taxYearId}/incomes/{incomeId}": {
-      "schema": { "$ref": "#/entities/Income" },
-      "description": "Stores income records for a specific tax year."
-    },
-    "/users/{userId}/taxYears/{taxYearId}/expenses/{expenseId}": {
-      "schema": { "$ref": "#/entities/Expense" },
-      "description": "Stores expense records for a specific tax year."
-    },
-    "/users/{userId}/documents/{documentId}": {
-      "schema": { "$ref": "#/entities/Document" },
-      "description": "Stores documents uploaded by a user."
-    }
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user profile information.  The document ID is the Firebase Auth UID.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The Firebase Auth UID of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/properties/{propertyId}",
+        "definition": {
+          "entityName": "Property",
+          "schema": {
+            "$ref": "#/backend/entities/Property"
+          },
+          "description": "Stores property records. `ownerSystemId` links to the UserProfile document.",
+          "params": [
+            {
+              "name": "propertyId",
+              "description": "Unique identifier for the property."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/properties/{propertyId}/tax_records/{taxRecordId}",
+        "definition": {
+          "entityName": "TaxRecord",
+          "schema": {
+            "$ref": "#/backend/entities/TaxRecord"
+          },
+          "description": "Stores tax records for a specific property.",
+          "params": [
+            {
+              "name": "propertyId",
+              "description": "The ID of the property the tax record belongs to."
+            },
+            {
+              "name": "taxRecordId",
+              "description": "Unique identifier for the tax record."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to manage user profiles, property records, and tax information for the Loni Panchayat Tax Management System. It prioritizes authorization independence by avoiding hierarchical `get()` calls in security rules.  User profiles are stored in `/users/{userId}`. Properties are stored in `/properties/{propertyId}`, with the `ownerSystemId` field linking back to the user. Tax records are stored in `/properties/{propertyId}/tax_records/{taxRecordId}`, with the `propertyId` linking back to the property, providing a clear ownership structure.  This parent/child relationship facilitates simple security rules based on ownership.  \n\n**Authorization Independence (CRITICAL):**  The `TaxRecord` subcollection includes the `propertyId`.  While not strictly a denormalization of user data, it allows security rules on `TaxRecord` to verify the existence of the parent `Property` without needing to `get()` the user document.  This avoids cascading failures if user data changes.  User roles are stored directly in the `UserProfile` document.\n\n**QAPs (Rules are not Filters):** The structure supports secure `list` operations. Listing properties can be secured based on user role or ownership. Listing tax records associated with a property is straightforward using collection group queries and security rules that check the requesting user's role/ownership on the parent `Property` document.\n\n**DBAC (No Custom Claims):** User roles are stored in the `UserProfile` document (`/users/{userId}`). Security rules will check the `role` field in the `UserProfile` to grant or restrict access to certain functionalities.\n\n**Structural Segregation (Homogeneous Security Posture):** Each collection (`users`, `properties`, `tax_records`) is designed to hold documents with similar security requirements. User profiles are private to the user and admins, properties are accessible to owners and admins, and tax records follow the access control of their parent property.\n\n**Access Modeling (Standardization and Consistency):**  Path-based ownership is used for user data (`/users/{userId}`). The `Property` to `TaxRecord` relationship is modeled using subcollections, extending the hierarchical path for nested data (`/properties/{propertyId}/tax_records/{taxRecordId}`)."
   }
 }

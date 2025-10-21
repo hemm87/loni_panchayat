@@ -1,30 +1,25 @@
-
 'use client';
 
-import { FirebaseProvider } from './provider';
-import { initializeFirebase } from '.';
-import { firebaseConfig } from './config';
+import React, { useMemo, type ReactNode } from 'react';
+import { FirebaseProvider } from '@/firebase/provider';
+import { initializeFirebase } from '@/firebase';
 
-// This component is a bit of a hack to make sure that the Firebase services
-// are initialized on the client and only once.
-let firebaseApp: ReturnType<typeof initializeFirebase> | null = null;
-function getFirebaseApp() {
-    if (firebaseApp) {
-        return firebaseApp;
-    }
-    firebaseApp = initializeFirebase(firebaseConfig);
-    return firebaseApp;
+interface FirebaseClientProviderProps {
+  children: ReactNode;
 }
 
-export function FirebaseClientProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { app, auth, firestore } = getFirebaseApp();
+export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
+  const firebaseServices = useMemo(() => {
+    // Initialize Firebase on the client side, once per component mount.
+    return initializeFirebase();
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   return (
-    <FirebaseProvider value={{ app, auth, firestore }}>
+    <FirebaseProvider
+      firebaseApp={firebaseServices.firebaseApp}
+      auth={firebaseServices.auth}
+      firestore={firebaseServices.firestore}
+    >
       {children}
     </FirebaseProvider>
   );
