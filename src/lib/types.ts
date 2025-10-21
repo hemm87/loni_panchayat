@@ -3,13 +3,15 @@ export type TaxRecord = {
   id: string;
   taxType: 'Property Tax' | 'Water Tax' | 'Sanitation Tax' | 'Lighting Tax' | 'Land Tax' | 'Business Tax' | 'Other';
   hindiName: string;
-  assessedAmount: number;
+  assessedAmount: number; // This will now be the Grand Total
   paymentStatus: 'Paid' | 'Unpaid' | 'Partial';
   amountPaid: number;
   paymentDate: string | null;
   receiptNumber: string | null;
   assessmentYear: number;
   remarks?: string;
+  baseAmount?: number; // The amount before manual taxes
+  taxDetails?: Array<{ name: string; rate: number; amount: number; }>; // Details of manual taxes
 };
 
 export type Property = {
