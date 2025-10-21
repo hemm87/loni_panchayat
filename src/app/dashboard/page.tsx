@@ -1,13 +1,13 @@
 
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Download, Plus, Save, Building } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
-import type { Property } from '@/lib/types';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, initializeFirebase, setDocumentNonBlocking } from '@/firebase';
+import { collection, doc, setDoc } from 'firebase/firestore';
+import type { Property, PanchayatSettings } from '@/lib/types';
 import { PropertiesTable } from '@/components/properties/properties-table';
 import { RegisterPropertyForm } from '@/components/properties/register-property-form';
 import { GenerateBillForm } from '@/components/billing/generate-bill-form';
@@ -15,6 +15,8 @@ import { StatsCard } from '@/components/ui/stats-card';
 import { DashboardSkeleton } from '@/components/ui/loading-skeletons';
 import { NoPropertiesState, NoReportsState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 const Dashboard = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
@@ -49,6 +51,14 @@ const Dashboard = () => {
   }, [firestore]);
 
   const { data: properties, isLoading: collectionLoading } = useCollection<Property>(propertiesQuery);
+  
+  const settingsDocRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'panchayat-settings', 'config');
+  }, [firestore]);
+
+  const { data: settings, isLoading: settingsLoading } = useDoc<PanchayatSettings>(settingsDocRef);
+
 
   const handleMenuClick = (id: string) => {
     if (id === 'users') {
@@ -201,9 +211,10 @@ const Dashboard = () => {
   );
 
   // Generate Bill Page
-  const BillPage = ({ properties }: { properties: Property[] }) => (
+  const BillPage = ({ properties, settings }: { properties: Property[], settings: PanchayatSettings | null }) => (
     <GenerateBillForm 
       properties={properties}
+      settings={settings}
       onFormSubmit={() => {
         router.push('/dashboard/properties');
       }} 
@@ -267,118 +278,190 @@ const Dashboard = () => {
   );
 
   // Settings Page
-  const SettingsPage = () => (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-xl shadow-lg p-8 border border-border">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
-          Settings • सेटिंग्स
-        </h2>
+  const SettingsPage = ({ settings, docRef }: { settings: PanchayatSettings | null, docRef: any }) => {
+    const { toast } = useToast();
+    const [loading, setLoading] = useState(false);
+    const [localSettings, setLocalSettings] = useState<Partial<PanchayatSettings>>({
+        panchayatName: 'Loni Gram Panchayat',
+        district: '',
+        state: '',
+        pinCode: '',
+        propertyTaxRate: 0,
+        waterTaxRate: 0,
+        lateFee: 0,
+    });
 
-        <div className="space-y-6">
-          <div className="border-b pb-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Panchayat Information • पंचायत जानकारी</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Panchayat Name</label>
-                <input
-                  type="text"
-                  defaultValue="Loni Gram Panchayat"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">District • जिला</label>
-                <input
-                  type="text"
-                  placeholder="Enter district name"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">State • राज्य</label>
-                <input
-                  type="text"
-                  placeholder="Enter state name"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">PIN Code • पिन कोड</label>
-                <input
-                  type="text"
-                  placeholder="Enter PIN code"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
-                />
-              </div>
-            </div>
-          </div>
+    useEffect(() => {
+        if (settings) {
+            setLocalSettings(settings);
+        }
+    }, [settings]);
 
-          <div className="border-b pb-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Tax Configuration • कर विन्यास</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Property Tax Rate (%)</label>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  min="0"
-                  step="0.01"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Water Tax Rate (%)</label>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  min="0"
-                  step="0.01"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Late Fee (%)</label>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  min="0"
-                  step="0.01"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
-                />
-              </div>
-            </div>
-          </div>
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value, type } = e.target;
+        setLocalSettings(prev => ({
+            ...prev,
+            [name]: type === 'number' ? parseFloat(value) || 0 : value,
+        }));
+    };
 
-          <div className="border-b pb-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">User Management • उपयोगकर्ता प्रबंधन</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+    const handleSave = async () => {
+        if (!docRef) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Firestore not configured correctly.' });
+            return;
+        }
+        setLoading(true);
+        try {
+            await setDoc(docRef, localSettings, { merge: true });
+            toast({ title: 'Success', description: 'Settings saved successfully.' });
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Error', description: error.message });
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    return (
+        <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-xl shadow-lg p-8 border border-border">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+            Settings • सेटिंग्स
+            </h2>
+
+            <div className="space-y-6">
+            <div className="border-b pb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Panchayat Information • पंचायत जानकारी</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="font-bold text-gray-800">Admin User</p>
-                  <p className="text-sm text-gray-600">admin@lonipanchayat.in</p>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Panchayat Name</label>
+                    <input
+                    type="text"
+                    name="panchayatName"
+                    value={localSettings.panchayatName || ''}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                    />
                 </div>
-                <button className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-bold hover:bg-primary/90 transition-all">
-                  Change Password
-                </button>
-              </div>
+                <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">District • जिला</label>
+                    <input
+                    type="text"
+                    name="district"
+                    value={localSettings.district || ''}
+                    onChange={handleInputChange}
+                    placeholder="Enter district name"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">State • राज्य</label>
+                    <input
+                    type="text"
+                    name="state"
+                    value={localSettings.state || ''}
+                    onChange={handleInputChange}
+                    placeholder="Enter state name"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">PIN Code • पिन कोड</label>
+                    <input
+                    type="text"
+                    name="pinCode"
+                    value={localSettings.pinCode || ''}
+                    onChange={handleInputChange}
+                    placeholder="Enter PIN code"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                    />
+                </div>
+                </div>
             </div>
-          </div>
-          
-          <div className="flex gap-4">
-            <button className="flex-1 bg-primary text-primary-foreground px-8 py-4 rounded-lg font-bold text-lg hover:shadow-lg transition-all flex items-center justify-center gap-2">
-              <Save className="w-6 h-6" />
-              Save Settings • सेटिंग्स सहेजें
-            </button>
-            <button className="px-8 py-4 bg-gray-200 text-gray-700 rounded-lg font-bold text-lg hover:bg-gray-300 transition-all">
-              Reset • रीसेट करें
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
-  if (collectionLoading) {
+            <div className="border-b pb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Tax Configuration • कर विन्यास</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Property Tax Rate (%)</label>
+                    <input
+                    type="number"
+                    name="propertyTaxRate"
+                    value={localSettings.propertyTaxRate || 0}
+                    onChange={handleInputChange}
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Water Tax (Flat Rate ₹)</label>
+                    <input
+                    type="number"
+                    name="waterTaxRate"
+                    value={localSettings.waterTaxRate || 0}
+                    onChange={handleInputChange}
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Late Fee (%)</label>
+                    <input
+                    type="number"
+                    name="lateFee"
+                    value={localSettings.lateFee || 0}
+                    onChange={handleInputChange}
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                    />
+                </div>
+                </div>
+            </div>
+
+            <div className="border-b pb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">User Management • उपयोगकर्ता प्रबंधन</h3>
+                <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div>
+                    <p className="font-bold text-gray-800">Admin User</p>
+                    <p className="text-sm text-gray-600">admin@lonipanchayat.in</p>
+                    </div>
+                    <button className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-bold hover:bg-primary/90 transition-all">
+                    Change Password
+                    </button>
+                </div>
+                </div>
+            </div>
+            
+            <div className="flex gap-4">
+                <button 
+                    onClick={handleSave}
+                    disabled={loading}
+                    className="flex-1 bg-primary text-primary-foreground px-8 py-4 rounded-lg font-bold text-lg hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                >
+                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
+                Save Settings • सेटिंग्स सहेजें
+                </button>
+                <button 
+                    onClick={() => setLocalSettings(settings || {})}
+                    disabled={loading}
+                    className="px-8 py-4 bg-gray-200 text-gray-700 rounded-lg font-bold text-lg hover:bg-gray-300 transition-all"
+                >
+                Reset • रीसेट करें
+                </button>
+            </div>
+            </div>
+        </div>
+        </div>
+    );
+  };
+
+  if (collectionLoading || settingsLoading) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 overflow-y-auto p-6">
@@ -395,11 +478,11 @@ const Dashboard = () => {
       case 'register':
         return <RegisterPage />;
       case 'bill':
-        return <BillPage properties={properties || []} />;
+        return <BillPage properties={properties || []} settings={settings || null} />;
       case 'reports':
         return <ReportsPage />;
       case 'settings':
-        return <SettingsPage />;
+        return <SettingsPage settings={settings || null} docRef={settingsDocRef} />;
       default:
         return <DashboardPage properties={properties || []} />;
     }
@@ -416,7 +499,7 @@ const Dashboard = () => {
               <Building />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-800">Loni Panchayat</h1>
+              <h1 className="text-xl font-bold text-gray-800">{settings?.panchayatName || 'Loni Panchayat'}</h1>
               <p className="text-sm text-gray-600">लॉनी ग्राम पंचायत</p>
             </div>
           </div>

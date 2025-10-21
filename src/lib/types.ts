@@ -9,6 +9,7 @@ export type TaxRecord = {
   paymentDate: string | null;
   receiptNumber: string | null;
   assessmentYear: number;
+  remarks?: string;
 };
 
 export type Property = {
@@ -36,4 +37,12 @@ export type Payment = {
   taxType: string;
 };
 
-    
+export type PanchayatSettings = {
+    panchayatName: string;
+    district: string;
+    state: string;
+    pinCode: string;
+    propertyTaxRate: number;
+    waterTaxRate: number;
+    lateFee: number;
+};

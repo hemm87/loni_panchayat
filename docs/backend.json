@@ -213,6 +213,43 @@
         "fileUrl",
         "uploadedAt"
       ]
+    },
+     "PanchayatSettings": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PanchayatSettings",
+      "type": "object",
+      "description": "Stores global settings for the panchayat.",
+      "properties": {
+        "panchayatName": {
+          "type": "string",
+          "description": "Name of the Panchayat."
+        },
+        "district": {
+          "type": "string",
+          "description": "District name."
+        },
+        "state": {
+          "type": "string",
+          "description": "State name."
+        },
+        "pinCode": {
+          "type": "string",
+          "description": "PIN code."
+        },
+        "propertyTaxRate": {
+          "type": "number",
+          "description": "The general property tax rate as a percentage."
+        },
+        "waterTaxRate": {
+          "type": "number",
+          "description": "The water tax rate as a flat amount or percentage."
+        },
+        "lateFee": {
+          "type": "number",
+          "description": "The late fee penalty as a percentage."
+        }
+      },
+      "required": ["panchayatName"]
     }
   },
   "auth": {
@@ -232,6 +269,16 @@
             "$ref": "#/entities/User"
           },
           "description": "Stores user profile information. The document ID is the Firebase Auth UID."
+        }
+      },
+      {
+        "path": "/panchayat-settings/config",
+        "definition": {
+            "entityName": "PanchayatSettings",
+            "schema": {
+                "$ref": "#/entities/PanchayatSettings"
+            },
+            "description": "Singleton document to store global panchayat settings."
         }
       },
       {
@@ -277,5 +324,3 @@
     ]
   }
 }
-
-    
