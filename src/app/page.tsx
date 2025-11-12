@@ -162,10 +162,20 @@ function LoginPageContent() {
     const auth = getAuth();
     const appVerifier = (window as any).recaptchaVerifier;
     try {
-      const formattedPhoneNumber = `+${phoneNumber.replace(/\D/g, '')}`;
-      if (formattedPhoneNumber.length < 10) { 
-        throw new Error("Invalid phone number provided.");
+      // Ensure phone number is in E.164 format
+      let formattedPhoneNumber = phoneNumber.replace(/\D/g, '');
+      if (formattedPhoneNumber.length === 10) {
+        formattedPhoneNumber = `+91${formattedPhoneNumber}`;
+      } else if (formattedPhoneNumber.startsWith('91') && formattedPhoneNumber.length === 12) {
+        formattedPhoneNumber = `+${formattedPhoneNumber}`;
+      } else if (!formattedPhoneNumber.startsWith('+')) {
+        formattedPhoneNumber = `+${formattedPhoneNumber}`;
       }
+
+      if (formattedPhoneNumber.length < 12) { // +91 and 10 digits
+        throw new Error("Invalid phone number provided. Please include country code.");
+      }
+
       const confirmation = await signInWithPhoneNumber(
         auth,
         formattedPhoneNumber,
@@ -389,3 +399,5 @@ declare global {
     recaptchaVerifier: RecaptchaVerifier;
   }
 }
+
+    
