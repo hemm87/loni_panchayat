@@ -25,6 +25,7 @@ import {
     AlertDialogContent,
     AlertDialogDescription,
     AlertDialogHeader,
+    AlertDialogTitle,
     AlertDialogFooter,
   } from "@/components/ui/alert-dialog"
   
@@ -415,3 +416,5 @@ export function PropertyActions({ property }: PropertyActionsProps) {
     </>
   );
 }
+
+    
