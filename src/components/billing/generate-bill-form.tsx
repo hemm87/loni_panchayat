@@ -22,7 +22,7 @@ interface GenerateBillFormProps {
     onCancel: () => void;
 }
 
-export function GenerateBillForm({ settings, onFormSubmit, onCancel }: GenerateBillFormProps) {
+export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel }: GenerateBillFormProps) {
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
     const [generating, setGenerating] = useState(false);
@@ -47,41 +47,25 @@ export function GenerateBillForm({ settings, onFormSubmit, onCancel }: GenerateB
     }, [selectedProperty, year]);
 
 
-    const handleSearch = async () => {
+    const handleSearch = () => {
         setLoading(true);
         setSearchResults([]);
         setSelectedProperty(null);
-        const { firestore } = initializeFirebase();
-        if (!firestore) return;
 
-        try {
-            // Query by ownerName
-            const nameQuery = query(
-                collection(firestore, 'properties'),
-                where('ownerName', '>=', searchTerm),
-                where('ownerName', '<=', searchTerm + '\uf8ff'),
-                limit(5)
-            );
-            // Query by houseNo
-            const houseNoQuery = query(
-                collection(firestore, 'properties'),
-                where('houseNo', '==', searchTerm),
-                limit(5)
-            );
-
-            const [nameSnap, houseNoSnap] = await Promise.all([getDocs(nameQuery), getDocs(houseNoQuery)]);
-            
-            const resultsMap = new Map<string, Property>();
-            nameSnap.forEach(doc => resultsMap.set(doc.id, { id: doc.id, ...doc.data() } as Property));
-            houseNoSnap.forEach(doc => resultsMap.set(doc.id, { id: doc.id, ...doc.data() } as Property));
-
-            setSearchResults(Array.from(resultsMap.values()));
-
-        } catch (error: any) {
-            toast({ variant: 'destructive', title: 'Search Failed', description: error.message });
-        } finally {
+        if (!searchTerm.trim()) {
             setLoading(false);
+            return;
         }
+
+        const lowercasedFilter = searchTerm.toLowerCase();
+        const filteredData = properties.filter(property =>
+            property.ownerName.toLowerCase().includes(lowercasedFilter) ||
+            (property.houseNo && property.houseNo.toLowerCase().includes(lowercasedFilter)) ||
+            (property.id && property.id.toLowerCase().includes(lowercasedFilter))
+        );
+        
+        setSearchResults(filteredData);
+        setLoading(false);
     };
     
     const handleBillSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -162,7 +146,7 @@ export function GenerateBillForm({ settings, onFormSubmit, onCancel }: GenerateB
                 {/* Search Section */}
                 <div className="flex gap-2 mb-4">
                     <Input 
-                        placeholder="Search by Owner Name or House No..."
+                        placeholder="Search by Owner Name, House No, or Property ID..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -193,7 +177,7 @@ export function GenerateBillForm({ settings, onFormSubmit, onCancel }: GenerateB
                         <Alert variant="default" className="border-primary">
                             <AlertTitle className="flex justify-between items-center">
                                <span>Selected Property: {selectedProperty.ownerName}</span>
-                               <Button variant="link" size="sm" onClick={() => { setSelectedProperty(null); setSearchResults([]) }}>Change</Button>
+                               <Button variant="link" size="sm" onClick={() => { setSelectedProperty(null); setSearchResults([]); setSearchTerm(''); }}>Change</Button>
                             </AlertTitle>
                             <AlertDescription>
                                 ID: {selectedProperty.id} | Address: {selectedProperty.houseNo}, {selectedProperty.address}
