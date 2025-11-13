@@ -1,0 +1,19 @@
+# Ignore files not needed in the Docker image to keep it small and secure.
+
+# Git files
+.git
+.gitignore
+
+# Docker files
+Dockerfile
+.dockerignore
+
+# Next.js build artifacts and local cache
+.next
+node_modules
+
+# Local environment variables
+.env.local
+
+# Readme
+README.md
