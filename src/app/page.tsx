@@ -181,7 +181,6 @@ function LoginPageContent() {
         description: `An OTP has been sent to ${formattedPhoneNumber}.`,
       });
     } catch (error: any) {
-      console.error(error);
       toast({
         variant: 'destructive',
         title: 'Failed to Send OTP',
