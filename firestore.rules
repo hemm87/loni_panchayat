@@ -7,21 +7,34 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Function to get the user's role from their document in the /users collection
+    function getUserRole(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.role;
+    }
+
+    // Function to check if the user is an admin or operator
+    function isAdminOrOperator() {
+      return isSignedIn() && (getUserRole(request.auth.uid) == 'admin' || getUserRole(request.auth.uid) == 'operator');
+    }
+
+    // Users can read and write their own profile
     match /users/{userId} {
       allow read, write: if isSignedIn() && request.auth.uid == userId;
+      // Admins can also read any user profile
+      allow get: if getUserRole(request.auth.uid) == 'admin';
     }
 
     match /panchayat-settings/{docId} {
         allow get: if isSignedIn();
-        allow write: if isSignedIn(); // In a real app, you'd restrict this to an admin role
+        // Only admins can write to settings
+        allow write: if getUserRole(request.auth.uid) == 'admin';
     }
 
     match /properties/{propertyId} {
+      // Any signed-in user can view/list properties
       allow read, list: if isSignedIn();
-      // Allow create for seeding script (unauthenticated)
-      // and allow update/delete for authenticated users.
-      allow create: if true; 
-      allow update, delete: if isSignedIn(); 
+      // Only admins or operators can create, update, or delete properties
+      allow create, update, delete: if isAdminOrOperator();
     }
   }
 }

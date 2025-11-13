@@ -17,7 +17,7 @@ import {
   type ConfirmationResult,
   type UserCredential,
 } from 'firebase/auth';
-import { useUser, initializeFirebase, setDocumentNonBlocking } from '@/firebase';
+import { useUser, initializeFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -31,7 +31,7 @@ import { Label } from '@/components/ui/label';
 import { Building, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 
 async function updateUserOnLogin(result: UserCredential) {
@@ -44,23 +44,25 @@ async function updateUserOnLogin(result: UserCredential) {
   try {
     const docSnap = await getDoc(userRef);
     if (docSnap.exists()) {
-      setDocumentNonBlocking(userRef, {
+      // If user exists, just update last login
+      await setDoc(userRef, {
         lastLogin: new Date().toISOString(),
       }, { merge: true });
     } else {
+      // If new user, create their profile with a default 'viewer' role
       const userData = {
         uid: user.uid,
         email: user.email,
         displayName: user.displayName,
         photoURL: user.photoURL,
-        role: 'Viewer',
+        role: 'viewer', // Default role for new sign-ups
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
       };
-      setDocumentNonBlocking(userRef, userData, { merge: false });
+      await setDoc(userRef, userData);
     }
   } catch (error) {
-    console.error("Error checking user document: ", error);
+    console.error("Error updating user document: ", error);
   }
 }
 
@@ -69,8 +71,8 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@lonipanchayat.in');
+  const [password, setPassword] = useState('password123');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [confirmationResult, setConfirmationResult] =

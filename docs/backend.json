@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -21,7 +22,8 @@
         },
         "role": {
           "type": "string",
-          "description": "User's role (e.g., citizen, admin, operator, viewer)."
+          "description": "User's role.",
+          "enum": ["admin", "operator", "viewer", "citizen"]
         }
       },
       "required": [
