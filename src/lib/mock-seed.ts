@@ -1,6 +1,6 @@
 
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, writeBatch } from 'firebase/firestore';
+import { getFirestore, collection, writeBatch, doc } from 'firebase/firestore';
 import { firebaseConfig } from '../firebase/config';
 import type { Property } from './types';
 import { getTaxHindiName } from './utils';
@@ -106,7 +106,7 @@ const seedFirestore = async () => {
 
     properties.forEach((prop) => {
       const docId = `PROP${Date.now()}${Math.floor(Math.random() * 1000)}`;
-      const docRef = collection(propertiesCollection, docId);
+      const docRef = doc(propertiesCollection, docId);
       batch.set(docRef, prop);
     });
 
