@@ -16,11 +16,12 @@ service cloud.firestore {
         allow write: if isSignedIn(); // In a real app, you'd restrict this to an admin role
     }
 
-    // This rule was the source of the "Missing or insufficient permissions" error.
-    // By allowing `list` for any signed-in user, the dashboard can now fetch all properties.
     match /properties/{propertyId} {
       allow read, list: if isSignedIn();
-      allow create, update, delete: if isSignedIn(); // In a real app, restrict to admins/owners
+      // Allow create for seeding script (unauthenticated)
+      // and allow update/delete for authenticated users.
+      allow create: if true; 
+      allow update, delete: if isSignedIn(); 
     }
   }
 }
