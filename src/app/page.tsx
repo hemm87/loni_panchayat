@@ -394,5 +394,3 @@ declare global {
     recaptchaVerifier: RecaptchaVerifier;
   }
 }
-
-    
