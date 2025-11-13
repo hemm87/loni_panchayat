@@ -1,29 +1,32 @@
 # Dockerfile for a Next.js application
 
-# 1. Base Image: Use an official Node.js image.
-# Using a specific version is good practice for reproducibility.
+# 1. Base Stage: Install dependencies and build the application
 FROM node:20-alpine AS base
-
-# 2. Set working directory
 WORKDIR /app
 
-# 3. Install dependencies
-# Copy package.json and package-lock.json first to leverage Docker cache
+# Copy package.json and package-lock.json
 COPY package*.json ./
+
+# Install dependencies
 RUN npm install
 
-# 4. Build the application
-# Copy the rest of your app's source code
+# Copy the rest of the application source code
 COPY . .
-# Run the build script defined in package.json
+
+# Create an empty public directory if it doesn't exist
+RUN mkdir -p public
+
+# Build the Next.js application
 RUN npm run build
 
-# 5. Production Image: Create a smaller image for production
+# 2. Production Stage: Create a clean, production-ready image
 FROM node:20-alpine AS production
-
 WORKDIR /app
 
-# Copy built assets from the 'base' stage
+# Set environment to production
+ENV NODE_ENV=production
+
+# Copy only the necessary files from the base stage
 COPY --from=base /app/.next ./.next
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/package.json ./package.json
@@ -32,5 +35,5 @@ COPY --from=base /app/public ./public
 # Expose the port Next.js runs on (default is 3000)
 EXPOSE 3000
 
-# The command to start the app in production mode
-CMD ["npm", "start", "--", "-p", "3000"]
+# The command to start the application
+CMD ["npm", "start"]
