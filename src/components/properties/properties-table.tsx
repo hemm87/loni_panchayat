@@ -47,47 +47,47 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
   return (
     <div className="w-full">
       <div className="flex items-center justify-between py-4 gap-4">
-        <div className="relative flex-1">
+        <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Filter by owner or property ID..."
             value={filter}
             onChange={event => setFilter(event.target.value)}
-            className="w-full pl-10"
+            className="w-full pl-10 h-11 border-2 focus:ring-2 focus:ring-primary/20"
           />
         </div>
-        <Button variant="outline">
+        <Button variant="outline" className="h-11 px-5 border-2 hover:bg-primary/5 hover:border-primary/50">
           <FileDown className="mr-2 h-4 w-4" />
-          Export
+          <span className="hidden sm:inline">Export</span>
         </Button>
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-xl border-2 border-border/50 overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Property ID</TableHead>
-              <TableHead>Owner</TableHead>
-              <TableHead className="hidden md:table-cell">Type</TableHead>
-              <TableHead className="hidden lg:table-cell">Area (sq. ft)</TableHead>
-              <TableHead>Tax Status</TableHead>
-              <TableHead>
+            <TableRow className="bg-muted/50 hover:bg-muted/50">
+              <TableHead className="font-semibold text-foreground">Property ID</TableHead>
+              <TableHead className="font-semibold text-foreground">Owner</TableHead>
+              <TableHead className="hidden md:table-cell font-semibold text-foreground">Type</TableHead>
+              <TableHead className="hidden lg:table-cell font-semibold text-foreground">Area (sq. ft)</TableHead>
+              <TableHead className="font-semibold text-foreground">Tax Status</TableHead>
+              <TableHead className="font-semibold text-foreground">
                 <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredData.length ? (
-              filteredData.map(property => (
-                <TableRow key={property.id}>
-                  <TableCell className="font-medium">{property.id}</TableCell>
+              filteredData.map((property, index) => (
+                <TableRow key={property.id} className={`hover:bg-muted/30 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-muted/10'}`}>
+                  <TableCell className="font-semibold text-foreground">{property.id}</TableCell>
                   <TableCell>
-                    <div>{property.ownerName}</div>
-                    <div className="text-xs text-muted-foreground">{property.mobileNumber}</div>
+                    <div className="font-medium text-foreground">{property.ownerName}</div>
+                    <div className="text-xs text-muted-foreground mt-1">{property.mobileNumber}</div>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
+                  <TableCell className="hidden md:table-cell text-muted-foreground">
                     {property.propertyType}
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell">
+                  <TableCell className="hidden lg:table-cell text-muted-foreground font-medium">
                     {property.area.toLocaleString()}
                   </TableCell>
                   <TableCell>{getStatusForProperty(property)}</TableCell>

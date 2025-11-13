@@ -132,7 +132,7 @@ const Dashboard = () => {
     return (
       <>
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
           {stats.map((stat, index) => (
             <StatsCard
               key={index}
@@ -146,10 +146,11 @@ const Dashboard = () => {
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-border">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Monthly Revenue • मासिक राजस्व
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+          <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 border border-border/50">
+            <h3 className="text-lg md:text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              <span>Monthly Revenue • मासिक राजस्व</span>
             </h3>
             {monthlyRevenueData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={250}>
@@ -168,9 +169,10 @@ const Dashboard = () => {
               )}
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-border">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Property Distribution • संपत्ति वितरण
+          <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 border border-border/50">
+            <h3 className="text-lg md:text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <Building className="w-5 h-5 text-primary" />
+              <span>Property Distribution • संपत्ति वितरण</span>
             </h3>
             {propertyTypeData.some(d => d.value > 0) ? (
                 <ResponsiveContainer width="100%" height={250}>
@@ -214,34 +216,40 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-border">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">
+        <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 border border-border/50">
+          <h3 className="text-lg md:text-xl font-bold text-foreground mb-6">
             Quick Actions • त्वरित कार्य
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             <button
               onClick={() => setActiveMenu('register')}
-              className="group bg-background border-2 border-dashed border-gray-300 hover:border-primary hover:bg-primary/5 transition-all p-6 rounded-xl text-center"
+              className="group bg-gradient-to-br from-primary/5 to-primary/10 border-2 border-primary/20 hover:border-primary hover:shadow-md transition-all duration-300 p-6 rounded-xl text-center"
             >
-              <UserPlus className="w-12 h-12 mx-auto text-primary mb-2 transition-transform group-hover:scale-110" />
-              <p className="font-bold text-lg text-foreground">Register New User</p>
-              <p className="text-sm text-muted-foreground">नया उपयोगकर्ता</p>
+              <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                <UserPlus className="w-8 h-8 text-primary" />
+              </div>
+              <p className="font-bold text-base md:text-lg text-foreground mb-1">Register New User</p>
+              <p className="text-xs md:text-sm text-muted-foreground">नया उपयोगकर्ता</p>
             </button>
             <button
               onClick={() => setActiveMenu('bill')}
-              className="group bg-background border-2 border-dashed border-gray-300 hover:border-green-500 hover:bg-green-500/5 transition-all p-6 rounded-xl text-center"
+              className="group bg-gradient-to-br from-green-500/5 to-green-500/10 border-2 border-green-500/20 hover:border-green-500 hover:shadow-md transition-all duration-300 p-6 rounded-xl text-center"
             >
-              <FileText className="w-12 h-12 mx-auto text-green-500 mb-2 transition-transform group-hover:scale-110" />
-              <p className="font-bold text-lg text-foreground">Generate Bill</p>
-              <p className="text-sm text-muted-foreground">रसीद बनाएँ</p>
+              <div className="bg-green-500/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                <FileText className="w-8 h-8 text-green-600" />
+              </div>
+              <p className="font-bold text-base md:text-lg text-foreground mb-1">Generate Bill</p>
+              <p className="text-xs md:text-sm text-muted-foreground">रसीद बनाएँ</p>
             </button>
             <button
               onClick={() => setActiveMenu('reports')}
-              className="group bg-background border-2 border-dashed border-gray-300 hover:border-purple-500 hover:bg-purple-500/5 transition-all p-6 rounded-xl text-center"
+              className="group bg-gradient-to-br from-purple-500/5 to-purple-500/10 border-2 border-purple-500/20 hover:border-purple-500 hover:shadow-md transition-all duration-300 p-6 rounded-xl text-center sm:col-span-2 lg:col-span-1"
             >
-              <BarChart3 className="w-12 h-12 mx-auto text-purple-500 mb-2 transition-transform group-hover:scale-110" />
-              <p className="font-bold text-lg text-foreground">View Reports</p>
-              <p className="text-sm text-muted-foreground">रिपोर्ट देखें</p>
+              <div className="bg-purple-500/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                <BarChart3 className="w-8 h-8 text-purple-600" />
+              </div>
+              <p className="font-bold text-base md:text-lg text-foreground mb-1">View Reports</p>
+              <p className="text-xs md:text-sm text-muted-foreground">रिपोर्ट देखें</p>
             </button>
           </div>
         </div>
@@ -272,35 +280,35 @@ const Dashboard = () => {
   // Reports Page
   const ReportsPage = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-lg p-6 border border-border">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+      <div className="bg-white rounded-xl shadow-md p-6 md:p-8 border border-border/50">
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6">
           Reports & Analytics • रिपोर्ट्स और विश्लेषण
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-foreground mb-2">
               From Date • से तारीख
             </label>
             <input
               type="date"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+              className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
             />
           </div>
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-foreground mb-2">
               To Date • तक तारीख
             </label>
             <input
               type="date"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+              className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
             />
           </div>
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-foreground mb-2">
               Report Type • रिपोर्ट प्रकार
             </label>
-            <select className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none">
+            <select className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all bg-white">
               <option>All Reports</option>
               <option>Revenue Report</option>
               <option>Tax Collection</option>
@@ -309,14 +317,14 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <button className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-bold hover:bg-primary/90 transition-all flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+          <button className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 hover:shadow-md transition-all flex items-center justify-center gap-2">
             <Search className="w-5 h-5" />
-            Generate Report • रिपोर्ट बनाएँ
+            <span>Generate Report • रिपोर्ट बनाएँ</span>
           </button>
-          <button className="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition-all flex items-center gap-2">
+          <button className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 hover:shadow-md transition-all flex items-center justify-center gap-2">
             <Download className="w-5 h-5" />
-            Export PDF
+            <span>Export PDF</span>
           </button>
         </div>
       </div>
@@ -370,66 +378,66 @@ const Dashboard = () => {
     
     return (
         <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-xl shadow-lg p-8 border border-border">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+        <div className="bg-white rounded-xl shadow-md p-6 md:p-8 border border-border/50">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8">
             Settings • सेटिंग्स
             </h2>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
             <div className="border-b pb-6">
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Panchayat Information • पंचायत जानकारी</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <h3 className="text-xl font-bold text-foreground mb-5">Panchayat Information • पंचायत जानकारी</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Panchayat Name</label>
+                    <label className="block text-sm font-semibold text-foreground mb-2">Panchayat Name</label>
                     <input
                     type="text"
                     name="panchayatName"
                     value={localSettings.panchayatName || ''}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">District • जिला</label>
+                    <label className="block text-sm font-semibold text-foreground mb-2">District • जिला</label>
                     <input
                     type="text"
                     name="district"
                     value={localSettings.district || ''}
                     onChange={handleInputChange}
                     placeholder="Enter district name"
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">State • राज्य</label>
+                    <label className="block text-sm font-semibold text-foreground mb-2">State • राज्य</label>
                     <input
                     type="text"
                     name="state"
                     value={localSettings.state || ''}
                     onChange={handleInputChange}
                     placeholder="Enter state name"
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">PIN Code • पिन कोड</label>
+                    <label className="block text-sm font-semibold text-foreground mb-2">PIN Code • पिन कोड</label>
                     <input
                     type="text"
                     name="pinCode"
                     value={localSettings.pinCode || ''}
                     onChange={handleInputChange}
                     placeholder="Enter PIN code"
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                     />
                 </div>
                 </div>
             </div>
 
             <div className="border-b pb-6">
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Tax Configuration • कर विन्यास</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <h3 className="text-xl font-bold text-foreground mb-5">Tax Configuration • कर विन्यास</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Property Tax Rate (%)</label>
+                    <label className="block text-sm font-semibold text-foreground mb-2">Property Tax Rate (%)</label>
                     <input
                     type="number"
                     name="propertyTaxRate"
@@ -438,11 +446,11 @@ const Dashboard = () => {
                     placeholder="0.00"
                     min="0"
                     step="0.01"
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Water Tax (Flat Rate ₹)</label>
+                    <label className="block text-sm font-semibold text-foreground mb-2">Water Tax (Flat Rate ₹)</label>
                     <input
                     type="number"
                     name="waterTaxRate"
@@ -451,11 +459,11 @@ const Dashboard = () => {
                     placeholder="0.00"
                     min="0"
                     step="0.01"
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Late Fee (%)</label>
+                    <label className="block text-sm font-semibold text-foreground mb-2">Late Fee (%)</label>
                     <input
                     type="number"
                     name="lateFee"
@@ -464,7 +472,7 @@ const Dashboard = () => {
                     placeholder="0.00"
                     min="0"
                     step="0.01"
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                     />
                 </div>
                 </div>
