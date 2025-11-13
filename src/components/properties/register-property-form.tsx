@@ -88,7 +88,7 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
     const propertyData: Omit<Property, 'id'> = {
       ...formData,
       area: Number(formData.area),
-      photoUrl: `https://picsum.photos/seed/${propertyId}/600/400`,
+      photoUrl: 'https://picsum.photos/seed/new-property/600/400',
       photoHint: 'new property',
       taxes: taxes.filter(t => t.assessedAmount > 0).map((t, index) => ({
         id: `TAX${Date.now()}${index}`,

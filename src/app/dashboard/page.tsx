@@ -2,7 +2,7 @@
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
 import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Download, Plus, Save, Building } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, initializeFirebase, setDocumentNonBlocking } from '@/firebase';
@@ -39,7 +39,7 @@ const Dashboard = () => {
   const menuItems = [
     { id: 'dashboard', icon: Home, label: 'Dashboard', labelHi: 'होम' },
     { id: 'register', icon: UserPlus, label: 'Register New User', labelHi: 'नया उपयोगकर्ता पंजीकरण' },
-    { id: 'users', icon: Users, label: 'All Users / Properties', labelHi: 'सभी उपयोगकर्ता / संपत्ति' },
+    { id: 'users', icon: Users, label: 'Property Records', labelHi: 'संपत्ति रिकॉर्ड' },
     { id: 'bill', icon: FileText, label: 'Generate Bill / Receipt', labelHi: 'रसीद बनाएँ' },
     { id: 'reports', icon: BarChart3, label: 'Reports', labelHi: 'रिपोर्ट्स' },
     { id: 'settings', icon: Settings, label: 'Settings', labelHi: 'सेटिंग्स' },
@@ -70,9 +70,9 @@ const Dashboard = () => {
 
   // Dashboard Page
   const DashboardPage = ({ properties }: { properties: Property[] }) => {
-    const { totalUsers, paidTaxes, pendingTaxes, totalRevenue, monthlyRevenueData } = useMemo(() => {
+    const { totalUsers, paidTaxes, pendingTaxes, totalRevenue, monthlyRevenueData, propertyTypeData } = useMemo(() => {
         if (!properties) {
-          return { totalUsers: 0, paidTaxes: 0, pendingTaxes: 0, totalRevenue: 0, monthlyRevenueData: [] };
+          return { totalUsers: 0, paidTaxes: 0, pendingTaxes: 0, totalRevenue: 0, monthlyRevenueData: [], propertyTypeData: [] };
         }
     
         const totalUsers = properties.length;
@@ -80,8 +80,13 @@ const Dashboard = () => {
         let pendingTaxes = 0;
         let totalRevenue = 0;
         const monthlyRevenue: { [key: string]: number } = {};
+        const propertyTypes: { [key: string]: number } = { Residential: 0, Commercial: 0, Agricultural: 0 };
     
         properties.forEach(prop => {
+          if (propertyTypes[prop.propertyType] !== undefined) {
+            propertyTypes[prop.propertyType]++;
+          }
+
           const hasUnpaid = prop.taxes?.some(t => t.paymentStatus === 'Unpaid' || t.paymentStatus === 'Partial');
           if (hasUnpaid) {
             pendingTaxes++;
@@ -106,16 +111,23 @@ const Dashboard = () => {
           month,
           revenue: monthlyRevenue[month],
         }));
+
+        const propertyTypeData = Object.keys(propertyTypes).map(name => ({
+            name,
+            value: propertyTypes[name],
+        }));
     
-        return { totalUsers, paidTaxes, pendingTaxes, totalRevenue, monthlyRevenueData };
+        return { totalUsers, paidTaxes, pendingTaxes, totalRevenue, monthlyRevenueData, propertyTypeData };
       }, [properties]);
     
     const stats = [
-      { title: 'Total Users', titleHi: 'कुल उपयोगकर्ता', value: totalUsers.toLocaleString('en-IN'), color: 'bg-blue-500', icon: '👥' },
-      { title: 'Paid Taxes', titleHi: 'भरे हुए कर', value: paidTaxes.toLocaleString('en-IN'), color: 'bg-green-500', icon: '✅' },
-      { title: 'Pending Taxes', titleHi: 'लंबित कर', value: pendingTaxes.toLocaleString('en-IN'), color: 'bg-orange-500', icon: '⏳' },
+      { title: 'Total Properties', titleHi: 'कुल संपत्ति', value: totalUsers.toLocaleString('en-IN'), color: 'bg-blue-500', icon: '👥' },
+      { title: 'Fully Paid', titleHi: 'पूर्ण भुगतान', value: paidTaxes.toLocaleString('en-IN'), color: 'bg-green-500', icon: '✅' },
+      { title: 'Dues Pending', titleHi: 'बकाया लंबित', value: pendingTaxes.toLocaleString('en-IN'), color: 'bg-orange-500', icon: '⏳' },
       { title: 'Total Revenue', titleHi: 'कुल राजस्व', value: `₹${totalRevenue.toLocaleString('en-IN')}`, color: 'bg-purple-500', icon: '💰' },
     ];
+
+    const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
 
     return (
       <>
@@ -158,11 +170,46 @@ const Dashboard = () => {
 
           <div className="bg-white rounded-xl shadow-lg p-6 border border-border">
             <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Tax Distribution • कर वितरण
+              Property Distribution • संपत्ति वितरण
             </h3>
-            <div className="h-64 flex items-center justify-center text-gray-400">
-              <p>Connect Firebase to display tax distribution</p>
-            </div>
+            {propertyTypeData.some(d => d.value > 0) ? (
+                <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                        <Pie
+                            data={propertyTypeData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                            nameKey="name"
+                            label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+                                const RADIAN = Math.PI / 180;
+                                const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                                const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                                const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+                                return (
+                                <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+                                    {`${(percent * 100).toFixed(0)}%`}
+                                </text>
+                                );
+                            }}
+                        >
+                        {propertyTypeData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                        ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                    </PieChart>
+                </ResponsiveContainer>
+            ) : (
+                <div className="h-64 flex items-center justify-center text-gray-400">
+                    <p>No property data to display distribution.</p>
+                </div>
+            )}
           </div>
         </div>
 

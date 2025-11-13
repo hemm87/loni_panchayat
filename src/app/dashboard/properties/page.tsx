@@ -43,11 +43,7 @@ export default function PropertiesPage() {
   }
 
   const handleAddNew = () => {
-    // This is a bit of a hack. We should ideally have a dedicated page for adding new properties.
-    // For now, we redirect to the dashboard which will show the registration form.
-    // A better solution would be to use a modal or a separate page.
-    // We can't easily switch the active menu on the dashboard from here.
-    alert("Please go to the 'Register New User' tab on the main dashboard to add a new property.");
+    router.push('/dashboard?menu=register');
   }
   
   return (
@@ -60,7 +56,7 @@ export default function PropertiesPage() {
           action={{
             label: "Add Property",
             labelHi: "संपत्ति जोड़ें",
-            onClick: () => router.push('/dashboard?menu=register'), // A bit of a hack
+            onClick: handleAddNew,
             icon: <Plus className="w-5 h-5" />,
             variant: "default"
           }}
@@ -70,7 +66,7 @@ export default function PropertiesPage() {
         {properties && properties.length > 0 ? (
             <PropertiesTable data={properties || []} />
         ) : (
-            <NoPropertiesState onAddNew={() => router.push('/dashboard?menu=register')} />
+            <NoPropertiesState onAddNew={handleAddNew} />
         )}
     </div>
   );
