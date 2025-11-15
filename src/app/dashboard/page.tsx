@@ -15,6 +15,7 @@ import { StatsCard } from '@/components/ui/stats-card';
 import { DashboardSkeleton } from '@/components/ui/loading-skeletons';
 import { NoPropertiesState, NoReportsState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { UserRoleDisplay } from '@/components/ui/user-role-display';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -132,6 +133,11 @@ const Dashboard = () => {
 
     return (
       <>
+        {/* User Role & Permissions Display */}
+        <div className="mb-6 md:mb-8 animate-fade-in">
+          <UserRoleDisplay />
+        </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
           {stats.map((stat, index) => (
