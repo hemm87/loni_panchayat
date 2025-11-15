@@ -44,6 +44,7 @@ const Dashboard = () => {
     { id: 'register', icon: UserPlus, label: 'Register New User', labelHi: 'नया उपयोगकर्ता पंजीकरण' },
     { id: 'users', icon: Users, label: 'Property Records', labelHi: 'संपत्ति रिकॉर्ड' },
     { id: 'bill', icon: FileText, label: 'Generate Bill / Receipt', labelHi: 'रसीद बनाएँ' },
+    { id: 'bills', icon: Download, label: 'Download Bills', labelHi: 'बिल डाउनलोड करें' },
     { id: 'reports', icon: BarChart3, label: 'Reports', labelHi: 'रिपोर्ट्स' },
     { id: 'settings', icon: Settings, label: 'Settings', labelHi: 'सेटिंग्स' },
   ];
@@ -323,6 +324,239 @@ const Dashboard = () => {
       onCancel={() => setActiveMenu('dashboard')}
     />
   );
+
+  // Download Bills Page
+  const BillsPage = ({ properties, settings }: { properties: Property[], settings: PanchayatSettings | null }) => {
+    const { toast } = useToast();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterStatus, setFilterStatus] = useState<'All' | 'Paid' | 'Unpaid' | 'Partial'>('All');
+
+    // Get all bills from all properties
+    const allBills = useMemo(() => {
+      const bills: Array<{
+        property: Property;
+        tax: Property['taxes'][number];
+      }> = [];
+
+      properties.forEach(property => {
+        property.taxes?.forEach(tax => {
+          bills.push({ property, tax });
+        });
+      });
+
+      // Sort by date (most recent first)
+      return bills.sort((a, b) => {
+        const dateA = new Date(a.tax.assessmentYear, 0, 1).getTime();
+        const dateB = new Date(b.tax.assessmentYear, 0, 1).getTime();
+        return dateB - dateA;
+      });
+    }, [properties]);
+
+    // Filter bills based on search and status
+    const filteredBills = useMemo(() => {
+      return allBills.filter(({ property, tax }) => {
+        const matchesSearch = searchTerm === '' || 
+          property.ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          property.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          tax.receiptNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const matchesStatus = filterStatus === 'All' || tax.paymentStatus === filterStatus;
+        
+        return matchesSearch && matchesStatus;
+      });
+    }, [allBills, searchTerm, filterStatus]);
+
+    const handleDownloadBill = async (property: Property, tax: Property['taxes'][number]) => {
+      if (!settings) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Settings not configured',
+        });
+        return;
+      }
+
+      try {
+        const { generateBillPdf } = await import('@/lib/pdf-generator');
+        await generateBillPdf(property, [tax], settings);
+        toast({
+          title: 'Success',
+          description: 'Bill downloaded successfully!',
+        });
+      } catch (error) {
+        console.error('Error downloading bill:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to download bill',
+        });
+      }
+    };
+
+    return (
+      <div className="space-y-6 animate-fade-in">
+        {/* Header */}
+        <div className="card-premium rounded-2xl shadow-xl p-6 border-2 border-border/50 backdrop-blur-sm">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-success to-success/80 flex items-center justify-center shadow-lg">
+              <Download className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h2 className="text-3xl md:text-4xl font-headline font-bold text-gradient bg-gradient-to-r from-success to-emerald-600 bg-clip-text text-transparent">
+                Download Bills
+              </h2>
+              <p className="text-lg text-muted-foreground mt-1">बिल डाउनलोड करें</p>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search by owner name, property ID, or receipt number..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full h-12 pl-11 pr-4 border-2 rounded-xl shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              />
+            </div>
+            <div className="flex gap-2">
+              {(['All', 'Paid', 'Unpaid', 'Partial'] as const).map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setFilterStatus(status)}
+                  className={cn(
+                    "px-4 py-2 rounded-lg font-semibold transition-all",
+                    filterStatus === status
+                      ? 'bg-gradient-to-r from-primary to-accent text-white shadow-md'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/70'
+                  )}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Bills List */}
+        {filteredBills.length === 0 ? (
+          <div className="card-premium rounded-2xl p-12 text-center">
+            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
+              <FileText className="w-12 h-12 text-muted-foreground" />
+            </div>
+            <h3 className="text-2xl font-bold mb-2">No Bills Found</h3>
+            <p className="text-muted-foreground">
+              {searchTerm || filterStatus !== 'All' 
+                ? 'Try adjusting your search or filter criteria' 
+                : 'No bills have been generated yet'}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {filteredBills.map(({ property, tax }, index) => (
+              <div
+                key={`${property.id}-${tax.id}`}
+                className="card-premium rounded-xl p-6 border-2 border-border/50 hover:border-primary/30 hover:shadow-lg transition-all animate-slide-up"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  {/* Bill Info */}
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-xl font-bold text-foreground">{property.ownerName}</h3>
+                      <span className={cn(
+                        "px-3 py-1 rounded-full text-xs font-bold",
+                        tax.paymentStatus === 'Paid' && 'bg-success/10 text-success',
+                        tax.paymentStatus === 'Unpaid' && 'bg-destructive/10 text-destructive',
+                        tax.paymentStatus === 'Partial' && 'bg-warning/10 text-warning'
+                      )}>
+                        {tax.paymentStatus}
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Property ID</p>
+                        <p className="font-semibold">{property.id}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Tax Type</p>
+                        <p className="font-semibold">{tax.taxType}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Receipt No.</p>
+                        <p className="font-semibold">{tax.receiptNumber || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Assessment Year</p>
+                        <p className="font-semibold">{tax.assessmentYear}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-6 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Assessed: </span>
+                        <span className="font-bold text-foreground">₹{tax.assessedAmount.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Paid: </span>
+                        <span className="font-bold text-success">₹{tax.amountPaid.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Due: </span>
+                        <span className="font-bold text-destructive">₹{(tax.assessedAmount - tax.amountPaid).toLocaleString('en-IN')}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Download Button */}
+                  <button
+                    onClick={() => handleDownloadBill(property, tax)}
+                    className="bg-gradient-to-r from-success to-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2 justify-center"
+                  >
+                    <Download className="w-5 h-5" />
+                    <span>Download Bill</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Summary Stats */}
+        {filteredBills.length > 0 && (
+          <div className="card-premium rounded-2xl p-6 border-2 border-border/50">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-1">Total Bills</p>
+                <p className="text-2xl font-bold text-foreground">{filteredBills.length}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-1">Total Assessed</p>
+                <p className="text-2xl font-bold text-foreground">
+                  ₹{filteredBills.reduce((sum, { tax }) => sum + tax.assessedAmount, 0).toLocaleString('en-IN')}
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-1">Total Collected</p>
+                <p className="text-2xl font-bold text-success">
+                  ₹{filteredBills.reduce((sum, { tax }) => sum + tax.amountPaid, 0).toLocaleString('en-IN')}
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-1">Total Pending</p>
+                <p className="text-2xl font-bold text-destructive">
+                  ₹{filteredBills.reduce((sum, { tax }) => sum + (tax.assessedAmount - tax.amountPaid), 0).toLocaleString('en-IN')}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // Reports Page
   const ReportsPage = () => {
@@ -792,6 +1026,8 @@ const Dashboard = () => {
         return <RegisterPage />;
       case 'bill':
         return <BillPage properties={properties || []} settings={settings || null} />;
+      case 'bills':
+        return <BillsPage properties={properties || []} settings={settings || null} />;
       case 'reports':
         return <ReportsPage />;
       case 'settings':
