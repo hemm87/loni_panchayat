@@ -16,25 +16,45 @@ service cloud.firestore {
     function isAdminOrOperator() {
       return isSignedIn() && (getUserRole(request.auth.uid) == 'admin' || getUserRole(request.auth.uid) == 'operator');
     }
+    
+    function isAdmin() {
+      return isSignedIn() && getUserRole(request.auth.uid) == 'admin';
+    }
 
     // Users can read and write their own profile
     match /users/{userId} {
       allow read, write: if isSignedIn() && request.auth.uid == userId;
       // Admins can also read any user profile
-      allow get: if getUserRole(request.auth.uid) == 'admin';
+      allow get: if isAdmin();
+      allow list: if isAdmin();
     }
 
     match /panchayat-settings/{docId} {
         allow get: if isSignedIn();
         // Only admins can write to settings
-        allow write: if getUserRole(request.auth.uid) == 'admin';
+        allow write: if isAdmin();
     }
 
     match /properties/{propertyId} {
-      // Any signed-in user can view/list properties
-      allow read, list: if isSignedIn();
+      // Any signed-in user can view/list properties.
+      // For a more secure app, you might restrict list to admins and get to the owner.
+      allow get, list: if isSignedIn();
       // Only admins or operators can create, update, or delete properties
       allow create, update, delete: if isAdminOrOperator();
+    }
+
+    match /bills/{billId} {
+      // Admins can do anything.
+      allow read, write, list: if isAdmin();
+
+      // A user can read a bill if their propertyId is on the bill.
+      // This requires the propertyId to be stored on the bill document.
+      allow get: if isSignedIn() && resource.data.propertyId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.propertyIds;
+    }
+
+    match /auditLogs/{logId} {
+      // Only admins can read or write audit logs.
+      allow read, write: if isAdmin();
     }
   }
 }

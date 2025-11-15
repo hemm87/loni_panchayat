@@ -1,13 +1,12 @@
 
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { initializeFirebase } from '@/firebase';
 import { doc, updateDoc, getDoc, arrayUnion } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, FileText, Printer, PlusCircle, Trash2 } from 'lucide-react'; // Added PlusCircle and Trash2
 import type { Property, PanchayatSettings } from '@/lib/types';
@@ -257,8 +256,8 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
             console.error("Error generating bill: ", error);
             toast({
                 variant: 'destructive',
-                title: 'Operation Failed',
-                description: error.message || 'An unknown error occurred during bill generation.',
+                title: 'Bill Generation Failed',
+                description: error.message || 'An unknown error occurred.',
             });
         } finally {
             setLoading(false);
@@ -274,9 +273,10 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                 </h2>
                 {!settings && (
                     <Alert variant="destructive" className="mb-6">
+                         <AlertCircle className="h-4 w-4" />
                         <AlertTitle>Settings Not Found!</AlertTitle>
                         <AlertDescription>
-                            Tax rates are not configured. Please go to the Settings page and save the tax configuration before generating bills.
+                            Panchayat settings are not configured. Please go to the Settings page and save them before generating bills.
                         </AlertDescription>
                     </Alert>
                 )}

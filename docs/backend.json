@@ -181,12 +181,90 @@
         "paymentDate",
         "paymentMode"
       ]
+    },
+    "Bill": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Bill",
+      "type": "object",
+      "description": "Represents a generated bill or receipt for a property's taxes.",
+      "properties": {
+        "billId": {
+          "type": "string",
+          "description": "Unique identifier for the bill, e.g., LONI-2025-000123."
+        },
+        "propertyId": {
+          "type": "string",
+          "description": "The ID of the property this bill is for."
+        },
+        "ownerName": {
+          "type": "string",
+          "description": "Denormalized owner name for quick display."
+        },
+        "houseNo": {
+          "type": "string",
+          "description": "Denormalized house number."
+        },
+        "year": {
+          "type": "number",
+          "description": "The assessment year this bill covers."
+        },
+        "taxBreakdown": {
+          "type": "array",
+          "items": { "$ref": "#/entities/TaxRecord" }
+        },
+        "totalAmount": {
+          "type": "number"
+        },
+        "amountPaid": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Paid", "Unpaid", "Partial"]
+        },
+        "generatedBy": {
+          "type": "string",
+          "description": "UID of the admin who generated the bill."
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "storageUrlPdf": {
+          "type": "string",
+          "description": "Path to the PDF file in Firebase Storage."
+        },
+        "storageUrlDocx": {
+          "type": "string",
+          "description": "Path to the DOCX file in Firebase Storage (optional)."
+        },
+        "language": {
+          "type": "string",
+          "enum": ["en", "hi", "bilingual"]
+        }
+      },
+      "required": ["billId", "propertyId", "year", "totalAmount", "status", "generatedBy", "generatedAt", "storageUrlPdf"]
+    },
+    "AuditLog": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AuditLog",
+      "type": "object",
+      "description": "Records significant actions performed by users, especially admins.",
+      "properties": {
+        "logId": { "type": "string" },
+        "action": { "type": "string", "description": "e.g., 'generateBill', 'updateProperty', 'deleteUser'" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string", "description": "UID of the user who performed the action." },
+        "details": { "type": "object", "description": "Contextual details about the action." }
+      },
+      "required": ["logId", "action", "timestamp", "userId"]
     }
   },
   "auth": {
     "providers": [
       "password",
-      "anonymous"
+      "anonymous",
+      "google.com"
     ]
   },
   "firestore": {
@@ -196,78 +274,45 @@
         "definition": {
           "entityName": "User",
           "schema": {
-            "$ref": "#/backend/entities/User"
+            "$ref": "#/entities/User"
           },
-          "description": "Stores user profiles. The `userId` parameter matches the Firebase Auth UID.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The Firebase Auth UID of the user."
-            }
-          ]
+          "description": "Stores user profiles. The `userId` parameter matches the Firebase Auth UID."
         }
       },
       {
-        "path": "/users/{userId}/properties/{propertyId}",
+        "path": "/properties/{propertyId}",
         "definition": {
           "entityName": "Property",
           "schema": {
-            "$ref": "#/backend/entities/Property"
+            "$ref": "#/entities/Property"
           },
-          "description": "Stores property records for a specific user. The `userId` parameter ensures ownership.  ownerId field reinforces ownership",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The Firebase Auth UID of the user who owns the property."
-            },
-            {
-              "name": "propertyId",
-              "description": "The unique ID of the property."
-            }
-          ]
+          "description": "Stores all property records."
         }
       },
       {
-        "path": "/users/{userId}/taxRecords/{taxRecordId}",
+        "path": "/bills/{billId}",
         "definition": {
-          "entityName": "TaxRecord",
-          "schema": {
-            "$ref": "#/backend/entities/TaxRecord"
-          },
-          "description": "Stores tax records associated with a user's property.  Path based ownership from users collection.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The Firebase Auth UID of the user who owns the property and the tax record."
-            },
-            {
-              "name": "taxRecordId",
-              "description": "The unique ID of the tax record."
-            }
-          ]
+          "entityName": "Bill",
+          "schema": { "$ref": "#/entities/Bill" },
+          "description": "Stores generated bills/receipts. The document ID is the unique billId."
         }
       },
       {
-        "path": "/users/{userId}/payments/{paymentId}",
+        "path": "/auditLogs/{logId}",
         "definition": {
-          "entityName": "Payment",
-          "schema": {
-            "$ref": "#/backend/entities/Payment"
-          },
-          "description": "Stores payment records for tax records, associated with properties owned by users. Path based ownership from users collection",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The Firebase Auth UID of the user who made the payment."
-            },
-            {
-              "name": "paymentId",
-              "description": "The unique ID of the payment."
-            }
-          ]
+          "entityName": "AuditLog",
+          "schema": { "$ref": "#/entities/AuditLog" },
+          "description": "Stores a log of important system events."
+        }
+      },
+      {
+        "path": "/panchayat-settings/config",
+        "definition": {
+            "entityName": "PanchayatSettings",
+            "schema": { "$ref": "#/entities/PanchayatSettings" },
+            "description": "Singleton document for global panchayat settings."
         }
       }
-    ],
-    "reasoning": "The Firestore structure is designed to provide a secure, scalable, and easily maintainable database for the Loni Panchayat Tax Management System. It follows the principles of Authorization Independence, Structural Segregation, and Access Modeling to ensure robust security rules and efficient data access.\n\n**Authorization Independence:**\nAuthorization Independence is achieved through path-based ownership. User-owned data (Properties, TaxRecords, and Payments) are nested under the `/users/{userId}` collection. This structure allows security rules to be written based solely on the `request.auth.uid` and the path, avoiding the need for costly and brittle `get()` calls to parent documents. No denormalization is needed due to path-based ownership, further simplifying security rules and ensuring atomicity of operations.\n\n**Structural Segregation:**\nThe system segregates data based on its security posture. User profiles are stored in `/users/{userId}`, ensuring that only the authenticated user can access their data. Properties, Tax Records, and Payments associated with a user are stored under their respective user ID path, maintaining clear ownership. There's no need to mix public and private data within the same collections.\n\n**Access Modeling:**\nThe system uses path-based ownership for private user data. The `/users/{userId}` collection stores user profiles, and subsequent collections like `/users/{userId}/properties/{propertyId}`, `/users/{userId}/taxRecords/{taxRecordId}`, and `/users/{userId}/payments/{paymentId}` inherit ownership through the path. This is the most secure and efficient way to model user-owned data in Firestore. Global roles (admin, operator, viewer) are managed through content stored in the User document `users/{userId}`.\n\n**QAPs (Rules are not Filters):**\nThis structure enables secure `list` operations.  Because ownership is embedded in the path, rules can efficiently filter lists to only return resources owned by the requesting user or based on user role, without requiring filtering logic in the rules themselves. For example, listing properties can be secured with a simple rule `allow list: if request.auth.uid == userId;`.\n\n**Invariants:**\nThe structure supports the integrity of ownership. The `ownerId` field in the `/properties` collection reinforces path-based ownership. Timestamps (if needed) can be added at each level. Denormalized data (if required in future, though not currently) can be efficiently managed without breaking authorization independence, since ownership doesn't rely on it."
+    ]
   }
 }

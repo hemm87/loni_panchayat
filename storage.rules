@@ -1,0 +1,32 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper function to check if a user is authenticated
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper function to get user role from Firestore
+    function getUserRole(userId) {
+      return get(/databases/(default)/documents/users/$(userId)).data.role;
+    }
+
+    // Admins can write anywhere
+    match /{allPaths=**} {
+      allow write: if isSignedIn() && getUserRole(request.auth.uid) == 'admin';
+    }
+
+    // Bill-specific rules
+    // Path: /bills/{year}/{billId}.pdf
+    match /bills/{year}/{billId} {
+      // Any authenticated user can read a bill.
+      // In a real app, you would lock this down further to either:
+      // 1. The specific owner of the bill (by looking up the bill doc in Firestore)
+      // 2. Or rely solely on signed URLs, which is the current implementation.
+      // For simplicity in this context, we allow any authenticated user to read.
+      allow read: if isSignedIn();
+    }
+  }
+}
