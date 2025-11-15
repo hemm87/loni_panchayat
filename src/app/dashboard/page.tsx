@@ -17,6 +17,7 @@ import { NoPropertiesState, NoReportsState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const Dashboard = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
@@ -147,10 +148,12 @@ const Dashboard = () => {
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-          <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 border border-border/50">
-            <h3 className="text-lg md:text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-primary" />
-              <span>Monthly Revenue • मासिक राजस्व</span>
+          <div className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 md:p-7 border border-border hover:border-primary/30 animate-slide-up">
+            <h3 className="text-lg md:text-xl font-headline font-bold text-foreground mb-6 flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <BarChart3 className="w-5 h-5 text-primary" />
+              </div>
+              <span>Monthly Revenue <span className="text-muted-foreground/60">•</span> <span className="font-hindi text-muted-foreground">मासिक राजस्व</span></span>
             </h3>
             {monthlyRevenueData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={250}>
@@ -169,10 +172,12 @@ const Dashboard = () => {
               )}
           </div>
 
-          <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 border border-border/50">
-            <h3 className="text-lg md:text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-              <Building className="w-5 h-5 text-primary" />
-              <span>Property Distribution • संपत्ति वितरण</span>
+          <div className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 md:p-7 border border-border hover:border-primary/30 animate-slide-up" style={{ animationDelay: '100ms' }}>
+            <h3 className="text-lg md:text-xl font-headline font-bold text-foreground mb-6 flex items-center gap-3">
+              <div className="p-2 bg-success/10 rounded-lg">
+                <Building className="w-5 h-5 text-success" />
+              </div>
+              <span>Property Distribution <span className="text-muted-foreground/60">•</span> <span className="font-hindi text-muted-foreground">संपत्ति वितरण</span></span>
             </h3>
             {propertyTypeData.some(d => d.value > 0) ? (
                 <ResponsiveContainer width="100%" height={250}>
@@ -215,41 +220,75 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 border border-border/50">
-          <h3 className="text-lg md:text-xl font-bold text-foreground mb-6">
-            Quick Actions • त्वरित कार्य
+        {/* Premium Quick Actions */}
+        <div className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 md:p-8 border border-border animate-slide-up" style={{ animationDelay: '200ms' }}>
+          <h3 className="text-xl md:text-2xl font-headline font-bold text-foreground mb-8 flex items-center gap-3">
+            <div className="p-2 bg-accent/10 rounded-lg">
+              <Plus className="w-6 h-6 text-accent" />
+            </div>
+            <span>Quick Actions <span className="text-muted-foreground/60">•</span> <span className="font-hindi text-muted-foreground">त्वरित कार्य</span></span>
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             <button
               onClick={() => setActiveMenu('register')}
-              className="group bg-gradient-to-br from-primary/5 to-primary/10 border-2 border-primary/20 hover:border-primary hover:shadow-md transition-all duration-300 p-6 rounded-xl text-center"
+              className={cn(
+                "group relative overflow-hidden",
+                "bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5",
+                "border-2 border-primary/20 hover:border-primary",
+                "hover:shadow-xl hover:shadow-primary/20",
+                "transition-all duration-300 p-6 md:p-7 rounded-2xl text-center",
+                "hover-lift active:scale-95"
+              )}
             >
-              <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                <UserPlus className="w-8 h-8 text-primary" />
+              <div className="relative z-10">
+                <div className="bg-gradient-to-br from-primary to-primary/80 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg">
+                  <UserPlus className="w-8 h-8 text-white" />
+                </div>
+                <p className="font-bold text-base md:text-lg text-foreground mb-2">Register New User</p>
+                <p className="text-sm text-muted-foreground font-hindi">नया उपयोगकर्ता</p>
               </div>
-              <p className="font-bold text-base md:text-lg text-foreground mb-1">Register New User</p>
-              <p className="text-xs md:text-sm text-muted-foreground">नया उपयोगकर्ता</p>
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
             <button
               onClick={() => setActiveMenu('bill')}
-              className="group bg-gradient-to-br from-green-500/5 to-green-500/10 border-2 border-green-500/20 hover:border-green-500 hover:shadow-md transition-all duration-300 p-6 rounded-xl text-center"
+              className={cn(
+                "group relative overflow-hidden",
+                "bg-gradient-to-br from-success/5 via-success/10 to-success/5",
+                "border-2 border-success/20 hover:border-success",
+                "hover:shadow-xl hover:shadow-success/20",
+                "transition-all duration-300 p-6 md:p-7 rounded-2xl text-center",
+                "hover-lift active:scale-95"
+              )}
             >
-              <div className="bg-green-500/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                <FileText className="w-8 h-8 text-green-600" />
+              <div className="relative z-10">
+                <div className="bg-gradient-to-br from-success to-success/80 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg">
+                  <FileText className="w-8 h-8 text-white" />
+                </div>
+                <p className="font-bold text-base md:text-lg text-foreground mb-2">Generate Bill</p>
+                <p className="text-sm text-muted-foreground font-hindi">रसीद बनाएँ</p>
               </div>
-              <p className="font-bold text-base md:text-lg text-foreground mb-1">Generate Bill</p>
-              <p className="text-xs md:text-sm text-muted-foreground">रसीद बनाएँ</p>
+              <div className="absolute inset-0 bg-gradient-to-br from-success/0 to-success/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
             <button
               onClick={() => setActiveMenu('reports')}
-              className="group bg-gradient-to-br from-purple-500/5 to-purple-500/10 border-2 border-purple-500/20 hover:border-purple-500 hover:shadow-md transition-all duration-300 p-6 rounded-xl text-center sm:col-span-2 lg:col-span-1"
+              className={cn(
+                "group relative overflow-hidden",
+                "bg-gradient-to-br from-purple-500/5 via-purple-500/10 to-purple-500/5",
+                "border-2 border-purple-500/20 hover:border-purple-500",
+                "hover:shadow-xl hover:shadow-purple-500/20",
+                "transition-all duration-300 p-6 md:p-7 rounded-2xl text-center",
+                "hover-lift active:scale-95",
+                "sm:col-span-2 lg:col-span-1"
+              )}
             >
-              <div className="bg-purple-500/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                <BarChart3 className="w-8 h-8 text-purple-600" />
+              <div className="relative z-10">
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg">
+                  <BarChart3 className="w-8 h-8 text-white" />
+                </div>
+                <p className="font-bold text-base md:text-lg text-foreground mb-2">View Reports</p>
+                <p className="text-sm text-muted-foreground font-hindi">रिपोर्ट देखें</p>
               </div>
-              <p className="font-bold text-base md:text-lg text-foreground mb-1">View Reports</p>
-              <p className="text-xs md:text-sm text-muted-foreground">रिपोर्ट देखें</p>
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
           </div>
         </div>
@@ -545,53 +584,76 @@ const Dashboard = () => {
 
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'w-72' : 'w-0'} bg-white shadow-lg transition-all duration-300 overflow-hidden relative`}>
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-white text-xl font-bold">
-              <Building />
+    <div className="flex h-screen bg-background">
+      {/* Premium Sidebar */}
+      <aside 
+        className={cn(
+          "bg-card border-r border-border shadow-xl transition-all duration-300 overflow-hidden relative",
+          sidebarOpen ? 'w-80' : 'w-0',
+          "backdrop-blur-sm"
+        )}
+      >
+        {/* Header */}
+        <div className="p-6 border-b border-border bg-gradient-to-br from-primary/5 to-accent/5">
+          <div className="flex items-center gap-4 animate-fade-in">
+            <div className="w-14 h-14 bg-gradient-to-br from-primary via-primary/90 to-accent rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg hover:scale-105 transition-transform">
+              <Building className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-800">{settings?.panchayatName || 'Loni Panchayat'}</h1>
-              <p className="text-sm text-gray-600">लॉनी ग्राम पंचायत</p>
+              <h1 className="text-xl font-headline font-bold text-foreground">
+                {settings?.panchayatName || 'Loni Panchayat'}
+              </h1>
+              <p className="text-sm text-muted-foreground font-hindi">लॉनी ग्राम पंचायत</p>
             </div>
           </div>
         </div>
 
-        <nav className="p-4">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleMenuClick(item.id)}
-                className={`w-full flex items-center gap-4 px-4 py-4 mb-2 rounded-lg text-left transition-all font-semibold ${
-                  activeMenu === item.id
-                    ? 'bg-primary/90 text-primary-foreground shadow-lg'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-primary'
-                }`}
-              >
-                <Icon className="w-6 h-6" />
-                <div className="flex-1">
-                  <div className="text-base">{item.label}</div>
-                  <div className="text-sm opacity-80">{item.labelHi}</div>
-                </div>
-              </button>
-            );
-          })}
+        {/* Navigation */}
+        <nav className="p-4 scrollbar-thin overflow-y-auto" style={{ maxHeight: 'calc(100vh - 240px)' }}>
+          <div className="space-y-1.5">
+            {menuItems.map((item, index) => {
+              const Icon = item.icon;
+              const isActive = activeMenu === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleMenuClick(item.id)}
+                  className={cn(
+                    "w-full flex items-center gap-4 px-4 py-4 rounded-xl text-left transition-all duration-200 font-medium group",
+                    "animate-slide-up",
+                    isActive
+                      ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/30 scale-[1.02]'
+                      : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:scale-[1.01]'
+                  )}
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <Icon className={cn(
+                    "w-5 h-5 transition-transform",
+                    isActive ? "scale-110" : "group-hover:scale-110"
+                  )} />
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold">{item.label}</div>
+                    <div className="text-xs opacity-80 font-hindi">{item.labelHi}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
+        {/* Logout Button */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-card/80 backdrop-blur-sm">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-4 py-4 rounded-lg text-red-600 hover:bg-red-50 transition-all font-semibold"
+            className={cn(
+              "w-full flex items-center gap-4 px-4 py-4 rounded-xl text-left transition-all duration-200 font-medium group",
+              "text-destructive hover:bg-destructive/10 hover:shadow-md"
+            )}
           >
-            <LogOut className="w-6 h-6" />
+            <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
             <div>
-              <div className="text-base">Logout</div>
-              <div className="text-sm">लॉगआउट</div>
+              <div className="text-sm font-semibold">Logout</div>
+              <div className="text-xs opacity-80 font-hindi">लॉगआउट</div>
             </div>
           </button>
         </div>
@@ -599,36 +661,46 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Navbar */}
-        <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+        {/* Premium Top Navbar */}
+        <header className="bg-card/80 backdrop-blur-md shadow-sm border-b border-border px-6 py-4 sticky top-0 z-10">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 animate-slide-down">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-2.5 rounded-xl hover:bg-muted transition-all duration-200 hover:scale-105 active:scale-95"
+                aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
               >
                 {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">Admin Dashboard</h2>
-                <p className="text-sm text-gray-600">Welcome back! • स्वागत है</p>
+                <h2 className="text-2xl font-headline font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  Admin Dashboard
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Welcome back! <span className="text-muted-foreground/60">•</span> <span className="font-hindi">स्वागत है</span>
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="font-semibold text-gray-800">{user?.displayName || 'Admin User'}</p>
-                <p className="text-sm text-gray-600">{user?.email || 'admin@lonipanchayat.in'}</p>
+            <div className="flex items-center gap-4 animate-slide-down" style={{ animationDelay: '100ms' }}>
+              <div className="text-right hidden sm:block">
+                <p className="font-semibold text-foreground">{user?.displayName || 'Admin User'}</p>
+                <p className="text-sm text-muted-foreground">{user?.email || 'admin@lonipanchayat.in'}</p>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-white font-bold text-xl uppercase">
-                {user?.displayName?.charAt(0) || 'A'}
+              <div className="relative group">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-white font-bold text-xl uppercase shadow-lg group-hover:scale-110 transition-transform cursor-pointer">
+                  {user?.displayName?.charAt(0) || 'A'}
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-card"></div>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Dashboard Content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          {renderContent()}
+        {/* Dashboard Content with Premium Styling */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-gradient-to-br from-background via-background to-muted/20 scrollbar-thin">
+          <div className="max-w-[1600px] mx-auto">
+            {renderContent()}
+          </div>
         </main>
       </div>
     </div>
