@@ -28,54 +28,51 @@ interface GenerateBillFormProps {
     onCancel: () => void;
 }
 
-// Placeholder for the actual PDF generation call (simulates calling a Firebase Cloud Function)
-const generateBillPdf = async (billData: any) => {
-    // In a real app, this would call a Cloud Function
-    // The Cloud Function would:
-    // 1. Receive the data (including tax rates and calculatedAmount)
-    // 2. Use a PDF library (like pdfkit or Puppeteer) to create the document
-    // 3. Upload the PDF to Firebase Storage
-    // 4. Return the public download URL.
+// Import the actual PDF generator
+import { generateBillPdf as generatePdfFile } from '@/lib/pdf-generator';
 
-    console.log("Simulating PDF generation with data:", billData);
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
-    return "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
+// Generate receipt number
+const generateReceiptNumber = () => {
+    const date = new Date();
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `RCP${year}${month}${random}`;
 };
 
 
 export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel }: GenerateBillFormProps) {
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
-    const [pdfUrl, setPdfUrl] = useState<string | null>(null); // New state for PDF link
+    const [billGenerated, setBillGenerated] = useState(false);
 
     const [billData, setBillData] = useState({
         propertyId: '',
         taxType: 'Property Tax' as Property['taxes'][number]['taxType'],
         date: new Date().toISOString().split('T')[0],
         remarks: '',
+        customBaseAmount: 0,
     });
     
     // NEW STATE for manual tax rates
-    const [manualTaxes, setManualTaxes] = useState<ManualTax[]>([
-        { name: 'Surcharge', rate: 0 },
-    ]);
+    const [manualTaxes, setManualTaxes] = useState<ManualTax[]>([]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setBillData(prev => ({ ...prev, [name]: value }));
-        setPdfUrl(null); // Reset PDF link on change
+        setBillGenerated(false);
     };
 
     const handleSelectChange = (name: string, value: string) => {
         setBillData(prev => ({ ...prev, [name]: value }));
-        setPdfUrl(null); // Reset PDF link on change
+        setBillGenerated(false);
     };
 
     const handleManualTaxChange = (index: number, name: 'name' | 'rate', value: string) => {
         setManualTaxes(prev => prev.map((tax, i) => 
             i === index ? { ...tax, [name]: name === 'rate' ? Number(value) : value } : tax
         ));
-        setPdfUrl(null); // Reset PDF link on change
+        setBillGenerated(false);
     };
 
     const addManualTax = () => {
@@ -88,10 +85,7 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
     
     const selectedProperty = useMemo(() => {
         return properties.find(p => p.id === billData.propertyId);
-    }, [properties, billData.propertyId]);
-
-    // Use a unique ID for the tax record
-    const taxRecordId = useMemo(() => `TAX${Date.now()}`, []); 
+    }, [properties, billData.propertyId]); 
 
 
     // --- CALCULATION LOGIC ---
@@ -100,17 +94,32 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
         
         switch (billData.taxType) {
             case 'Property Tax':
+                // Base amount = (property area × tax rate per sq.ft)
                 return (settings.propertyTaxRate / 100) * selectedProperty.area;
             case 'Water Tax':
+                // Flat rate from settings
                 return settings.waterTaxRate || 0;
             case 'Sanitation Tax':
-                return 500; // Example flat rate
+                // Flat rate - can be configured in settings
+                return 500;
             case 'Lighting Tax':
-                return 300; // Example flat rate
+                // Flat rate - can be configured in settings
+                return 300;
+            case 'Land Tax':
+                // Calculate based on area
+                return selectedProperty.area * 0.5; // ₹0.5 per sq.ft
+            case 'Business Tax':
+                // Higher rate for commercial properties
+                return selectedProperty.propertyType === 'Commercial' 
+                    ? selectedProperty.area * 2 
+                    : selectedProperty.area * 0.5;
+            case 'Other':
+                // Use custom amount
+                return billData.customBaseAmount || 0;
             default:
                 return 0;
         }
-    }, [selectedProperty, settings, billData.taxType]);
+    }, [selectedProperty, settings, billData.taxType, billData.customBaseAmount]);
 
     const finalCalculations = useMemo(() => {
         const subtotal = baseAmount;
@@ -140,14 +149,46 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
     const handleBillSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const { firestore } = initializeFirebase();
-        if (!firestore || !billData.propertyId || finalCalculations.subtotal <= 0) {
+        
+        // Validation
+        if (!firestore || !billData.propertyId || !selectedProperty) {
             toast({
                 variant: 'destructive',
                 title: 'Error',
-                description: 'Please select a property, ensure settings are configured, and the calculated amount is greater than zero.',
+                description: 'Please select a property before generating the bill.',
             });
             return;
         }
+
+        if (!settings) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Tax settings are not configured. Please configure settings first.',
+            });
+            return;
+        }
+
+        if (finalCalculations.grandTotal <= 0) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Bill amount must be greater than zero.',
+            });
+            return;
+        }
+
+        // Validate manual taxes
+        const invalidTaxes = manualTaxes.filter(tax => tax.name.trim() === '' && tax.rate > 0);
+        if (invalidTaxes.length > 0) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Please provide names for all additional charges or remove them.',
+            });
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -158,43 +199,60 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                 throw new Error("Property not found!");
             }
 
-            // 1. SAVE THE TAX ASSESSMENT RECORD (This remains the same)
+            // Generate unique IDs
+            const taxRecordId = `TAX${Date.now()}`;
+            const receiptNumber = generateReceiptNumber();
+
+            // Create the tax record with all details
             const newTaxRecord = {
                 id: taxRecordId,
                 taxType: billData.taxType,
                 hindiName: getTaxHindiName(billData.taxType),
-                assessedAmount: finalCalculations.grandTotal, // Save the grand total
-                baseAmount: finalCalculations.subtotal, // New field for base amount
-                taxDetails: finalCalculations.detailedTaxes, // New field for detailed taxes
+                assessedAmount: finalCalculations.grandTotal,
+                baseAmount: finalCalculations.subtotal,
+                taxDetails: finalCalculations.detailedTaxes.filter(tax => tax.name.trim() !== ''),
                 paymentStatus: 'Unpaid' as const,
                 amountPaid: 0,
                 assessmentYear: new Date(billData.date).getFullYear(),
                 paymentDate: null,
-                receiptNumber: null,
+                receiptNumber: receiptNumber,
                 remarks: billData.remarks,
             };
 
+            // Save to Firestore
             await updateDoc(propertyRef, {
                 taxes: arrayUnion(newTaxRecord)
             });
 
+            // Generate PDF
+            generatePdfFile(
+                selectedProperty,
+                [newTaxRecord],
+                settings
+            );
 
-            // 2. GENERATE AND GET PDF LINK (New Logic)
-            const billToPdf = {
-                ...newTaxRecord,
-                propertyDetails: selectedProperty,
-                panchayatSettings: settings,
-                generatedDate: new Date().toISOString(),
-            };
-
-            const pdfDownloadUrl = await generateBillPdf(billToPdf);
-            setPdfUrl(pdfDownloadUrl);
+            // Mark as generated
+            setBillGenerated(true);
 
             toast({
                 title: 'Success!',
-                description: `Bill for ${billData.taxType} has been generated and is ready for print.`,
+                description: `Bill has been generated and saved. Receipt No: ${receiptNumber}`,
+                duration: 5000,
             });
-            onFormSubmit(); // Notify parent component
+
+            // Reset form after a delay
+            setTimeout(() => {
+                setBillData({
+                    propertyId: '',
+                    taxType: 'Property Tax',
+                    date: new Date().toISOString().split('T')[0],
+                    remarks: '',
+                    customBaseAmount: 0,
+                });
+                setManualTaxes([]);
+                setBillGenerated(false);
+            }, 2000);
+
         } catch (error: any) {
             console.error("Error generating bill: ", error);
             toast({
@@ -287,23 +345,102 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                             />
                         </div>
                     </div>
+
+                    {/* Custom Base Amount for "Other" tax type */}
+                    {billData.taxType === 'Other' && (
+                        <div>
+                            <Label className="block text-sm font-semibold text-foreground mb-2">
+                                Base Amount • आधार राशि *
+                            </Label>
+                            <Input
+                                type="number"
+                                name="customBaseAmount"
+                                value={billData.customBaseAmount}
+                                onChange={handleInputChange}
+                                placeholder="Enter base amount in ₹"
+                                min="0"
+                                step="0.01"
+                                required
+                                disabled={!settings || loading}
+                                className="h-12 border-2 border-input focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1.5">
+                                Enter the base amount for this custom tax type
+                            </p>
+                        </div>
+                    )}
                     
-                    {/* Base Amount and Details */}
+                    {/* Property Details and Base Amount */}
                     {selectedProperty && (
-                        <Alert>
-                            <AlertTitle>Base Assessment • आधार मूल्यांकन</AlertTitle>
-                            <AlertDescription className="mt-2">
-                                <p className="text-xl font-semibold mb-2">
-                                    Subtotal (Base Amount): ₹{finalCalculations.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </p>
-                                <div className="flex flex-wrap gap-x-4 gap-y-1">
-                                    <Badge variant="secondary">Property Type: {selectedProperty.propertyType}</Badge>
-                                    <Badge variant="secondary">Area: {selectedProperty.area.toLocaleString()} sq.ft.</Badge>
-                                    {billData.taxType === 'Property Tax' && <Badge variant="secondary">Rate: {settings?.propertyTaxRate || 0}%</Badge>}
-                                    {billData.taxType === 'Water Tax' && <Badge variant="secondary">Flat Rate: ₹{settings?.waterTaxRate || 0}</Badge>}
-                                </div>
-                            </AlertDescription>
-                        </Alert>
+                        <div className="space-y-4">
+                            <Alert className="bg-blue-50 border-blue-200">
+                                <AlertTitle className="text-blue-900">Property Details • संपत्ति विवरण</AlertTitle>
+                                <AlertDescription className="mt-3 space-y-2">
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        <div>
+                                            <p className="text-xs text-blue-700 font-medium">Owner Name</p>
+                                            <p className="text-sm font-semibold text-blue-900">{selectedProperty.ownerName}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-blue-700 font-medium">Property ID</p>
+                                            <p className="text-sm font-semibold text-blue-900">{selectedProperty.id}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-blue-700 font-medium">Property Type</p>
+                                            <p className="text-sm font-semibold text-blue-900">{selectedProperty.propertyType}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-blue-700 font-medium">Area</p>
+                                            <p className="text-sm font-semibold text-blue-900">{selectedProperty.area.toLocaleString()} sq.ft.</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-blue-700 font-medium">House No.</p>
+                                            <p className="text-sm font-semibold text-blue-900">{selectedProperty.houseNo}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-blue-700 font-medium">Mobile</p>
+                                            <p className="text-sm font-semibold text-blue-900">{selectedProperty.mobileNumber}</p>
+                                        </div>
+                                    </div>
+                                </AlertDescription>
+                            </Alert>
+
+                            <Alert className="bg-green-50 border-green-200">
+                                <AlertTitle className="text-green-900">Base Assessment • आधार मूल्यांकन</AlertTitle>
+                                <AlertDescription className="mt-2">
+                                    <p className="text-xl font-semibold mb-3 text-green-900">
+                                        Base Amount: ₹{finalCalculations.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {billData.taxType === 'Property Tax' && (
+                                            <>
+                                                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                                                    Rate: {settings?.propertyTaxRate || 0}% per sq.ft
+                                                </Badge>
+                                                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                                                    Calculation: {selectedProperty.area} × {settings?.propertyTaxRate || 0}%
+                                                </Badge>
+                                            </>
+                                        )}
+                                        {billData.taxType === 'Water Tax' && (
+                                            <Badge variant="secondary" className="bg-green-100 text-green-800">
+                                                Flat Rate: ₹{settings?.waterTaxRate || 0}
+                                            </Badge>
+                                        )}
+                                        {(billData.taxType === 'Sanitation Tax' || billData.taxType === 'Lighting Tax') && (
+                                            <Badge variant="secondary" className="bg-green-100 text-green-800">
+                                                Flat Rate
+                                            </Badge>
+                                        )}
+                                        {billData.taxType === 'Other' && (
+                                            <Badge variant="secondary" className="bg-green-100 text-green-800">
+                                                Custom Amount
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </AlertDescription>
+                            </Alert>
+                        </div>
                     )}
 
 
@@ -379,26 +516,13 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                     <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-6 border-t border-border">
                         <Button
                             type="submit"
-                            disabled={loading || !settings || finalCalculations.grandTotal <= 0}
+                            disabled={loading || !settings || finalCalculations.grandTotal <= 0 || !billData.propertyId}
                             className="flex-1 bg-gradient-to-r from-primary to-blue-700 text-white px-8 h-12 md:h-14 font-semibold hover:shadow-lg hover:from-primary/90 hover:to-blue-700/90 transition-all flex items-center justify-center gap-2"
                         >
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileText className="w-5 h-5" />}
-                            <span className="hidden sm:inline">{loading ? 'Processing...' : 'Generate Bill & Save Assessment • बिल बनाएं और मूल्यांकन सहेजें'}</span>
+                            <span className="hidden sm:inline">{loading ? 'Processing...' : 'Generate Bill & Download PDF • बिल बनाएं'}</span>
                             <span className="sm:hidden">{loading ? 'Processing...' : 'Generate Bill'}</span>
                         </Button>
-                        
-                        {pdfUrl && (
-                            <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="sm:flex-initial">
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    className="w-full sm:w-auto px-8 h-12 md:h-14 bg-green-600 hover:bg-green-700 text-white font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
-                                >
-                                    <Printer className="w-5 h-5" /> 
-                                    <span>Print/Download Bill</span>
-                                </Button>
-                            </a>
-                        )}
 
                         <Button
                             type="button"
@@ -410,6 +534,15 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                             Cancel • रद्द करें
                         </Button>
                     </div>
+
+                    {billGenerated && (
+                        <Alert className="bg-green-50 border-green-200">
+                            <AlertTitle className="text-green-800">✓ Bill Generated Successfully!</AlertTitle>
+                            <AlertDescription className="text-green-700">
+                                The tax bill has been saved to the property record and the PDF has been downloaded to your device.
+                            </AlertDescription>
+                        </Alert>
+                    )}
                 </form>
             </div>
         </div>
