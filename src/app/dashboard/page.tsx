@@ -16,6 +16,7 @@ import { DashboardSkeleton } from '@/components/ui/loading-skeletons';
 import { NoPropertiesState, NoReportsState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { UserRoleDisplay } from '@/components/ui/user-role-display';
+import { AdminRoleFixer } from '@/components/ui/admin-role-fixer';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -134,8 +135,9 @@ const Dashboard = () => {
     return (
       <>
         {/* User Role & Permissions Display */}
-        <div className="mb-6 md:mb-8 animate-fade-in">
+        <div className="mb-6 md:mb-8 animate-fade-in space-y-4">
           <UserRoleDisplay />
+          <AdminRoleFixer />
         </div>
 
         {/* Stats Cards */}

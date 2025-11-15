@@ -20,6 +20,21 @@ match /properties/{propertyId} {
 
 ## Solutions
 
+### Solution 0: Use Emergency Admin Role Fixer (EASIEST) 🚀 NEW!
+
+**This is the fastest way if you're already logged in but don't have permissions:**
+
+1. **Go to your dashboard** (you should already be there)
+2. **Look for the "Emergency Admin Role Fixer"** card below the User Permissions Status
+3. **Click "Set My Role to Admin"** button
+4. **Wait for success message**
+5. **Refresh the page** (F5 or Ctrl+R)
+6. **Done!** ✅ You now have admin permissions
+
+**Note**: This tool directly updates your Firestore user document with admin role.
+
+---
+
 ### Solution 1: Add Your Email as Admin (Quick Fix) ⭐ RECOMMENDED
 
 1. **Edit** `src/lib/utils.ts`
