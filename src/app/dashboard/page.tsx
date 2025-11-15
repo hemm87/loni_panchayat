@@ -1,7 +1,7 @@
 
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
-import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Download, Plus, Save, Building } from 'lucide-react';
+import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Search, Download, Plus, Save, Building, AlertCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -325,59 +325,270 @@ const Dashboard = () => {
   );
 
   // Reports Page
-  const ReportsPage = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-md p-6 md:p-8 border border-border/50">
-        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6">
-          Reports & Analytics • रिपोर्ट्स और विश्लेषण
-        </h2>
+  const ReportsPage = () => {
+    const [fromDate, setFromDate] = useState('');
+    const [toDate, setToDate] = useState('');
+    const [reportType, setReportType] = useState('all');
+    const [showReport, setShowReport] = useState(false);
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
-          <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">
-              From Date • से तारीख
-            </label>
-            <input
-              type="date"
-              className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
-            />
+    const generateReport = () => {
+      setShowReport(true);
+    };
+
+    // Calculate report data
+    const reportData = useMemo(() => {
+      if (!properties || properties.length === 0) return null;
+
+      const totalProperties = properties.length;
+      const totalTaxes = properties.reduce((sum, prop) => {
+        return sum + (prop.taxes?.reduce((taxSum, tax) => taxSum + tax.assessedAmount, 0) || 0);
+      }, 0);
+
+      const paidTaxes = properties.reduce((sum, prop) => {
+        return sum + (prop.taxes?.reduce((taxSum, tax) => 
+          taxSum + (tax.paymentStatus === 'Paid' ? tax.assessedAmount : tax.amountPaid), 0) || 0);
+      }, 0);
+
+      const pendingTaxes = totalTaxes - paidTaxes;
+
+      const taxesByType = properties.reduce((acc, prop) => {
+        prop.taxes?.forEach(tax => {
+          if (!acc[tax.taxType]) {
+            acc[tax.taxType] = { total: 0, paid: 0, pending: 0, count: 0 };
+          }
+          acc[tax.taxType].total += tax.assessedAmount;
+          acc[tax.taxType].paid += tax.paymentStatus === 'Paid' ? tax.assessedAmount : tax.amountPaid;
+          acc[tax.taxType].pending += tax.paymentStatus === 'Unpaid' ? tax.assessedAmount : 
+            (tax.paymentStatus === 'Partial' ? tax.assessedAmount - tax.amountPaid : 0);
+          acc[tax.taxType].count++;
+        });
+        return acc;
+      }, {} as Record<string, { total: number; paid: number; pending: number; count: number }>);
+
+      const propertyTypeBreakdown = properties.reduce((acc, prop) => {
+        acc[prop.propertyType] = (acc[prop.propertyType] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      return {
+        totalProperties,
+        totalTaxes,
+        paidTaxes,
+        pendingTaxes,
+        collectionRate: totalTaxes > 0 ? (paidTaxes / totalTaxes) * 100 : 0,
+        taxesByType,
+        propertyTypeBreakdown,
+      };
+    }, [properties]);
+
+    return (
+      <div className="space-y-6">
+        <div className="card-premium rounded-2xl shadow-xl p-6 md:p-10 border-2 border-border/50 backdrop-blur-sm animate-fade-in">
+          <div className="flex items-center gap-4 mb-8 pb-6 border-b-2 border-gradient-primary">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+              <BarChart3 className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h2 className="text-3xl md:text-4xl font-headline font-bold text-gradient bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Reports & Analytics
+              </h2>
+              <p className="text-lg text-muted-foreground mt-1">रिपोर्ट्स और विश्लेषण</p>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">
-              To Date • तक तारीख
-            </label>
-            <input
-              type="date"
-              className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
-            />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-foreground/90">
+                From Date • से तारीख
+              </label>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="w-full h-12 px-4 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all shadow-sm hover:shadow-md"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-foreground/90">
+                To Date • तक तारीख
+              </label>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="w-full h-12 px-4 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all shadow-sm hover:shadow-md"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-foreground/90">
+                Report Type • रिपोर्ट प्रकार
+              </label>
+              <select 
+                value={reportType}
+                onChange={(e) => setReportType(e.target.value)}
+                className="w-full h-12 px-4 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all bg-white shadow-sm hover:shadow-md"
+              >
+                <option value="all">📊 All Reports</option>
+                <option value="revenue">💰 Revenue Report</option>
+                <option value="collection">💳 Tax Collection</option>
+                <option value="pending">⏳ Pending Taxes</option>
+                <option value="property">🏠 Property Summary</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">
-              Report Type • रिपोर्ट प्रकार
-            </label>
-            <select className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all bg-white">
-              <option>All Reports</option>
-              <option>Revenue Report</option>
-              <option>Tax Collection</option>
-              <option>Pending Taxes</option>
-            </select>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button 
+              onClick={generateReport}
+              className="flex-1 bg-gradient-to-r from-primary to-accent text-white px-8 h-14 rounded-xl font-bold text-lg hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-lg"
+            >
+              <Search className="w-6 h-6" />
+              <span>Generate Report • रिपोर्ट बनाएँ</span>
+            </button>
+            <button 
+              onClick={() => window.print()}
+              disabled={!showReport || !reportData}
+              className="px-8 h-14 bg-success text-white rounded-xl font-bold text-lg hover:bg-success/90 hover:shadow-lg transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            >
+              <Download className="w-6 h-6" />
+              <span>Export PDF</span>
+            </button>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
-          <button className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 hover:shadow-md transition-all flex items-center justify-center gap-2">
-            <Search className="w-5 h-5" />
-            <span>Generate Report • रिपोर्ट बनाएँ</span>
-          </button>
-          <button className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 hover:shadow-md transition-all flex items-center justify-center gap-2">
-            <Download className="w-5 h-5" />
-            <span>Export PDF</span>
-          </button>
-        </div>
+        {/* Report Results */}
+        {showReport && reportData ? (
+          <div className="space-y-6 animate-fade-in">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-6 border-2 border-primary/20 shadow-lg hover:shadow-xl transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide">Total Properties</h3>
+                  <Home className="w-8 h-8 text-primary" />
+                </div>
+                <p className="text-4xl font-headline font-bold text-primary">{reportData.totalProperties}</p>
+                <p className="text-xs text-muted-foreground mt-2">संपत्तियों की कुल संख्या</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-success/10 to-success/5 rounded-2xl p-6 border-2 border-success/20 shadow-lg hover:shadow-xl transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide">Total Tax Assessed</h3>
+                  <FileText className="w-8 h-8 text-success" />
+                </div>
+                <p className="text-4xl font-headline font-bold text-success">₹{reportData.totalTaxes.toLocaleString('en-IN')}</p>
+                <p className="text-xs text-muted-foreground mt-2">कुल कर निर्धारित</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-info/10 to-info/5 rounded-2xl p-6 border-2 border-info/20 shadow-lg hover:shadow-xl transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide">Collected</h3>
+                  <Download className="w-8 h-8 text-info" />
+                </div>
+                <p className="text-4xl font-headline font-bold text-info">₹{reportData.paidTaxes.toLocaleString('en-IN')}</p>
+                <p className="text-xs text-muted-foreground mt-2">एकत्रित कर</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-warning/10 to-warning/5 rounded-2xl p-6 border-2 border-warning/20 shadow-lg hover:shadow-xl transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide">Pending</h3>
+                  <AlertCircle className="w-8 h-8 text-warning" />
+                </div>
+                <p className="text-4xl font-headline font-bold text-warning">₹{reportData.pendingTaxes.toLocaleString('en-IN')}</p>
+                <p className="text-xs text-muted-foreground mt-2">लंबित कर</p>
+              </div>
+            </div>
+
+            {/* Collection Rate */}
+            <div className="bg-card rounded-2xl p-8 border-2 border-border shadow-lg">
+              <h3 className="text-xl font-headline font-bold text-foreground mb-6 flex items-center gap-3">
+                <div className="p-2 bg-success/10 rounded-lg">
+                  <BarChart3 className="w-6 h-6 text-success" />
+                </div>
+                Collection Rate • संग्रह दर
+              </h3>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 bg-muted/30 rounded-full h-8 overflow-hidden">
+                    <div 
+                      className="bg-gradient-to-r from-success to-success/80 h-full flex items-center justify-end px-4 transition-all duration-1000"
+                      style={{ width: `${Math.min(reportData.collectionRate, 100)}%` }}
+                    >
+                      <span className="text-white font-bold text-sm">{reportData.collectionRate.toFixed(1)}%</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {reportData.collectionRate >= 75 ? '✅ Excellent collection rate!' : 
+                   reportData.collectionRate >= 50 ? '⚠️ Good, but can improve' : 
+                   '❌ Needs immediate attention'}
+                </p>
+              </div>
+            </div>
+
+            {/* Tax Breakdown by Type */}
+            <div className="bg-card rounded-2xl p-8 border-2 border-border shadow-lg">
+              <h3 className="text-xl font-headline font-bold text-foreground mb-6 flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <FileText className="w-6 h-6 text-primary" />
+                </div>
+                Tax Breakdown by Type • कर प्रकार के अनुसार विवरण
+              </h3>
+              <div className="space-y-4">
+                {Object.entries(reportData.taxesByType).map(([type, data], index) => (
+                  <div key={type} className="p-4 bg-muted/20 rounded-xl border border-border/50 hover:shadow-md transition-all animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-bold text-foreground">{type}</h4>
+                      <span className="badge-info">{data.count} records</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground text-xs mb-1">Total</p>
+                        <p className="font-bold text-foreground">₹{data.total.toLocaleString('en-IN')}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs mb-1">Collected</p>
+                        <p className="font-bold text-success">₹{data.paid.toLocaleString('en-IN')}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-xs mb-1">Pending</p>
+                        <p className="font-bold text-warning">₹{data.pending.toLocaleString('en-IN')}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Property Type Distribution */}
+            <div className="bg-card rounded-2xl p-8 border-2 border-border shadow-lg">
+              <h3 className="text-xl font-headline font-bold text-foreground mb-6 flex items-center gap-3">
+                <div className="p-2 bg-accent/10 rounded-lg">
+                  <Home className="w-6 h-6 text-accent" />
+                </div>
+                Property Distribution • संपत्ति वितरण
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {Object.entries(reportData.propertyTypeBreakdown).map(([type, count], index) => (
+                  <div key={type} className="text-center p-6 bg-gradient-to-br from-muted/30 to-muted/10 rounded-xl border-2 border-border/50 hover:shadow-md transition-all animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
+                    <div className="text-4xl mb-2">
+                      {type === 'Residential' ? '🏠' : type === 'Commercial' ? '🏢' : '🌾'}
+                    </div>
+                    <p className="text-3xl font-headline font-bold text-primary mb-1">{count}</p>
+                    <p className="text-sm font-semibold text-foreground">{type}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {((count / reportData.totalProperties) * 100).toFixed(1)}% of total
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : showReport && !reportData ? (
+          <NoReportsState />
+        ) : null}
       </div>
-      <NoReportsState />
-    </div>
-  );
+    );
+  };
 
   // Settings Page
   const SettingsPage = ({ settings, docRef }: { settings: PanchayatSettings | null, docRef: any }) => {
