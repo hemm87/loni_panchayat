@@ -16,8 +16,10 @@ import {
   signInWithPhoneNumber,
   type ConfirmationResult,
   type UserCredential,
+  onAuthStateChanged,
+  User
 } from 'firebase/auth';
-import { useUser, initializeFirebase } from '@/firebase';
+import { initializeFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -67,9 +69,11 @@ async function updateUserOnLogin(result: UserCredential) {
 }
 
 function LoginPageContent() {
-  const { user, isUserLoading: userLoading } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const [user, setUser] = useState<User | null>(null);
+  const [userLoading, setUserLoading] = useState(true);
 
   const [email, setEmail] = useState('admin@lonipanchayat.in');
   const [password, setPassword] = useState('password123');
@@ -81,9 +85,19 @@ function LoginPageContent() {
   const [isRedirecting, setIsRedirecting] = useState(true);
   const [otpSent, setOtpSent] = useState(false);
   const { toast } = useToast();
+  
+  // Set up auth listener without using the hook
+  useEffect(() => {
+    const { auth } = initializeFirebase();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setUserLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
-    const auth = getAuth();
+    const { auth } = initializeFirebase();
     getRedirectResult(auth)
       .then((result) => {
         if (result) {
