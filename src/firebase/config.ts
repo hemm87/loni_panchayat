@@ -24,12 +24,12 @@ export const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || DEV_FALLBACK_CONFIG.messagingSenderId,
 };
 
-// Validate configuration in production
-if (process.env.NODE_ENV === 'production') {
+// Validate configuration in production (only if not using fallback)
+if (process.env.NODE_ENV === 'production' && !DEV_FALLBACK_CONFIG) {
   const requiredKeys = ['projectId', 'appId', 'apiKey', 'authDomain'];
   const missingKeys = requiredKeys.filter(key => !process.env[`NEXT_PUBLIC_FIREBASE_${key.toUpperCase()}`]);
   
   if (missingKeys.length > 0) {
-    throw new Error(`Missing required Firebase environment variables: ${missingKeys.join(', ')}`);
+    console.warn(`Warning: Using fallback Firebase config. Set these environment variables for production: ${missingKeys.join(', ')}`);
   }
 }

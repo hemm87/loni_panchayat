@@ -14,9 +14,6 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: process.env.NODE_ENV === 'development',
   },
   
-  // Performance optimizations
-  swcMinify: true,
-  
   // Compression
   compress: true,
   
