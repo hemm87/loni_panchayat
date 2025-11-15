@@ -32,6 +32,7 @@ import { Building, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { isAdminEmail } from '@/lib/utils';
 
 
 async function updateUserOnLogin(result: UserCredential) {
@@ -40,24 +41,31 @@ async function updateUserOnLogin(result: UserCredential) {
 
   const user = result.user;
   const userRef = doc(firestore, 'users', user.uid);
-  
+  const now = new Date().toISOString();
+  const adminUser = isAdminEmail(user.email || undefined);
+
   try {
     const docSnap = await getDoc(userRef);
     if (docSnap.exists()) {
-      // If user exists, just update last login
+      const existingRole = docSnap.data()?.role;
+      const roleToSave = adminUser ? 'admin' : existingRole || 'viewer';
       await setDoc(userRef, {
-        lastLogin: new Date().toISOString(),
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        role: roleToSave,
+        lastLogin: now,
       }, { merge: true });
     } else {
-      // If new user, create their profile with a default 'viewer' role
       const userData = {
         uid: user.uid,
         email: user.email,
         displayName: user.displayName,
         photoURL: user.photoURL,
-        role: 'viewer', // Default role for new sign-ups
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
+        role: adminUser ? 'admin' : 'viewer',
+        createdAt: now,
+        lastLogin: now,
       };
       await setDoc(userRef, userData);
     }

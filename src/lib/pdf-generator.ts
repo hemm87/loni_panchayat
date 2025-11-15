@@ -84,7 +84,7 @@ export const generateBillPdf = async (
       textColor: 255,
       fontStyle: 'bold',
     },
-    didDrawPage: (data) => {
+  didDrawPage: (data: any) => {
         // Footer on each page
         const pageCount = doc.internal.pages.length;
         doc.setFontSize(8);

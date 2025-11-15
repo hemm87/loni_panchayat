@@ -19,4 +19,11 @@ export function getTaxHindiName(taxType: string): string {
   return mapping[taxType] || '';
 }
 
+export const ADMIN_EMAILS = ['admin@lonipanchayat.in'];
+
+export function isAdminEmail(email?: string) {
+  if (!email) return false;
+  return ADMIN_EMAILS.some((admin) => admin.toLowerCase() === email.toLowerCase());
+}
+
     
