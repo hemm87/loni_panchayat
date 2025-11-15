@@ -1,39 +1,64 @@
-# Dockerfile for a Next.js application
+# Multi-stage Dockerfile for Production Next.js Application
+# Optimized for security, size, and performance
 
-# 1. Base Stage: Install dependencies and build the application
-FROM node:20-alpine AS base
+# Stage 1: Dependencies
+FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Copy package files
+COPY package.json package-lock.json* ./
 
-# Install dependencies
-RUN npm install
+# Install production dependencies only
+RUN npm ci --only=production && \
+    npm cache clean --force
 
-# Copy the rest of the application source code
+# Stage 2: Builder
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy application source
 COPY . .
 
-# Create an empty public directory if it doesn't exist
-RUN mkdir -p public
+# Build application
+ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV production
 
-# Build the Next.js application
 RUN npm run build
 
-# 2. Production Stage: Create a clean, production-ready image
-FROM node:20-alpine AS production
+# Stage 3: Runner (Production)
+FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Set environment to production
-ENV NODE_ENV=production
+# Security: Create non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
-# Copy only the necessary files from the base stage
-COPY --from=base /app/.next ./.next
-COPY --from=base /app/node_modules ./node_modules
-COPY --from=base /app/package.json ./package.json
-COPY --from=base /app/public ./public
+# Set environment
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Expose the port Next.js runs on (default is 3000)
+# Copy necessary files only
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+# Set correct permissions
+RUN chown -R nextjs:nodejs /app
+
+# Switch to non-root user
+USER nextjs
+
+# Expose port
 EXPOSE 3000
 
-# The command to start the application
-CMD ["npm", "start"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})" || exit 1
+
+# Start application
+ENV PORT 3000
+CMD ["node", "server.js"]

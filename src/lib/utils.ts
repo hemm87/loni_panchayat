@@ -19,7 +19,20 @@ export function getTaxHindiName(taxType: string): string {
   return mapping[taxType] || '';
 }
 
-export const ADMIN_EMAILS = ['admin@lonipanchayat.in'];
+/**
+ * Get admin emails from environment variable
+ * Fallback to default admin email if not configured
+ */
+export function getAdminEmails(): string[] {
+  const envEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS;
+  if (envEmails) {
+    return envEmails.split(',').map(e => e.trim()).filter(Boolean);
+  }
+  return ['admin@lonipanchayat.in']; // Default fallback
+}
+
+// Deprecated: Use getAdminEmails() instead
+export const ADMIN_EMAILS = getAdminEmails();
 
 /**
  * Check if an email belongs to an admin user
@@ -28,7 +41,8 @@ export const ADMIN_EMAILS = ['admin@lonipanchayat.in'];
  */
 export function isAdminEmail(email?: string): boolean {
   if (!email) return false;
-  return ADMIN_EMAILS.some((admin) => admin.toLowerCase() === email.toLowerCase());
+  const adminEmails = getAdminEmails();
+  return adminEmails.some((admin) => admin.toLowerCase() === email.toLowerCase());
 }
 
 /**

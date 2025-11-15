@@ -3,6 +3,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export const metadata: Metadata = {
   title: 'Loni Panchayat Tax Manager | Modern Tax Management System',
@@ -60,14 +61,16 @@ export default function RootLayout({
           'transition-colors duration-300'
         )}
       >
-        <FirebaseClientProvider>
-          <div className="relative flex min-h-screen flex-col">
-            <main className="flex-1">
-              {children}
-            </main>
-          </div>
-        </FirebaseClientProvider>
-        <Toaster />
+        <ErrorBoundary>
+          <FirebaseClientProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <main className="flex-1">
+                {children}
+              </main>
+            </div>
+          </FirebaseClientProvider>
+          <Toaster />
+        </ErrorBoundary>
       </body>
     </html>
   );

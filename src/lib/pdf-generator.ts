@@ -151,7 +151,12 @@ export const generateBillPdf = async (
   const timestamp = new Date().toISOString().split('T')[0];
   doc.save(`Bill-${property.id}-${timestamp}.pdf`);
   } catch (error) {
-    console.error('Error generating PDF:', error);
+    // Import logger dynamically to avoid circular dependencies
+    const { logger } = await import('./logger');
+    logger.error('Failed to generate PDF bill', error as Error, {
+      propertyId: property.id,
+      taxCount: taxes.length,
+    });
     throw new Error('Failed to generate PDF bill. Please try again.');
   }
 };
