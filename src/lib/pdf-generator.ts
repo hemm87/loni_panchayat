@@ -3,18 +3,38 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import type { Property, TaxRecord, PanchayatSettings } from './types';
 
-// Extend jsPDF with the autoTable method
+/**
+ * Extend jsPDF with the autoTable method from jspdf-autotable plugin
+ */
 interface jsPDFWithAutoTable extends jsPDF {
   autoTable: (options: any) => jsPDF;
+  lastAutoTable?: { finalY: number };
 }
 
+/**
+ * Format currency in Indian numbering system
+ * @param amount - Amount to format
+ * @returns Formatted currency string with ₹ symbol
+ */
+const formatCurrency = (amount: number): string => {
+  return `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+/**
+ * Generate a PDF bill for property taxes
+ * @param property - Property details
+ * @param taxes - Array of tax records to include in the bill
+ * @param settings - Panchayat settings for header information
+ */
 export const generateBillPdf = async (
   property: Property,
   taxes: TaxRecord[],
   settings: PanchayatSettings
-) => {
-  const doc = new jsPDF() as jsPDFWithAutoTable;
-  const pageWidth = doc.internal.pageSize.getWidth();
+): Promise<void> => {
+  try {
+    const doc = new jsPDF() as jsPDFWithAutoTable;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
 
   // 1. Header
   doc.setFontSize(20);
@@ -63,10 +83,10 @@ export const generateBillPdf = async (
     const due = tax.assessedAmount - tax.amountPaid;
     return [
       `${tax.taxType} (${tax.assessmentYear})`,
-      tax.hindiName,
-      `₹${tax.assessedAmount.toLocaleString('en-IN')}`,
-      `₹${tax.amountPaid.toLocaleString('en-IN')}`,
-      `₹${due.toLocaleString('en-IN')}`,
+      tax.hindiName || '',
+      formatCurrency(tax.assessedAmount),
+      formatCurrency(tax.amountPaid),
+      formatCurrency(due),
     ];
   });
 
@@ -93,7 +113,7 @@ export const generateBillPdf = async (
   });
 
   // 4. Totals Section
-  const finalY = (doc as any).lastAutoTable.finalY;
+  const finalY = doc.lastAutoTable?.finalY || billInfoY + 80;
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
 
@@ -102,12 +122,12 @@ export const generateBillPdf = async (
 
   doc.text('Subtotal:', totalX, finalY + 10);
   doc.setFont('helvetica', 'normal');
-  doc.text(`₹${totalAssessed.toLocaleString('en-IN')}`, totalValueX, finalY + 10, { align: 'right' });
+  doc.text(formatCurrency(totalAssessed), totalValueX, finalY + 10, { align: 'right' });
 
   doc.setFont('helvetica', 'bold');
   doc.text('Total Paid:', totalX, finalY + 16);
   doc.setFont('helvetica', 'normal');
-  doc.text(`- ₹${totalPaid.toLocaleString('en-IN')}`, totalValueX, finalY + 16, { align: 'right' });
+  doc.text(`- ${formatCurrency(totalPaid)}`, totalValueX, finalY + 16, { align: 'right' });
   
   doc.setLineWidth(0.5);
   doc.line(totalX - 10, finalY + 20, totalValueX, finalY + 20);
@@ -115,7 +135,7 @@ export const generateBillPdf = async (
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text('Total Due:', totalX, finalY + 26);
-  doc.text(`₹${totalDue.toLocaleString('en-IN')}`, totalValueX, finalY + 26, { align: 'right' });
+  doc.text(formatCurrency(totalDue), totalValueX, finalY + 26, { align: 'right' });
 
 
   // 5. Footer & Remarks
@@ -127,6 +147,11 @@ export const generateBillPdf = async (
   doc.text('This is a computer-generated bill and does not require a signature.', pageWidth / 2, footerY + 8, { align: 'center' });
   doc.text(`Please make payments before the due date to avoid late fees of ${settings.lateFee}%.`, pageWidth / 2, footerY + 14, { align: 'center' });
 
-  // Save the PDF
-  doc.save(`Bill-${property.id}.pdf`);
+  // Save the PDF with timestamp
+  const timestamp = new Date().toISOString().split('T')[0];
+  doc.save(`Bill-${property.id}-${timestamp}.pdf`);
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    throw new Error('Failed to generate PDF bill. Please try again.');
+  }
 };

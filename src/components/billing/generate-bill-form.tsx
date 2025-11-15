@@ -16,12 +16,17 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
-// New type for the manual tax rates input
+/**
+ * Represents a manual tax/charge that can be added to a bill
+ */
 interface ManualTax {
     name: string;
     rate: number; // Percentage
 }
 
+/**
+ * Props for the GenerateBillForm component
+ */
 interface GenerateBillFormProps {
     properties: Property[];
     settings: PanchayatSettings | null;
@@ -29,11 +34,33 @@ interface GenerateBillFormProps {
     onCancel: () => void;
 }
 
+/**
+ * Detailed tax calculation result
+ */
+interface TaxCalculation {
+    name: string;
+    rate: number;
+    amount: number;
+}
+
+/**
+ * Complete bill calculation result
+ */
+interface BillCalculations {
+    subtotal: number;
+    totalTaxAmount: number;
+    grandTotal: number;
+    detailedTaxes: TaxCalculation[];
+}
+
 // Import the actual PDF generator
 import { generateBillPdf as generatePdfFile } from '@/lib/pdf-generator';
 
-// Generate receipt number
-const generateReceiptNumber = () => {
+/**
+ * Generates a unique receipt number in format RCP{YY}{MM}{XXXX}
+ * @returns Receipt number string
+ */
+const generateReceiptNumber = (): string => {
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -41,7 +68,20 @@ const generateReceiptNumber = () => {
     return `RCP${year}${month}${random}`;
 };
 
+/**
+ * Validates that all manual taxes have names if they have rates
+ * @param taxes - Array of manual taxes to validate
+ * @returns True if valid, false otherwise
+ */
+const validateManualTaxes = (taxes: ManualTax[]): boolean => {
+    return !taxes.some(tax => tax.name.trim() === '' && tax.rate > 0);
+};
 
+
+/**
+ * Form component for generating tax assessment bills
+ * Handles property selection, tax calculation, and bill generation with PDF output
+ */
 export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel }: GenerateBillFormProps) {
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
@@ -55,8 +95,23 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
         customBaseAmount: 0,
     });
     
-    // NEW STATE for manual tax rates
+    // State for manual tax rates/charges
     const [manualTaxes, setManualTaxes] = useState<ManualTax[]>([]);
+
+    // Keyboard shortcut for adding manual taxes (Ctrl/Cmd + Shift + A)
+    useEffect(() => {
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'A') {
+                e.preventDefault();
+                if (!loading) {
+                    addManualTax();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [loading]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -69,19 +124,37 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
         setBillGenerated(false);
     };
 
-    const handleManualTaxChange = (index: number, name: 'name' | 'rate', value: string) => {
-        setManualTaxes(prev => prev.map((tax, i) => 
-            i === index ? { ...tax, [name]: name === 'rate' ? Number(value) : value } : tax
-        ));
+    /**
+     * Handles changes to manual tax fields
+     */
+    const handleManualTaxChange = (index: number, field: 'name' | 'rate', value: string) => {
+        setManualTaxes(prev => prev.map((tax, i) => {
+            if (i !== index) return tax;
+            
+            if (field === 'rate') {
+                const numericValue = Number(value);
+                // Prevent negative rates
+                return { ...tax, rate: Math.max(0, numericValue) };
+            }
+            return { ...tax, [field]: value };
+        }));
         setBillGenerated(false);
     };
 
+    /**
+     * Adds a new empty manual tax entry
+     */
     const addManualTax = () => {
         setManualTaxes(prev => [...prev, { name: '', rate: 0 }]);
+        setBillGenerated(false);
     };
 
+    /**
+     * Removes a manual tax entry by index
+     */
     const removeManualTax = (index: number) => {
         setManualTaxes(prev => prev.filter((_, i) => i !== index));
+        setBillGenerated(false);
     };
     
     const selectedProperty = useMemo(() => {
@@ -122,18 +195,25 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
         }
     }, [selectedProperty, settings, billData.taxType, billData.customBaseAmount]);
 
-    const finalCalculations = useMemo(() => {
+    /**
+     * Calculates final bill amounts including all manual taxes
+     */
+    const finalCalculations = useMemo<BillCalculations>(() => {
         const subtotal = baseAmount;
         let totalTaxAmount = 0;
 
-        const detailedTaxes = manualTaxes.map(tax => {
-            const taxValue = subtotal * (tax.rate / 100);
-            totalTaxAmount += taxValue;
-            return {
-                ...tax,
-                amount: taxValue,
-            };
-        });
+        // Only include taxes with valid names
+        const detailedTaxes: TaxCalculation[] = manualTaxes
+            .filter(tax => tax.name.trim() !== '')
+            .map(tax => {
+                const taxValue = subtotal * (tax.rate / 100);
+                totalTaxAmount += taxValue;
+                return {
+                    name: tax.name,
+                    rate: tax.rate,
+                    amount: taxValue,
+                };
+            });
 
         const grandTotal = subtotal + totalTaxAmount;
 
@@ -180,11 +260,10 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
         }
 
         // Validate manual taxes
-        const invalidTaxes = manualTaxes.filter(tax => tax.name.trim() === '' && tax.rate > 0);
-        if (invalidTaxes.length > 0) {
+        if (!validateManualTaxes(manualTaxes)) {
             toast({
                 variant: 'destructive',
-                title: 'Error',
+                title: 'Validation Error',
                 description: 'Please provide names for all additional charges or remove them.',
             });
             return;
@@ -193,55 +272,60 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
         setLoading(true);
 
         try {
+            // Verify property exists in Firestore
             const propertyRef = doc(firestore, 'properties', billData.propertyId);
             const propertySnap = await getDoc(propertyRef);
 
             if (!propertySnap.exists()) {
-                throw new Error("Property not found!");
+                throw new Error("Property not found in database!");
             }
 
-            // Generate unique IDs
+            // Generate unique identifiers
             const taxRecordId = `TAX${Date.now()}`;
             const receiptNumber = generateReceiptNumber();
 
-            // Create the tax record with all details
+            // Create the complete tax record with all details
             const newTaxRecord = {
                 id: taxRecordId,
                 taxType: billData.taxType,
                 hindiName: getTaxHindiName(billData.taxType),
                 assessedAmount: finalCalculations.grandTotal,
                 baseAmount: finalCalculations.subtotal,
-                taxDetails: finalCalculations.detailedTaxes.filter(tax => tax.name.trim() !== ''),
+                taxDetails: finalCalculations.detailedTaxes, // Already filtered in calculations
                 paymentStatus: 'Unpaid' as const,
                 amountPaid: 0,
                 assessmentYear: new Date(billData.date).getFullYear(),
                 paymentDate: null,
                 receiptNumber: receiptNumber,
-                remarks: billData.remarks,
+                remarks: billData.remarks.trim(),
             };
 
-            // Save to Firestore
+            // Save tax record to Firestore
             await updateDoc(propertyRef, {
                 taxes: arrayUnion(newTaxRecord)
             });
 
-            // Generate PDF
+            // Generate and download PDF
             generatePdfFile(
                 selectedProperty,
                 [newTaxRecord],
                 settings
             );
 
-            // Mark as generated
+            // Mark as successfully generated
             setBillGenerated(true);
 
+            // Show success notification
             toast({
                 title: 'Success!',
-                description: `Bill has been generated and saved. Receipt No: ${receiptNumber}`,
+                description: `Bill generated and saved successfully. Receipt No: ${receiptNumber}`,
                 duration: 5000,
             });
 
-            // Reset form after a delay
+            // Trigger parent callback
+            onFormSubmit();
+
+            // Reset form after a brief delay to allow user to see success message
             setTimeout(() => {
                 setBillData({
                     propertyId: '',
@@ -254,12 +338,17 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                 setBillGenerated(false);
             }, 2000);
 
-        } catch (error: any) {
-            console.error("Error generating bill: ", error);
+        } catch (error: unknown) {
+            console.error("Error generating bill:", error);
+            
+            const errorMessage = error instanceof Error 
+                ? error.message 
+                : 'An unexpected error occurred while generating the bill.';
+            
             toast({
                 variant: 'destructive',
                 title: 'Bill Generation Failed',
-                description: error.message || 'An unknown error occurred.',
+                description: errorMessage,
             });
         } finally {
             setLoading(false);
@@ -269,24 +358,32 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
 
     return (
         <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-xl shadow-md p-6 md:p-8 mb-6 border border-border/50">
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8">
-                    Generate New Tax Assessment & Bill • नया कर निर्धारण और बिल
-                </h2>
+            <div className="card-premium rounded-2xl shadow-xl p-6 md:p-10 mb-6 border-2 border-border/50 backdrop-blur-sm animate-fade-in">
+                <div className="flex items-center gap-4 mb-8 pb-6 border-b-2 border-gradient-primary">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+                        <FileText className="w-8 h-8 text-white" />
+                    </div>
+                    <div>
+                        <h2 className="text-3xl md:text-4xl font-headline font-bold text-gradient bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                            Generate Tax Assessment
+                        </h2>
+                        <p className="text-lg text-muted-foreground mt-1">नया कर निर्धारण और बिल</p>
+                    </div>
+                </div>
                 {!settings && (
-                    <Alert variant="destructive" className="mb-6">
-                         <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Settings Not Found!</AlertTitle>
-                        <AlertDescription>
+                    <Alert variant="destructive" className="mb-6 border-2 shadow-md animate-fade-in">
+                         <AlertCircle className="h-5 w-5" />
+                        <AlertTitle className="font-bold text-lg">Settings Not Found!</AlertTitle>
+                        <AlertDescription className="mt-2">
                             Panchayat settings are not configured. Please go to the Settings page and save them before generating bills.
                         </AlertDescription>
                     </Alert>
                 )}
                 <form onSubmit={handleBillSubmit} className="space-y-8">
                     {/* Property Selection */}
-                    <div>
-                        <Label className="block text-sm font-semibold text-foreground mb-2">
-                            Select User • उपयोगकर्ता चुनें *
+                    <div className="space-y-2">
+                        <Label className="text-sm font-bold text-foreground/90">
+                            Select Property Owner • संपत्ति मालिक चुनें *
                         </Label>
                         <Select 
                             value={billData.propertyId} 
@@ -294,21 +391,35 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                             required
                             disabled={!settings || loading}
                         >
-                            <SelectTrigger className="h-12 border-2 border-input focus:border-primary focus:ring-2 focus:ring-primary/20">
-                                <SelectValue placeholder="-- Select User from Database --" />
+                            <SelectTrigger className="h-12 border-2 shadow-sm hover:shadow-md transition-all">
+                                <SelectValue placeholder="-- Select Property Owner from Database --" />
                             </SelectTrigger>
                             <SelectContent>
-                                {properties?.map(prop => (
-                                    <SelectItem key={prop.id} value={prop.id}>{prop.ownerName} ({prop.id})</SelectItem>
-                                ))}
+                                {properties && properties.length > 0 ? (
+                                    properties.map(prop => (
+                                        <SelectItem key={prop.id} value={prop.id}>
+                                            🏠 {prop.ownerName} ({prop.id})
+                                        </SelectItem>
+                                    ))
+                                ) : (
+                                    <SelectItem value="no-properties" disabled>
+                                        No properties available
+                                    </SelectItem>
+                                )}
                             </SelectContent>
                         </Select>
+                        {properties && properties.length === 0 && (
+                            <p className="text-sm badge-warning mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-lg">
+                                <AlertCircle className="w-4 h-4" />
+                                No properties found. Please register properties first.
+                            </p>
+                        )}
                     </div>
 
                     {/* Tax Type and Date */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-                        <div>
-                            <Label className="block text-sm font-semibold text-foreground mb-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                        <div className="space-y-2">
+                            <Label className="text-sm font-bold text-foreground/90">
                                 Tax Type • कर का प्रकार *
                             </Label>
                             <Select
@@ -317,23 +428,23 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                                 required
                                 disabled={!settings || loading}
                             >
-                                <SelectTrigger className="h-12 border-2 border-input focus:border-primary focus:ring-2 focus:ring-primary/20">
+                                <SelectTrigger className="h-12 border-2 shadow-sm hover:shadow-md transition-all">
                                     <SelectValue placeholder="Select Type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Property Tax">Property Tax</SelectItem>
-                                    <SelectItem value="Water Tax">Water Tax</SelectItem>
-                                    <SelectItem value="Sanitation Tax">Sanitation Tax</SelectItem>
-                                    <SelectItem value="Lighting Tax">Lighting Tax</SelectItem>
-                                    <SelectItem value="Land Tax">Land Tax</SelectItem>
-                                    <SelectItem value="Business Tax">Business Tax</SelectItem>
-                                    <SelectItem value="Other">Other</SelectItem>
+                                    <SelectItem value="Property Tax">🏠 Property Tax</SelectItem>
+                                    <SelectItem value="Water Tax">💧 Water Tax</SelectItem>
+                                    <SelectItem value="Sanitation Tax">🧹 Sanitation Tax</SelectItem>
+                                    <SelectItem value="Lighting Tax">💡 Lighting Tax</SelectItem>
+                                    <SelectItem value="Land Tax">🌍 Land Tax</SelectItem>
+                                    <SelectItem value="Business Tax">💼 Business Tax</SelectItem>
+                                    <SelectItem value="Other">📋 Other</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
-                        <div>
-                            <Label className="block text-sm font-semibold text-foreground mb-2">
+                        <div className="space-y-2">
+                            <Label className="text-sm font-bold text-foreground/90">
                                 Assessment Date • मूल्यांकन की तारीख *
                             </Label>
                             <Input
@@ -343,7 +454,7 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                                 onChange={handleInputChange}
                                 required
                                 disabled={!settings || loading}
-                                className="h-12 border-2 border-input focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                className="h-12 border-2 shadow-sm hover:shadow-md transition-all"
                             />
                         </div>
                     </div>
@@ -375,32 +486,32 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                     {/* Property Details and Base Amount */}
                     {selectedProperty && (
                         <div className="space-y-4">
-                            <Alert className="bg-blue-50 border-blue-200">
+                            <Alert className="bg-blue-50 border-blue-200" role="region" aria-label="Property Information">
                                 <AlertTitle className="text-blue-900">Property Details • संपत्ति विवरण</AlertTitle>
                                 <AlertDescription className="mt-3 space-y-2">
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                         <div>
-                                            <p className="text-xs text-blue-700 font-medium">Owner Name</p>
+                                            <p className="text-xs text-blue-700 font-medium">Owner Name • मालिक का नाम</p>
                                             <p className="text-sm font-semibold text-blue-900">{selectedProperty.ownerName}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-blue-700 font-medium">Property ID</p>
+                                            <p className="text-xs text-blue-700 font-medium">Property ID • संपत्ति आईडी</p>
                                             <p className="text-sm font-semibold text-blue-900">{selectedProperty.id}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-blue-700 font-medium">Property Type</p>
+                                            <p className="text-xs text-blue-700 font-medium">Property Type • संपत्ति का प्रकार</p>
                                             <p className="text-sm font-semibold text-blue-900">{selectedProperty.propertyType}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-blue-700 font-medium">Area</p>
-                                            <p className="text-sm font-semibold text-blue-900">{selectedProperty.area.toLocaleString()} sq.ft.</p>
+                                            <p className="text-xs text-blue-700 font-medium">Area • क्षेत्रफल</p>
+                                            <p className="text-sm font-semibold text-blue-900">{selectedProperty.area.toLocaleString('en-IN')} sq.ft.</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-blue-700 font-medium">House No.</p>
+                                            <p className="text-xs text-blue-700 font-medium">House No. • मकान नंबर</p>
                                             <p className="text-sm font-semibold text-blue-900">{selectedProperty.houseNo}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-blue-700 font-medium">Mobile</p>
+                                            <p className="text-xs text-blue-700 font-medium">Mobile • मोबाइल</p>
                                             <p className="text-sm font-semibold text-blue-900">{selectedProperty.mobileNumber}</p>
                                         </div>
                                     </div>
@@ -446,61 +557,155 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                     )}
 
 
-                    {/* Manual Tax Input Fields (NEW) */}
-                    <div className="space-y-5 pt-6 border-t-2 border-border">
-                        <h3 className="text-xl font-bold text-foreground flex items-center justify-between">
-                            Manual Tax/Charges • अतिरिक्त कर/शुल्क 
-                            <Button type="button" variant="outline" size="sm" onClick={addManualTax} disabled={loading} className="border-2 hover:bg-primary/5">
+                    {/* Manual Tax Input Fields */}
+                    <div className="space-y-6 pt-8 border-t-2 border-gradient-primary">
+                        <div className="flex items-center justify-between flex-wrap gap-3">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-warning/20 to-warning/10 flex items-center justify-center border-2 border-warning/30">
+                                    <span className="text-2xl">💰</span>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-headline font-bold text-foreground">
+                                        Additional Charges
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground">अतिरिक्त कर/शुल्क</p>
+                                </div>
+                            </div>
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={addManualTax} 
+                                disabled={loading} 
+                                className="h-10 px-4 border-2 border-primary/30 text-primary hover:bg-primary/5 hover:border-primary font-semibold shadow-sm hover:shadow-md transition-all active:scale-95"
+                                title="Add new charge (Ctrl+Shift+A)"
+                            >
                                 <PlusCircle className="w-4 h-4 mr-2" /> Add Charge
                             </Button>
-                        </h3>
+                        </div>
+                        
+                        {manualTaxes.length === 0 && (
+                            <div className="text-center py-8 px-4 bg-gradient-to-br from-muted/30 to-muted/10 rounded-xl border-2 border-dashed border-border/50 animate-fade-in">
+                                <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-muted/50 flex items-center justify-center">
+                                    <PlusCircle className="w-8 h-8 text-muted-foreground/50" />
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                    No additional charges added. Click "Add Charge" to include penalties, cess, or other charges.
+                                </p>
+                            </div>
+                        )}
+                        
                         {manualTaxes.map((tax, index) => (
-                            <div key={index} className="grid grid-cols-5 gap-4 items-end p-4 bg-muted/30 rounded-lg border border-border/50">
-                                <div className="col-span-2">
-                                    <Label className="text-sm font-semibold text-foreground mb-2">Charge Name</Label>
+                            <div 
+                                key={index} 
+                                className="grid grid-cols-5 gap-4 items-end p-5 bg-gradient-to-br from-muted/40 to-muted/20 rounded-xl border-2 border-border/50 shadow-sm hover:shadow-md transition-all animate-fade-in"
+                                style={{ animationDelay: `${index * 100}ms` }}
+                            >
+                                <div className="col-span-2 space-y-2">
+                                    <Label className="text-sm font-bold text-foreground/90">
+                                        Charge Name • शुल्क का नाम
+                                    </Label>
                                     <Input
                                         type="text"
                                         value={tax.name}
                                         onChange={(e) => handleManualTaxChange(index, 'name', e.target.value)}
-                                        placeholder="e.g., Penalty, Cess"
-                                        required
+                                        placeholder="e.g., Penalty, Cess, Late Fee"
                                         disabled={loading}
-                                        className="h-11 border-2 border-input focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                        className="h-12 border-2 shadow-sm hover:shadow-md transition-all"
+                                        aria-label={`Charge name ${index + 1}`}
                                     />
                                 </div>
-                                <div className="col-span-2">
-                                    <Label className="text-sm font-semibold text-foreground mb-2">Rate (%)</Label>
+                                <div className="col-span-2 space-y-2">
+                                    <Label className="text-sm font-bold text-foreground/90">
+                                        Rate (%) • दर
+                                    </Label>
                                     <Input
                                         type="number"
                                         value={tax.rate}
                                         onChange={(e) => handleManualTaxChange(index, 'rate', e.target.value)}
                                         min="0"
+                                        max="100"
                                         step="0.01"
-                                        required
                                         disabled={loading}
-                                        className="h-11 border-2 border-input focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                        className="h-12 border-2 shadow-sm hover:shadow-md transition-all font-semibold"
+                                        aria-label={`Charge rate ${index + 1}`}
                                     />
+                                    {tax.rate > 0 && selectedProperty && (
+                                        <p className="text-sm badge-success inline-flex items-center gap-1 px-2 py-1 rounded">
+                                            = ₹{(baseAmount * (tax.rate / 100)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </p>
+                                    )}
                                 </div>
-                                <Button type="button" variant="destructive" size="icon" onClick={() => removeManualTax(index)} disabled={loading} className="h-11 w-11">
-                                    <Trash2 className="w-4 h-4" />
+                                <Button 
+                                    type="button" 
+                                    variant="destructive" 
+                                    size="icon" 
+                                    onClick={() => removeManualTax(index)} 
+                                    disabled={loading} 
+                                    className="h-12 w-12 shadow-md hover:shadow-lg active:scale-95 transition-all"
+                                    title="Remove this charge"
+                                    aria-label={`Remove charge ${index + 1}`}
+                                >
+                                    <Trash2 className="w-5 h-5" />
                                 </Button>
                             </div>
                         ))}
                     </div>
 
                     {/* Final Total */}
-                    <div className="pt-6 border-t-2 border-border bg-gradient-to-br from-primary/5 to-primary/10 p-6 rounded-lg">
-                        <p className="text-lg md:text-xl font-semibold text-foreground mb-3">
-                            Total Tax/Charges: ₹{finalCalculations.totalTaxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                        <p className="text-2xl md:text-3xl font-bold text-primary">
-                            Grand Total (कुल राशि): ₹{finalCalculations.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
+                    <div className="pt-8 border-t-2 border-gradient-primary bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 p-6 md:p-8 rounded-2xl shadow-lg space-y-4 animate-fade-in" role="region" aria-label="Bill Summary">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-success to-success/80 flex items-center justify-center shadow-md">
+                                <span className="text-2xl">📊</span>
+                            </div>
+                            <h3 className="text-xl font-headline font-bold text-foreground">Bill Summary</h3>
+                        </div>
+                        
+                        <div className="flex justify-between items-center py-2">
+                            <span className="text-base font-medium text-muted-foreground">Base Amount • आधार राशि:</span>
+                            <span className="text-xl font-bold text-foreground">
+                                ₹{finalCalculations.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                        </div>
+                        
+                        {finalCalculations.detailedTaxes.length > 0 && (
+                            <>
+                                <div className="border-t-2 border-border/30 pt-3 space-y-2">
+                                    {finalCalculations.detailedTaxes.map((tax, idx) => (
+                                        <div 
+                                            key={idx} 
+                                            className="flex justify-between items-center text-sm py-2 px-3 bg-white/50 rounded-lg animate-fade-in"
+                                            style={{ animationDelay: `${idx * 50}ms` }}
+                                        >
+                                            <span className="font-medium text-foreground/80">
+                                                {tax.name} ({tax.rate}%):
+                                            </span>
+                                            <span className="font-bold text-foreground">
+                                                ₹{tax.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex justify-between items-center border-t-2 border-border/30 pt-3 py-2">
+                                    <span className="text-lg font-bold text-foreground">Additional Charges • अतिरिक्त शुल्क:</span>
+                                    <span className="text-xl font-bold text-warning">
+                                        ₹{finalCalculations.totalTaxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                </div>
+                            </>
+                        )}
+                        
+                        <div className="flex justify-between items-center border-t-2 border-primary/30 pt-4 mt-4 bg-gradient-to-r from-primary/10 to-accent/10 px-4 py-4 rounded-xl shadow-inner">
+                            <span className="text-xl md:text-2xl font-headline font-bold text-foreground">Grand Total • कुल राशि:</span>
+                            <span className="text-3xl md:text-4xl font-headline font-bold text-gradient bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                                ₹{finalCalculations.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                        </div>
                     </div>
 
                     {/* Remarks */}
-                    <div>
-                        <Label className="block text-sm font-semibold text-foreground mb-2">
+                    <div className="space-y-2">
+                        <Label className="text-sm font-bold text-foreground/90">
                             Remarks • टिप्पणी
                         </Label>
                         <Textarea
@@ -510,20 +715,21 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                             placeholder="Additional remarks (optional)"
                             rows={3}
                             disabled={!settings || loading}
-                            className="border-2 border-input focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none"
+                            className="border-2 shadow-sm hover:shadow-md transition-all resize-none"
                         ></Textarea>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-6 border-t border-border">
+                    <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t-2 border-border">
                         <Button
                             type="submit"
                             disabled={loading || !settings || finalCalculations.grandTotal <= 0 || !billData.propertyId}
-                            className="flex-1 bg-gradient-to-r from-primary to-blue-700 text-white px-8 h-12 md:h-14 font-semibold hover:shadow-lg hover:from-primary/90 hover:to-blue-700/90 transition-all flex items-center justify-center gap-2"
+                            className="flex-1 bg-gradient-to-r from-primary via-primary to-accent text-white px-8 h-14 md:h-16 font-bold text-lg rounded-xl hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
+                            aria-label="Generate bill and download PDF"
                         >
-                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileText className="w-5 h-5" />}
-                            <span className="hidden sm:inline">{loading ? 'Processing...' : 'Generate Bill & Download PDF • बिल बनाएं'}</span>
-                            <span className="sm:hidden">{loading ? 'Processing...' : 'Generate Bill'}</span>
+                            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Printer className="w-6 h-6" />}
+                            <span className="hidden sm:inline">{loading ? 'Generating Bill...' : 'Generate Bill & Download PDF • बिल बनाएं'}</span>
+                            <span className="sm:hidden">{loading ? 'Generating...' : 'Generate Bill'}</span>
                         </Button>
 
                         <Button
@@ -531,11 +737,24 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                             variant="outline"
                             onClick={onCancel}
                             disabled={loading}
-                            className="sm:flex-initial px-8 h-12 md:h-14 border-2 font-semibold hover:bg-muted/50 transition-all"
+                            className="sm:flex-initial px-8 h-14 md:h-16 border-2 rounded-xl font-bold text-lg hover:bg-muted/50 shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
+                            aria-label="Cancel bill generation"
                         >
                             Cancel • रद्द करें
                         </Button>
                     </div>
+
+                    {/* Validation Helper Text */}
+                    {!billData.propertyId && (
+                        <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                            ⚠️ Please select a property to continue
+                        </p>
+                    )}
+                    {billData.propertyId && finalCalculations.grandTotal <= 0 && (
+                        <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                            ⚠️ Bill amount must be greater than zero
+                        </p>
+                    )}
 
                     {billGenerated && (
                         <Alert className="bg-green-50 border-green-200">

@@ -1,10 +1,17 @@
-// Report generation utilities
+/**
+ * Report generation utilities for Panchayat Tax Management System
+ * Provides functions to generate various tax reports and analytics
+ */
 import type { Property, TaxRecord, PanchayatSettings } from './types';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
+/**
+ * Extend jsPDF with autoTable plugin
+ */
 interface jsPDFWithAutoTable extends jsPDF {
   autoTable: (options: any) => jsPDF;
+  lastAutoTable?: { finalY: number };
 }
 
 export interface PendingBillRecord {
@@ -43,8 +50,14 @@ export interface ReportSummary {
 
 /**
  * Calculate pending bills from all properties
+ * @param properties - Array of all properties
+ * @returns Array of properties with pending bills, sorted by due amount
  */
 export function calculatePendingBills(properties: Property[]): PendingBillRecord[] {
+  if (!properties || properties.length === 0) {
+    return [];
+  }
+
   const pendingRecords: PendingBillRecord[] = [];
 
   properties.forEach(property => {
