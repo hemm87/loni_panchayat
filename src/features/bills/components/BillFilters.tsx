@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Download } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BillFiltersProps {
@@ -27,20 +27,8 @@ export const BillFilters: React.FC<BillFiltersProps> = ({
   ];
 
   return (
-    <div className="card-premium rounded-2xl shadow-xl p-6 border-2 border-border/50 backdrop-blur-sm">
-      <div className="flex items-center gap-4 mb-6">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-success to-success/80 flex items-center justify-center shadow-lg">
-          <Download className="w-8 h-8 text-white" />
-        </div>
-        <div>
-          <h2 className="text-3xl md:text-4xl font-headline font-bold text-gradient bg-gradient-to-r from-success to-emerald-600 bg-clip-text text-transparent">
-            Download Bills
-          </h2>
-          <p className="text-lg text-muted-foreground mt-1">बिल डाउनलोड करें</p>
-        </div>
-      </div>
-
-      {/* Filters */}
+    <div className="space-y-4">
+      {/* Search and Filter */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
