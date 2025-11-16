@@ -10,6 +10,7 @@
 import { useBillsData } from '../hooks/useBillsData';
 import { BillFilters } from './BillFilters';
 import { BillCard } from './BillCard';
+import { BillsSummary } from './BillsSummary';
 import { FileText, Download } from 'lucide-react';
 import type { Property, PanchayatSettings } from '@/lib/types';
 
