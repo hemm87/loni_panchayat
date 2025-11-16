@@ -17,11 +17,13 @@ const nextConfig: NextConfig = {
   // Compression
   compress: true,
   
-  // Output optimization for Docker
-  output: process.env.DOCKER_BUILD === 'true' ? 'standalone' : undefined,
+  // Output optimization for Docker and Static Export
+  output: process.env.DOCKER_BUILD === 'true' ? 'standalone' : process.env.NEXT_PUBLIC_BUILD_MODE === 'export' ? 'export' : undefined,
   
-  // Image optimization
-  images: {
+  // Image optimization (disable for static export)
+  images: process.env.NEXT_PUBLIC_BUILD_MODE === 'export' ? {
+    unoptimized: true,
+  } : {
     remotePatterns: [
       {
         protocol: 'https',
