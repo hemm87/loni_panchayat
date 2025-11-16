@@ -30,17 +30,17 @@ Write-Host ""
 Write-Host "🌐 Opening Monitoring Dashboards..." -ForegroundColor Yellow
 Write-Host ""
 
-$choice = Read-Host "Which dashboard would you like to open?
-[1] Main Console
-[2] Analytics
-[3] Performance
-[4] Hosting
-[5] Firestore Database
-[6] Authentication
-[7] All Dashboards
-[0] Skip
+Write-Host "[1] Main Console"
+Write-Host "[2] Analytics"
+Write-Host "[3] Performance"
+Write-Host "[4] Hosting"
+Write-Host "[5] Firestore Database"
+Write-Host "[6] Authentication"
+Write-Host "[7] All Dashboards"
+Write-Host "[0] Skip"
+Write-Host ""
 
-Enter choice (0-7)"
+$choice = Read-Host "Enter choice (0-7)"
 
 switch ($choice) {
     "1" {

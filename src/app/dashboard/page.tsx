@@ -12,7 +12,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Building } from 'lucide-react';
+import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Building, Wrench } from 'lucide-react';
 import { getAuth, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -24,6 +24,7 @@ import { DashboardPage } from '@/features/dashboard/components/DashboardPage';
 import { BillsListPage } from '@/features/bills/components/BillsListPage';
 import { ReportsPage } from '@/features/reports/components/ReportsPage';
 import { SettingsPage } from '@/features/settings/components/SettingsPage';
+import { ToolsPage } from '@/features/tools/components/ToolsPage';
 
 // Existing Components
 import { RegisterPropertyForm } from '@/components/properties/register-property-form';
@@ -79,6 +80,7 @@ const Dashboard = () => {
     { id: 'bill', icon: FileText, label: 'Generate Bill / Receipt', labelHi: 'रसीद बनाएँ' },
     { id: 'bills', icon: FileText, label: 'Download Bills', labelHi: 'बिल डाउनलोड करें' },
     { id: 'reports', icon: BarChart3, label: 'Reports', labelHi: 'रिपोर्ट्स' },
+    { id: 'tools', icon: Wrench, label: 'Utility Tools', labelHi: 'उपयोगी उपकरण' },
     { id: 'settings', icon: Settings, label: 'Settings', labelHi: 'सेटिंग्स' },
   ];
 
@@ -120,6 +122,9 @@ const Dashboard = () => {
       
       case 'reports':
         return <ReportsPage properties={props} />;
+      
+      case 'tools':
+        return <ToolsPage properties={props} settings={settings || null} />;
       
       case 'settings':
         return <SettingsPage settings={settings || null} docRef={settingsDocRef} />;
