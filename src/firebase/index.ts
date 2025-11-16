@@ -34,6 +34,14 @@ export function initializeFirebase() {
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {
+  // Initialize monitoring services
+  if (typeof window !== 'undefined') {
+    import('@/lib/monitoring').then(({ initializeAnalytics, initializePerformance }) => {
+      initializeAnalytics(firebaseApp);
+      initializePerformance(firebaseApp);
+    });
+  }
+
   return {
     firebaseApp,
     auth: getAuth(firebaseApp),
