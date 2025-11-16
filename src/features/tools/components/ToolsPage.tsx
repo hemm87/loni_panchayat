@@ -209,25 +209,218 @@ export function ToolsPage({ properties, settings }: ToolsPageProps) {
 
 function TaxCalculatorTool({ settings }: { settings: PanchayatSettings | null }) {
   const [area, setArea] = useState('');
-  const [propertyType, setPropertyType] = useState('Residential');
-  const [taxAmount, setTaxAmount] = useState<number | null>(null);
+  const [propertyType, setPropertyType] = useState<'Residential' | 'Commercial' | 'Industrial' | 'Agricultural'>('Residential');
+  const [locationType, setLocationType] = useState<'urban' | 'semiUrban' | 'rural'>('semiUrban');
+  const [agriculturalType, setAgriculturalType] = useState<'irrigated' | 'unirrigated'>('unirrigated');
+  const [includeWaterTax, setIncludeWaterTax] = useState(true);
+  const [includeSanitationTax, setIncludeSanitationTax] = useState(true);
+  const [includeLightingTax, setIncludeLightingTax] = useState(true);
+  const [taxBreakdown, setTaxBreakdown] = useState<any | null>(null);
 
   const calculateTax = () => {
-    if (!settings || !area) return;
+    if (!area) return;
     
     const areaNum = parseFloat(area);
-    let rate = settings.propertyTaxRate || 0;
     
-    // Adjust rate based on property type
-    if (propertyType === 'Commercial') rate *= 1.5;
-    if (propertyType === 'Industrial') rate *= 2;
+    // Use MP Tax Calculator
+    const { calculateComprehensiveTax } = require('@/lib/mp-tax-calculator');
     
-    const tax = areaNum * rate;
-    setTaxAmount(tax);
+    const result = calculateComprehensiveTax({
+      propertyType,
+      locationType,
+      area: areaNum,
+      agriculturalType: propertyType === 'Agricultural' ? agriculturalType : undefined,
+      includeWaterTax,
+      includeSanitationTax,
+      includeLightingTax,
+    });
+    
+    setTaxBreakdown(result);
   };
 
   return (
     <div className="space-y-4">
+      <div className="bg-blue-50 dark:bg-blue-950/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-4">
+        <h4 className="font-bold text-sm mb-2">📋 MP Panchayat Tax Calculator</h4>
+        <p className="text-xs text-muted-foreground">Based on Madhya Pradesh Panchayat Raj Act & Government guidelines</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-semibold mb-2">
+            {propertyType === 'Agricultural' ? 'Area (Acres)' : 'Area (sq ft)'}
+          </label>
+          <input
+            type="number"
+            value={area}
+            onChange={(e) => setArea(e.target.value)}
+            placeholder={propertyType === 'Agricultural' ? 'Enter acres' : 'Enter sq ft'}
+            className="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold mb-2">Property Type</label>
+          <select
+            value={propertyType}
+            onChange={(e) => setPropertyType(e.target.value as any)}
+            className="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          >
+            <option value="Residential">Residential (आवासीय)</option>
+            <option value="Commercial">Commercial (व्यावसायिक)</option>
+            <option value="Industrial">Industrial (औद्योगिक)</option>
+            <option value="Agricultural">Agricultural (कृषि)</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-semibold mb-2">Location Type</label>
+          <select
+            value={locationType}
+            onChange={(e) => setLocationType(e.target.value as any)}
+            className="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          >
+            <option value="urban">Urban (शहरी)</option>
+            <option value="semiUrban">Semi-Urban (अर्ध-शहरी)</option>
+            <option value="rural">Rural (ग्रामीण)</option>
+          </select>
+        </div>
+        {propertyType === 'Agricultural' && (
+          <div>
+            <label className="block text-sm font-semibold mb-2">Agricultural Type</label>
+            <select
+              value={agriculturalType}
+              onChange={(e) => setAgriculturalType(e.target.value as any)}
+              className="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            >
+              <option value="irrigated">Irrigated (सिंचित)</option>
+              <option value="unirrigated">Unirrigated (असिंचित)</option>
+            </select>
+          </div>
+        )}
+      </div>
+
+      {propertyType !== 'Agricultural' && (
+        <div className="border-2 rounded-xl p-4">
+          <label className="block text-sm font-semibold mb-3">Additional Taxes (वार्षिक कर)</label>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeWaterTax}
+                onChange={(e) => setIncludeWaterTax(e.target.checked)}
+                className="w-4 h-4"
+              />
+              <span className="text-sm">Water Tax (जल कर)</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeSanitationTax}
+                onChange={(e) => setIncludeSanitationTax(e.target.checked)}
+                className="w-4 h-4"
+              />
+              <span className="text-sm">Sanitation Tax (स्वच्छता कर)</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeLightingTax}
+                onChange={(e) => setIncludeLightingTax(e.target.checked)}
+                className="w-4 h-4"
+              />
+              <span className="text-sm">Lighting Tax (प्रकाश कर)</span>
+            </label>
+          </div>
+        </div>
+      )}
+      
+      <button
+        onClick={calculateTax}
+        className="w-full bg-gradient-to-r from-primary to-accent text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all"
+      >
+        Calculate Tax • कर की गणना करें
+      </button>
+
+      {taxBreakdown && (
+        <div className="space-y-4 animate-slide-up">
+          {/* Tax Breakdown */}
+          <div className="border-2 border-border rounded-xl p-4 space-y-3">
+            <h4 className="font-bold">Tax Breakdown • कर विवरण</h4>
+            {taxBreakdown.breakdown.map((item: any, idx: number) => (
+              <div key={idx} className="flex justify-between text-sm">
+                <span>{item.name} ({item.nameHi})</span>
+                <span className="font-semibold">₹{item.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              </div>
+            ))}
+            <div className="border-t-2 pt-2 flex justify-between font-semibold">
+              <span>Subtotal</span>
+              <span>₹{taxBreakdown.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            </div>
+            {taxBreakdown.rebate > 0 && (
+              <div className="flex justify-between text-sm text-success">
+                <span>Early Payment Rebate (5%)</span>
+                <span>- ₹{taxBreakdown.rebate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Total */}
+          <div className="bg-gradient-to-r from-success/10 to-emerald-500/10 border-2 border-success/30 rounded-xl p-6 text-center">
+            <div className="text-sm text-muted-foreground mb-2">Total Annual Tax • कुल वार्षिक कर</div>
+            <div className="text-4xl font-bold text-success">
+              ₹{taxBreakdown.totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </div>
+            <div className="text-xs text-muted-foreground mt-2">
+              Pay before March 31st for 5% rebate
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PropertyValuationTool({ settings }: { settings: PanchayatSettings | null }) {
+  const [area, setArea] = useState('');
+  const [location, setLocation] = useState('Semi-Urban');
+  const [propertyType, setPropertyType] = useState('Residential');
+  const [valuation, setValuation] = useState<number | null>(null);
+
+  const calculateValuation = () => {
+    const areaNum = parseFloat(area);
+    
+    // MP market rates (approximate circle rates 2024-25)
+    const rates: Record<string, Record<string, number>> = {
+      Residential: {
+        Urban: 4500,      // ₹4,500/sq ft
+        'Semi-Urban': 2800, // ₹2,800/sq ft
+        Rural: 1500,      // ₹1,500/sq ft
+      },
+      Commercial: {
+        Urban: 8000,      // ₹8,000/sq ft
+        'Semi-Urban': 5500, // ₹5,500/sq ft
+        Rural: 3000,      // ₹3,000/sq ft
+      },
+      Industrial: {
+        Urban: 6500,      // ₹6,500/sq ft
+        'Semi-Urban': 4000, // ₹4,000/sq ft
+        Rural: 2500,      // ₹2,500/sq ft
+      },
+    };
+    
+    const rate = rates[propertyType]?.[location] || 2000;
+    setValuation(areaNum * rate);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-green-50 dark:bg-green-950/20 border-2 border-green-200 dark:border-green-800 rounded-xl p-4 mb-4">
+        <h4 className="font-bold text-sm mb-2">📊 MP Circle Rate Valuation</h4>
+        <p className="text-xs text-muted-foreground">Approximate market rates based on MP circle rates 2024-25</p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold mb-2">Property Area (sq ft)</label>
@@ -246,91 +439,41 @@ function TaxCalculatorTool({ settings }: { settings: PanchayatSettings | null })
             onChange={(e) => setPropertyType(e.target.value)}
             className="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
           >
-            <option value="Residential">Residential</option>
-            <option value="Commercial">Commercial</option>
-            <option value="Industrial">Industrial</option>
-            <option value="Agricultural">Agricultural</option>
+            <option value="Residential">Residential (आवासीय)</option>
+            <option value="Commercial">Commercial (व्यावसायिक)</option>
+            <option value="Industrial">Industrial (औद्योगिक)</option>
           </select>
         </div>
       </div>
-      
-      <button
-        onClick={calculateTax}
-        className="w-full bg-gradient-to-r from-primary to-accent text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all"
-      >
-        Calculate Tax
-      </button>
 
-      {taxAmount !== null && (
-        <div className="bg-gradient-to-r from-success/10 to-emerald-500/10 border-2 border-success/30 rounded-xl p-6 text-center animate-slide-up">
-          <div className="text-sm text-muted-foreground mb-2">Estimated Annual Tax</div>
-          <div className="text-4xl font-bold text-success">
-            ₹{taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-          </div>
-          <div className="text-xs text-muted-foreground mt-2">
-            Based on {area} sq ft @ {settings?.propertyTaxRate || 0}% base rate
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function PropertyValuationTool({ settings }: { settings: PanchayatSettings | null }) {
-  const [area, setArea] = useState('');
-  const [location, setLocation] = useState('Urban');
-  const [valuation, setValuation] = useState<number | null>(null);
-
-  const calculateValuation = () => {
-    const areaNum = parseFloat(area);
-    let ratePerSqFt = 3000; // Base rate
-    
-    if (location === 'Urban') ratePerSqFt = 5000;
-    if (location === 'Semi-Urban') ratePerSqFt = 3500;
-    if (location === 'Rural') ratePerSqFt = 2000;
-    
-    setValuation(areaNum * ratePerSqFt);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-semibold mb-2">Property Area (sq ft)</label>
-          <input
-            type="number"
-            value={area}
-            onChange={(e) => setArea(e.target.value)}
-            placeholder="Enter area"
-            className="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-semibold mb-2">Location Type</label>
-          <select
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
-          >
-            <option value="Urban">Urban - ₹5,000/sq ft</option>
-            <option value="Semi-Urban">Semi-Urban - ₹3,500/sq ft</option>
-            <option value="Rural">Rural - ₹2,000/sq ft</option>
-          </select>
-        </div>
+      <div>
+        <label className="block text-sm font-semibold mb-2">Location Type</label>
+        <select
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          className="w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
+        >
+          <option value="Urban">Urban - शहरी क्षेत्र</option>
+          <option value="Semi-Urban">Semi-Urban - अर्ध-शहरी क्षेत्र</option>
+          <option value="Rural">Rural - ग्रामीण क्षेत्र</option>
+        </select>
       </div>
       
       <button
         onClick={calculateValuation}
         className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all"
       >
-        Calculate Valuation
+        Calculate Valuation • मूल्यांकन करें
       </button>
 
       {valuation !== null && (
         <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-500/30 rounded-xl p-6 text-center animate-slide-up">
-          <div className="text-sm text-muted-foreground mb-2">Estimated Property Value</div>
+          <div className="text-sm text-muted-foreground mb-2">Estimated Property Value • अनुमानित मूल्य</div>
           <div className="text-4xl font-bold text-green-600">
             ₹{valuation.toLocaleString('en-IN')}
+          </div>
+          <div className="text-xs text-muted-foreground mt-3">
+            Based on MP circle rates • MP सर्कल दर के आधार पर
           </div>
         </div>
       )}
@@ -376,12 +519,22 @@ function PaymentTrackerTool({ properties }: { properties: Property[] }) {
 
 function DueDateCheckerTool({ properties }: { properties: Property[] }) {
   const today = new Date();
+  // Check for unpaid/partial taxes from current and previous years
+  const currentYear = today.getFullYear();
   const overdue = properties.filter(p => 
     p.taxes?.some(t => {
-      if (!t.dueDate || t.paymentStatus === 'Paid') return false;
-      return new Date(t.dueDate) < today;
+      if (t.paymentStatus === 'Paid') return false;
+      // Tax is overdue if it's from previous years and not paid
+      return t.assessmentYear < currentYear;
     })
   );
+
+  const totalOverdue = overdue.reduce((sum, p) => {
+    const unpaidAmount = p.taxes
+      ?.filter(t => t.paymentStatus !== 'Paid' && t.assessmentYear < currentYear)
+      .reduce((taxSum, t) => taxSum + (t.assessedAmount - t.amountPaid), 0) || 0;
+    return sum + unpaidAmount;
+  }, 0);
 
   return (
     <div className="space-y-4">
@@ -389,14 +542,22 @@ function DueDateCheckerTool({ properties }: { properties: Property[] }) {
         <div className="flex items-center gap-3 mb-4">
           <Calendar className="w-8 h-8 text-destructive" />
           <div>
-            <h4 className="font-bold text-lg">Overdue Payments</h4>
-            <p className="text-sm text-muted-foreground">Properties past due date</p>
+            <h4 className="font-bold text-lg">Overdue Payments • अधिक देय भुगतान</h4>
+            <p className="text-sm text-muted-foreground">Properties with previous year taxes unpaid</p>
           </div>
         </div>
         <div className="text-4xl font-bold text-destructive mb-2">{overdue.length}</div>
-        <div className="text-sm text-muted-foreground">
-          {overdue.length > 0 ? 'Immediate action required' : 'All payments up to date'}
+        <div className="text-sm text-muted-foreground mb-3">
+          {overdue.length > 0 ? 'Immediate action required • तुरंत कार्रवाई आवश्यक' : 'All payments up to date • सभी भुगतान अद्यतन'}
         </div>
+        {totalOverdue > 0 && (
+          <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3 border border-destructive/20">
+            <div className="text-xs text-muted-foreground mb-1">Total Overdue Amount</div>
+            <div className="text-2xl font-bold text-destructive">
+              ₹{totalOverdue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
