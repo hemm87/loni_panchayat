@@ -151,29 +151,29 @@ const Dashboard = () => {
       {/* Premium Sidebar */}
       <aside 
         className={cn(
-          "bg-card border-r border-border shadow-xl transition-all duration-300 overflow-hidden relative",
+          "bg-card/95 border-r border-border/60 shadow-2xl transition-all duration-300 overflow-hidden relative",
           sidebarOpen ? 'w-80' : 'w-0',
-          "backdrop-blur-sm"
+          "backdrop-blur-xl"
         )}
       >
         {/* Header */}
-        <div className="p-6 border-b border-border bg-gradient-to-br from-primary/5 to-accent/5">
+        <div className="p-6 border-b border-border/60 bg-gradient-to-br from-primary/8 via-primary/4 to-accent/8">
           <div className="flex items-center gap-4 animate-fade-in">
-            <div className="w-14 h-14 bg-gradient-to-br from-primary via-primary/90 to-accent rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg hover:scale-105 transition-transform">
-              <Building className="w-7 h-7" />
+            <div className="w-16 h-16 bg-gradient-to-br from-primary via-primary to-accent rounded-2xl flex items-center justify-center text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+              <Building className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-xl font-headline font-bold text-foreground">
+              <h1 className="text-xl font-headline font-bold text-foreground tracking-tight">
                 {settings?.panchayatName || 'Loni Panchayat'}
               </h1>
-              <p className="text-sm text-muted-foreground font-hindi">लॉनी ग्राम पंचायत</p>
+              <p className="text-sm text-muted-foreground font-hindi mt-0.5">लॉनी ग्राम पंचायत</p>
             </div>
           </div>
         </div>
 
         {/* Navigation */}
         <nav className="p-4 scrollbar-thin overflow-y-auto" style={{ maxHeight: 'calc(100vh - 240px)' }}>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {menuItems.map((item, index) => {
               const Icon = item.icon;
               const isActive = activeMenu === item.id;
@@ -182,21 +182,24 @@ const Dashboard = () => {
                   key={item.id}
                   onClick={() => handleMenuClick(item.id)}
                   className={cn(
-                    "w-full flex items-center gap-4 px-4 py-4 rounded-xl text-left transition-all duration-200 font-medium group",
+                    "w-full flex items-center gap-4 px-5 py-3.5 rounded-xl text-left transition-all duration-200 font-medium group relative overflow-hidden",
                     "animate-slide-up",
                     isActive
-                      ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/30 scale-[1.02]'
-                      : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:scale-[1.01]'
+                      ? 'bg-gradient-to-r from-primary to-primary text-primary-foreground shadow-lg shadow-primary/20'
+                      : 'text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
                   )}
-                  style={{ animationDelay: `${index * 50}ms` }}
+                  style={{ animationDelay: `${index * 40}ms` }}
                 >
+                  {isActive && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent animate-shimmer" />
+                  )}
                   <Icon className={cn(
-                    "w-5 h-5 transition-transform",
-                    isActive ? "scale-110" : "group-hover:scale-110"
+                    "w-5 h-5 transition-all duration-200 relative z-10",
+                    isActive ? "scale-110" : "group-hover:scale-110 group-hover:rotate-3"
                   )} />
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold">{item.label}</div>
-                    <div className="text-xs opacity-80 font-hindi">{item.labelHi}</div>
+                  <div className="flex-1 relative z-10">
+                    <div className="text-sm font-semibold leading-tight">{item.label}</div>
+                    <div className="text-xs opacity-80 font-hindi mt-0.5">{item.labelHi}</div>
                   </div>
                 </button>
               );
@@ -225,43 +228,43 @@ const Dashboard = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Premium Top Navbar */}
-        <header className="bg-card/80 backdrop-blur-md shadow-sm border-b border-border px-6 py-4 sticky top-0 z-10">
+        <header className="bg-card/95 backdrop-blur-xl border-b border-border/60 px-6 py-5 sticky top-0 z-10 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 animate-slide-down">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2.5 rounded-xl hover:bg-muted transition-all duration-200 hover:scale-105 active:scale-95"
+                className="p-3 rounded-xl hover:bg-secondary/80 transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-sm"
                 aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
               >
-                {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
               <div>
-                <h2 className="text-2xl font-headline font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                <h2 className="text-2xl font-headline font-bold bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
                   Admin Dashboard
                 </h2>
-                <p className="text-sm text-muted-foreground">
-                  Welcome back! <span className="text-muted-foreground/60">•</span>{' '}
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Welcome back! <span className="text-muted-foreground/50 mx-1.5">•</span>
                   <span className="font-hindi">स्वागत है</span>
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-4 animate-slide-down" style={{ animationDelay: '100ms' }}>
+            <div className="flex items-center gap-4 animate-slide-down" style={{ animationDelay: '80ms' }}>
               <div className="text-right hidden sm:block">
-                <p className="font-semibold text-foreground">{user?.displayName || 'Admin User'}</p>
-                <p className="text-sm text-muted-foreground">{user?.email || 'admin@lonipanchayat.in'}</p>
+                <p className="font-semibold text-foreground text-sm">{user?.displayName || 'Admin User'}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{user?.email || 'admin@lonipanchayat.in'}</p>
               </div>
               <div className="relative group">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-white font-bold text-xl uppercase shadow-lg group-hover:scale-110 transition-transform cursor-pointer">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-white font-bold text-lg uppercase shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300 cursor-pointer border-2 border-white/20">
                   {user?.displayName?.charAt(0) || 'A'}
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-card"></div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-success rounded-full border-2 border-card shadow-sm"></div>
               </div>
             </div>
           </div>
         </header>
 
         {/* Dashboard Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-gradient-to-br from-background via-background to-muted/20 scrollbar-thin">
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 lg:p-10 bg-gradient-to-br from-background via-background to-primary/5 scrollbar-thin">
           <div className="max-w-[1600px] mx-auto">
             {renderContent()}
           </div>

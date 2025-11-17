@@ -60,18 +60,18 @@ export function StatsCard({ title, titleHi, value, icon, color, trend }: StatsCa
     <div 
       className={cn(
         "group relative bg-card rounded-2xl transition-all duration-300",
-        "border-2 hover:border-opacity-60",
-        "hover-lift hover:shadow-xl",
+        "border border-border/60 hover:border-opacity-80",
+        "hover:shadow-xl hover:-translate-y-1",
         "animate-fade-in",
         "overflow-hidden",
-        selectedColor.shadow,
-        selectedColor.border
+        "shadow-sm",
+        selectedColor.shadow
       )}
     >
       {/* Gradient Background Accent */}
       <div 
         className={cn(
-          "absolute top-0 right-0 w-32 h-32 opacity-5 rounded-full blur-3xl transition-opacity duration-300 group-hover:opacity-10",
+          "absolute top-0 right-0 w-40 h-40 opacity-[0.03] rounded-full blur-3xl transition-opacity duration-300 group-hover:opacity-[0.08]",
           selectedColor.bg
         )}
       />
@@ -81,18 +81,18 @@ export function StatsCard({ title, titleHi, value, icon, color, trend }: StatsCa
           {/* Icon Container with Premium Gradient */}
           <div 
             className={cn(
-              'relative p-4 rounded-xl bg-gradient-to-br text-white shadow-lg',
-              'transform group-hover:scale-110 group-hover:rotate-3',
+              'relative p-4 rounded-2xl bg-gradient-to-br text-white shadow-lg',
+              'transform group-hover:scale-110 group-hover:rotate-6',
               'transition-all duration-300',
               selectedColor.gradient
             )}
           >
-            <span className="text-2xl" role="img" aria-label={title}>
+            <span className="text-3xl" role="img" aria-label={title}>
               {icon}
             </span>
             
             {/* Shine Effect */}
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </div>
           
           {/* Trend Indicator */}
@@ -118,14 +118,15 @@ export function StatsCard({ title, titleHi, value, icon, color, trend }: StatsCa
         </div>
 
         {/* Content */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground tracking-wide">
-            {title} <span className="text-muted-foreground/60">•</span> <span className="font-hindi">{titleHi}</span>
+        <div className="space-y-2.5">
+          <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
+            {title}
           </h3>
+          <p className="text-[10px] font-hindi text-muted-foreground/80 -mt-1">{titleHi}</p>
           <p 
             className={cn(
               "text-4xl font-headline font-bold tracking-tight",
-              "bg-gradient-to-br from-foreground to-foreground/80 bg-clip-text",
+              "bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent",
               "transition-all duration-300 group-hover:scale-105"
             )}
           >
@@ -138,7 +139,7 @@ export function StatsCard({ title, titleHi, value, icon, color, trend }: StatsCa
       <div 
         className={cn(
           "absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r transition-all duration-300",
-          "group-hover:h-1.5",
+          "group-hover:h-2",
           selectedColor.gradient
         )}
       />

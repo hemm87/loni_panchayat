@@ -35,16 +35,16 @@ export function BillsListPage({ properties, settings }: BillsListPageProps) {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="card-premium rounded-2xl shadow-xl p-6 border-2 border-border/50 backdrop-blur-sm">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-success to-success/80 flex items-center justify-center shadow-lg">
-            <Download className="w-8 h-8 text-white" />
+      <div className="card-elevated p-8">
+        <div className="flex items-center gap-5 mb-6">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-success via-success to-success-hover flex items-center justify-center shadow-xl shadow-success/20">
+            <Download className="w-10 h-10 text-white" />
           </div>
           <div>
-            <h2 className="text-3xl md:text-4xl font-headline font-bold text-gradient bg-gradient-to-r from-success to-emerald-600 bg-clip-text text-transparent">
+            <h2 className="text-3xl md:text-4xl font-headline font-bold bg-gradient-to-r from-success via-success to-success-hover bg-clip-text text-transparent tracking-tight">
               Download Bills
             </h2>
-            <p className="text-lg text-muted-foreground mt-1">बिल डाउनलोड करें</p>
+            <p className="text-base text-muted-foreground mt-1.5 font-hindi">बिल डाउनलोड करें</p>
           </div>
         </div>
 

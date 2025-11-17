@@ -8,59 +8,65 @@
 
 @layer base {
   :root {
-    /* ===== PREMIUM COLOR PALETTE ===== */
+    /* ===== WORLD-CLASS COLOR PALETTE ===== */
     
-    /* Background & Surfaces - Clean, airy feeling */
-    --background: 220 20% 98%;
+    /* Background & Surfaces - Ultra Clean */
+    --background: 210 20% 98%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
     
-    /* Primary - Professional Deep Blue */
-    --primary: 221 83% 53%;
+    /* Primary - Premium Blue (Trust & Professionalism) */
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 221 83% 45%;
+    --primary-hover: 217 91% 50%;
+    --primary-light: 217 91% 95%;
     
-    /* Secondary - Elegant Slate */
-    --secondary: 217 19% 96%;
+    /* Secondary - Sophisticated Gray */
+    --secondary: 214 32% 91%;
     --secondary-foreground: 215 25% 27%;
-    --secondary-hover: 217 19% 92%;
+    --secondary-hover: 214 32% 85%;
     
-    /* Muted - Subtle gray for less emphasis */
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    /* Muted - Refined Neutral */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
     
-    /* Accent - Vibrant Orange (Indian theme) */
-    --accent: 24 95% 53%;
+    /* Accent - Indian Saffron (Heritage) */
+    --accent: 27 96% 61%;
     --accent-foreground: 0 0% 100%;
-    --accent-hover: 24 95% 45%;
+    --accent-hover: 27 96% 50%;
+    --accent-light: 27 96% 95%;
     
-    /* Success - Fresh Green */
-    --success: 142 71% 45%;
+    /* Success - Fresh Green (Positive Actions) */
+    --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
-    --success-light: 142 71% 95%;
+    --success-light: 142 76% 95%;
+    --success-hover: 142 76% 30%;
     
-    /* Warning - Warm Amber */
+    /* Warning - Amber (Attention) */
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
     --warning-light: 38 92% 95%;
+    --warning-hover: 38 92% 42%;
     
     /* Error/Destructive - Clear Red */
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --destructive-light: 0 72% 97%;
+    --destructive-light: 0 84% 97%;
+    --destructive-hover: 0 84% 50%;
     
-    /* Info - Cool Cyan */
+    /* Info - Professional Cyan */
     --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
     --info-light: 199 89% 95%;
+    --info-hover: 199 89% 40%;
     
     /* Borders & Inputs */
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 221 83% 53%;
+    --border: 214 32% 88%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
     
     /* Chart Colors - Harmonious palette */
     --chart-1: 221 83% 53%;
@@ -196,31 +202,65 @@
 }
 
 @layer components {
-  /* ===== PREMIUM CARD STYLES ===== */
+  /* ===== WORLD-CLASS CARD STYLES ===== */
   .card-premium {
-    @apply bg-card rounded-xl border border-border shadow-sm;
-    @apply hover:shadow-md transition-all duration-300;
-    backdrop-filter: blur(10px);
+    @apply bg-card rounded-2xl border border-border/60;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+    @apply transition-all duration-300;
+    backdrop-filter: blur(12px);
+  }
+  
+  .card-premium:hover {
+    @apply border-border shadow-lg;
+    box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.08), 0 4px 6px -2px rgb(0 0 0 / 0.04);
+    transform: translateY(-2px);
   }
   
   .card-interactive {
     @apply card-premium cursor-pointer;
-    @apply hover:scale-[1.02] hover:border-primary/30;
+    @apply hover:border-primary/20;
+  }
+  
+  .card-elevated {
+    @apply bg-card rounded-2xl border-0;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+  }
+  
+  /* ===== PROFESSIONAL BUTTON STYLES ===== */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold;
+    @apply hover:bg-primary-hover active:scale-95;
+    @apply transition-all duration-200 shadow-sm hover:shadow-md;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground px-6 py-3 rounded-xl font-semibold;
+    @apply hover:bg-secondary-hover active:scale-95;
+    @apply transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:ring-offset-2;
+  }
+  
+  .btn-success {
+    @apply bg-success text-success-foreground px-6 py-3 rounded-xl font-semibold;
+    @apply hover:bg-success-hover active:scale-95;
+    @apply transition-all duration-200 shadow-sm hover:shadow-md;
+    @apply focus:outline-none focus:ring-2 focus:ring-success/50 focus:ring-offset-2;
   }
   
   /* ===== GLASS MORPHISM ===== */
   .glass {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px) saturate(180%);
-    -webkit-backdrop-filter: blur(10px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
   }
   
   .glass-dark {
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px) saturate(180%);
-    -webkit-backdrop-filter: blur(10px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
   }
   
   /* ===== GRADIENT BACKGROUNDS ===== */
@@ -264,7 +304,7 @@
   
   @keyframes slideUp {
     from {
-      transform: translateY(20px);
+      transform: translateY(24px);
       opacity: 0;
     }
     to {
@@ -275,7 +315,7 @@
   
   @keyframes slideDown {
     from {
-      transform: translateY(-20px);
+      transform: translateY(-24px);
       opacity: 0;
     }
     to {
@@ -286,13 +326,28 @@
   
   @keyframes scaleIn {
     from {
-      transform: scale(0.95);
+      transform: scale(0.92);
       opacity: 0;
     }
     to {
       transform: scale(1);
       opacity: 1;
     }
+  }
+  
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+  
+  .animate-shimmer {
+    animation: shimmer 2s infinite linear;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    background-size: 1000px 100%;
   }
   
   /* ===== STATUS BADGES ===== */
