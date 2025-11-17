@@ -77,13 +77,13 @@ export const BillCard: React.FC<BillCardProps> = ({ property, tax, index, onDown
           </div>
         </div>
 
-        {/* Download Button */}
+        {/* Download Button - Highly Visible */}
         <button
           onClick={onDownload}
-          className="bg-gradient-to-r from-success to-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all duration-200 flex items-center gap-2 justify-center min-w-[180px] shadow-md"
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-xl font-bold shadow-2xl hover:shadow-blue-500/50 hover:scale-105 transition-all duration-200 flex items-center gap-3 justify-center min-w-[200px] border-2 border-blue-400 ring-2 ring-blue-300/50"
         >
-          <Download className="w-5 h-5 flex-shrink-0" />
-          <span className="whitespace-nowrap">Download PDF</span>
+          <Download className="w-6 h-6 flex-shrink-0 animate-pulse" />
+          <span className="whitespace-nowrap text-lg">Download PDF</span>
         </button>
       </div>
     </div>
