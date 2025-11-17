@@ -228,24 +228,49 @@
   
   /* ===== PROFESSIONAL BUTTON STYLES ===== */
   .btn-primary {
-    @apply bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold;
-    @apply hover:bg-primary-hover active:scale-95;
+    @apply px-6 py-3 rounded-xl font-semibold;
+    @apply active:scale-95;
     @apply transition-all duration-200 shadow-sm hover:shadow-md;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border: none;
+  }
+  
+  .btn-primary:hover {
+    background-color: hsl(var(--primary-hover));
+  }
+  
+  .btn-primary:focus {
+    ring-color: hsl(var(--primary) / 0.5);
   }
   
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground px-6 py-3 rounded-xl font-semibold;
-    @apply hover:bg-secondary-hover active:scale-95;
+    @apply px-6 py-3 rounded-xl font-semibold;
+    @apply active:scale-95;
     @apply transition-all duration-200;
-    @apply focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:ring-offset-2;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+    border: none;
+  }
+  
+  .btn-secondary:hover {
+    background-color: hsl(var(--secondary-hover));
   }
   
   .btn-success {
-    @apply bg-success text-success-foreground px-6 py-3 rounded-xl font-semibold;
-    @apply hover:bg-success-hover active:scale-95;
+    @apply px-6 py-3 rounded-xl font-semibold;
+    @apply active:scale-95;
     @apply transition-all duration-200 shadow-sm hover:shadow-md;
-    @apply focus:outline-none focus:ring-2 focus:ring-success/50 focus:ring-offset-2;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+    background-color: hsl(var(--success));
+    color: hsl(var(--success-foreground));
+    border: none;
+  }
+  
+  .btn-success:hover {
+    background-color: hsl(var(--success-hover));
   }
   
   /* ===== GLASS MORPHISM ===== */
