@@ -14,10 +14,10 @@ interface jsPDFWithAutoTable extends jsPDF {
 /**
  * Format currency in Indian numbering system
  * @param amount - Amount to format
- * @returns Formatted currency string with ₹ symbol
+ * @returns Formatted currency string with Rs. prefix
  */
 const formatCurrency = (amount: number): string => {
-  return `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `Rs. ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 /**
@@ -106,22 +106,21 @@ export const generateBillPdf = async (
     // Tax Details Table
     yPos += 8;
     const tableData = taxes.map(tax => {
-      const taxDetails = tax.taxDetails || [];
       const baseAmount = tax.baseAmount || tax.assessedAmount;
       
       return [
-        tax.taxType,
-        tax.hindiName,
+        tax.taxType || 'Property Tax',
         assessmentYear.toString(),
-        formatCurrency(baseAmount),
-        tax.paymentStatus,
-        formatCurrency(tax.assessedAmount)
+        `Rs. ${baseAmount.toLocaleString('en-IN')}`,
+        tax.paymentStatus || 'Unpaid',
+        `Rs. ${tax.assessedAmount.toLocaleString('en-IN')}`,
+        `Rs. ${tax.amountPaid.toLocaleString('en-IN')}`
       ];
     });
 
     autoTable(doc, {
       startY: yPos,
-      head: [['Tax Type', 'कर प्रकार', 'Year', 'Base Amount', 'Status', 'Total Amount']],
+      head: [['Tax Type', 'Year', 'Base Amount', 'Status', 'Total Amount', 'Amount Paid']],
       body: tableData,
       theme: 'striped',
       headStyles: {
@@ -136,12 +135,12 @@ export const generateBillPdf = async (
         cellPadding: 3
       },
       columnStyles: {
-        0: { cellWidth: 35 },
-        1: { cellWidth: 30 },
-        2: { cellWidth: 20, halign: 'center' },
-        3: { cellWidth: 30, halign: 'right' },
-        4: { cellWidth: 25, halign: 'center' },
-        5: { cellWidth: 30, halign: 'right', fontStyle: 'bold' }
+        0: { cellWidth: 40 },
+        1: { cellWidth: 25, halign: 'center' },
+        2: { cellWidth: 30, halign: 'right' },
+        3: { cellWidth: 25, halign: 'center' },
+        4: { cellWidth: 30, halign: 'right', fontStyle: 'bold' },
+        5: { cellWidth: 30, halign: 'right' }
       },
       margin: { left: margin, right: margin }
     });
