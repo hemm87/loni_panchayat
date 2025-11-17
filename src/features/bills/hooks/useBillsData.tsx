@@ -88,23 +88,29 @@ export function useBillsData(
         if (!settings) {
           toast({
             title: 'Error',
-            description: 'Panchayat settings not loaded',
+            description: 'Panchayat settings not loaded. Please refresh the page.',
             variant: 'destructive',
           });
           return;
         }
 
+        // Show loading toast
+        toast({
+          title: 'Generating PDF...',
+          description: 'Please wait while we generate your bill',
+        });
+
         await generateBillPdf(property, [tax], settings);
 
         toast({
-          title: 'Success',
-          description: `Bill for ${property.ownerName} downloaded successfully`,
+          title: 'Success!',
+          description: `Tax receipt for ${property.ownerName} downloaded successfully`,
         });
       } catch (error) {
-        console.error('Error downloading bill:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to download bill. Please try again.';
         toast({
-          title: 'Error',
-          description: 'Failed to download bill. Please try again.',
+          title: 'Download Failed',
+          description: errorMessage,
           variant: 'destructive',
         });
       }

@@ -80,10 +80,10 @@ export const BillCard: React.FC<BillCardProps> = ({ property, tax, index, onDown
         {/* Download Button */}
         <button
           onClick={onDownload}
-          className="bg-gradient-to-r from-success to-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2 justify-center"
+          className="bg-gradient-to-r from-success to-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all duration-200 flex items-center gap-2 justify-center min-w-[180px] shadow-md"
         >
-          <Download className="w-5 h-5" />
-          <span>Download Bill</span>
+          <Download className="w-5 h-5 flex-shrink-0" />
+          <span className="whitespace-nowrap">Download PDF</span>
         </button>
       </div>
     </div>
