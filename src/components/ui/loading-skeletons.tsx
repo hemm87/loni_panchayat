@@ -2,17 +2,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export function DashboardSkeleton() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-pulse">
       {/* Stats Cards Skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <Skeleton className="h-12 w-12 rounded-lg" />
-              <Skeleton className="h-8 w-20 rounded-full" />
+          <div key={i} className="bg-card rounded-2xl shadow-sm border border-border/60 p-7">
+            <div className="flex items-center justify-between mb-5">
+              <Skeleton className="h-14 w-14 rounded-2xl" />
+              <Skeleton className="h-8 w-20 rounded-lg" />
             </div>
-            <Skeleton className="h-8 w-24 mb-2" />
-            <Skeleton className="h-5 w-32 mb-1" />
+            <Skeleton className="h-8 w-24 mb-3" />
+            <Skeleton className="h-5 w-32 mb-2" />
             <Skeleton className="h-4 w-28" />
           </div>
         ))}
@@ -21,19 +21,19 @@ export function DashboardSkeleton() {
       {/* Charts Skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {[1, 2].map((i) => (
-          <div key={i} className="bg-white rounded-xl shadow-md p-6">
-            <Skeleton className="h-6 w-48 mb-4" />
-            <Skeleton className="h-64 w-full" />
+          <div key={i} className="bg-card rounded-2xl shadow-sm border border-border/60 p-6">
+            <Skeleton className="h-6 w-48 mb-6" />
+            <Skeleton className="h-64 w-full rounded-xl" />
           </div>
         ))}
       </div>
 
       {/* Quick Actions Skeleton */}
-      <div className="bg-white rounded-xl shadow-md p-6">
-        <Skeleton className="h-6 w-40 mb-4" />
+      <div className="bg-card rounded-2xl shadow-sm border border-border/60 p-6">
+        <Skeleton className="h-6 w-40 mb-6" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-32 rounded-xl" />
+            <Skeleton key={i} className="h-32 rounded-2xl" />
           ))}
         </div>
       </div>
