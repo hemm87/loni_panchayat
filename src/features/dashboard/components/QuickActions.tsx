@@ -44,7 +44,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
           )}
         >
           <div className="relative z-10">
-            <div className="bg-gradient-to-br from-primary to-primary/80 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg">
+            <div className="rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 100%)' }}>
               <UserPlus className="w-8 h-8 text-white" />
             </div>
             <p className="font-bold text-base md:text-lg text-foreground mb-2">Register New User</p>
@@ -65,7 +65,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
           )}
         >
           <div className="relative z-10">
-            <div className="bg-gradient-to-br from-success to-success/80 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg">
+            <div className="rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg" style={{ background: 'linear-gradient(135deg, hsl(var(--success)) 0%, hsl(var(--success-hover)) 100%)' }}>
               <FileText className="w-8 h-8 text-white" />
             </div>
             <p className="font-bold text-base md:text-lg text-foreground mb-2">Generate Bill</p>

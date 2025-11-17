@@ -37,11 +37,11 @@ export function BillsListPage({ properties, settings }: BillsListPageProps) {
       {/* Header */}
       <div className="card-elevated p-8">
         <div className="flex items-center gap-5 mb-6">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-success via-success to-success-hover flex items-center justify-center shadow-xl shadow-success/20">
+          <div className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-xl" style={{ background: 'linear-gradient(135deg, hsl(var(--success)) 0%, hsl(var(--success-hover)) 100%)' }}>
             <Download className="w-10 h-10 text-white" />
           </div>
           <div>
-            <h2 className="text-3xl md:text-4xl font-headline font-bold bg-gradient-to-r from-success via-success to-success-hover bg-clip-text text-transparent tracking-tight">
+            <h2 className="text-3xl md:text-4xl font-headline font-bold tracking-tight" style={{ background: 'linear-gradient(90deg, hsl(var(--success)) 0%, hsl(var(--success-hover)) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               Download Bills
             </h2>
             <p className="text-base text-muted-foreground mt-1.5 font-hindi">बिल डाउनलोड करें</p>
