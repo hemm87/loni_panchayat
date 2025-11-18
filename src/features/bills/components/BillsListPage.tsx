@@ -41,7 +41,7 @@ export function BillsListPage({ properties, settings }: BillsListPageProps) {
             <Download className="w-10 h-10 text-white" />
           </div>
           <div>
-            <h2 className="text-3xl md:text-4xl font-headline font-bold tracking-tight" style={{ background: 'linear-gradient(90deg, hsl(var(--success)) 0%, hsl(var(--success-hover)) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+            <h2 className="text-3xl md:text-4xl font-headline font-bold tracking-tight" style={{ background: 'linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               Download Bills
             </h2>
             <p className="text-base text-muted-foreground mt-1.5 font-hindi">बिल डाउनलोड करें</p>

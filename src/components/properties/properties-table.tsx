@@ -45,35 +45,37 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
   );
 
   return (
-    <div className="w-full animate-fade-in">
-      <div className="flex items-center justify-between py-4 gap-4">
-        <div className="relative flex-1 max-w-md">
+    <div className="w-full animate-fade-in space-y-6">
+      <div className="flex items-center justify-between gap-4">
+        <div className="relative flex-1 max-w-md animate-slide-up">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-colors" />
           <Input
             placeholder="Search by owner name or property ID..."
             value={filter}
             onChange={event => setFilter(event.target.value)}
-            className="w-full pl-11 h-12 border-2 focus:ring-2 focus:ring-primary/20 transition-all shadow-sm hover:shadow-md"
+            className="w-full pl-11"
           />
         </div>
         <Button 
           variant="outline" 
-          className="h-12 px-6 border-2 hover:bg-primary/5 hover:border-primary/50 transition-all shadow-sm hover:shadow-md active:scale-[0.98]"
+          size="lg"
+          className="animate-slide-up hover:-translate-y-0.5"
+          style={{ animationDelay: '100ms' }}
         >
-          <FileDown className="mr-2 h-4 w-4" />
-          <span className="hidden sm:inline font-semibold">Export</span>
+          <FileDown className="mr-2 h-5 w-5" />
+          <span className="hidden sm:inline">Export</span>
         </Button>
       </div>
-      <div className="rounded-2xl border-2 border-border/50 overflow-hidden shadow-md hover:shadow-xl transition-all bg-card backdrop-blur-sm">
+      <div className="card-premium overflow-hidden animate-slide-up" style={{ animationDelay: '150ms' }}>
         <Table>
           <TableHeader>
-            <TableRow className="bg-gradient-to-r from-muted/50 to-muted/30 hover:from-muted/50 hover:to-muted/30 border-b-2 border-border/50">
-              <TableHead className="font-bold text-foreground uppercase tracking-wide h-14">Property ID</TableHead>
-              <TableHead className="font-bold text-foreground uppercase tracking-wide">Owner</TableHead>
-              <TableHead className="hidden md:table-cell font-bold text-foreground uppercase tracking-wide">Type</TableHead>
-              <TableHead className="hidden lg:table-cell font-bold text-foreground uppercase tracking-wide">Area (sq. ft)</TableHead>
-              <TableHead className="font-bold text-foreground uppercase tracking-wide">Tax Status</TableHead>
-              <TableHead className="font-bold text-foreground uppercase tracking-wide text-right">
+            <TableRow className="border-b-2 border-border/60 hover:bg-muted/30 transition-colors" style={{ background: 'linear-gradient(90deg, hsl(var(--muted) / 0.3) 0%, hsl(var(--muted) / 0.15) 100%)' }}>
+              <TableHead className="font-bold text-foreground uppercase tracking-wider text-xs h-14">Property ID</TableHead>
+              <TableHead className="font-bold text-foreground uppercase tracking-wider text-xs">Owner Details</TableHead>
+              <TableHead className="hidden md:table-cell font-bold text-foreground uppercase tracking-wider text-xs">Type</TableHead>
+              <TableHead className="hidden lg:table-cell font-bold text-foreground uppercase tracking-wider text-xs">Area</TableHead>
+              <TableHead className="font-bold text-foreground uppercase tracking-wider text-xs">Status</TableHead>
+              <TableHead className="font-bold text-foreground uppercase tracking-wider text-xs text-right">
                 Actions
               </TableHead>
             </TableRow>
@@ -83,35 +85,37 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
               filteredData.map((property, index) => (
                 <TableRow 
                   key={property.id} 
-                  className="hover:bg-primary/5 transition-all duration-300 border-b border-border/30 last:border-b-0 group animate-fade-in"
-                  style={{ animationDelay: `${index * 50}ms` }}
+                  className="hover:bg-primary/5 hover:shadow-sm transition-all duration-300 border-b border-border/30 last:border-b-0 group animate-slide-up"
+                  style={{ animationDelay: `${index * 40}ms` }}
                 >
-                  <TableCell className="font-bold text-primary group-hover:text-primary/80 transition-colors">
+                  <TableCell className="font-bold text-primary group-hover:scale-105 transition-transform inline-block py-4">
                     {property.id}
                   </TableCell>
-                  <TableCell>
-                    <div className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                  <TableCell className="py-4">
+                    <div className="font-semibold text-foreground group-hover:text-primary transition-colors mb-1">
                       {property.ownerName}
                     </div>
-                    <div className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-success/60"></span>
-                      {property.mobileNumber}
+                    <div className="text-sm text-muted-foreground flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
+                        {property.mobileNumber}
+                      </span>
                     </div>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
+                  <TableCell className="hidden md:table-cell py-4">
                     <Badge 
                       variant="outline" 
-                      className="font-medium border-primary/30 text-primary/80 bg-primary/5"
+                      className="font-semibold border-primary/30 text-primary bg-primary/5 shadow-sm"
                     >
                       {property.propertyType}
                     </Badge>
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell text-foreground font-semibold">
+                  <TableCell className="hidden lg:table-cell text-foreground font-bold py-4">
                     {property.area.toLocaleString()}
-                    <span className="text-xs text-muted-foreground ml-1">sq.ft</span>
+                    <span className="text-xs text-muted-foreground ml-1.5 font-normal">sq.ft</span>
                   </TableCell>
-                  <TableCell>{getStatusForProperty(property)}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="py-4">{getStatusForProperty(property)}</TableCell>
+                  <TableCell className="text-right py-4">
                     <PropertyActions property={property} />
                   </TableCell>
                 </TableRow>
