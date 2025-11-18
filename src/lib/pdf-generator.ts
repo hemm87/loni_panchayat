@@ -93,7 +93,7 @@ export const generateBillPdf = async (
     doc.setFont('helvetica', 'normal');
     doc.text(`Name: ${property.ownerName}`, margin + 3, yPos);
     doc.text(`Father's Name: ${property.fatherName}`, margin + 3, yPos + 6);
-    doc.text(`Property ID: ${property.propertyId || property.id}`, margin + 3, yPos + 12);
+    doc.text(`Property ID: ${property.id}`, margin + 3, yPos + 12);
     
     doc.text(`House No: ${property.houseNo}`, pageWidth - margin - 70, yPos);
     doc.text(`Mobile: ${property.mobileNumber}`, pageWidth - margin - 70, yPos + 6);
@@ -227,7 +227,7 @@ export const generateBillPdf = async (
     doc.text(`${settings.panchayatName} | ${settings.district}, ${settings.state}`, pageWidth / 2, footerY + 15, { align: 'center' });
 
     // Save PDF
-    const filename = `Tax-Receipt-${property.propertyId || property.id}-${billDate.replace(/\//g, '-')}.pdf`;
+    const filename = `Tax-Receipt-${property.id}-${billDate.replace(/\//g, '-')}.pdf`;
     doc.save(filename);
   
   } catch (error) {
