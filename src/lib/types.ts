@@ -8,7 +8,7 @@ export type TaxRecord = {
   amountPaid: number;
   paymentDate: string | null;
   receiptNumber: string | null;
-  assessmentYear: number;
+  assessmentYear: number; // Stored as number in Firestore (e.g., 2025)
   remarks?: string;
   baseAmount?: number; // The amount before manual taxes
   taxDetails?: Array<{ name: string; rate: number; amount: number; }>; // Details of manual taxes

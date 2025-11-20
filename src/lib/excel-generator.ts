@@ -2,6 +2,7 @@
 import { Property } from './types';
 
 export interface TaxRecord {
+  id?: string;
   propertyId: string;
   ownerName: string;
   fatherName: string;
@@ -11,7 +12,7 @@ export interface TaxRecord {
   area: number;
   location: string;
   taxType: string;
-  assessmentYear: string;
+  assessmentYear: string | number; // Can be number from Firestore or string for display
   baseAmount: number;
   status: string;
   totalAmount: number;
@@ -48,7 +49,7 @@ export const generateFinancialYearReport = (
     'क्षेत्रफल (Area sq.ft)': record.area,
     'स्थान (Location)': record.location,
     'कर प्रकार (Tax Type)': record.taxType,
-    'मूल्यांकन वर्ष (Assessment Year)': record.assessmentYear,
+    'मूल्यांकन वर्ष (Assessment Year)': typeof record.assessmentYear === 'number' ? record.assessmentYear.toString() : record.assessmentYear,
     'आधार राशि (Base Amount ₹)': record.baseAmount,
     'कुल राशि (Total Amount ₹)': record.totalAmount,
     'भुगतान राशि (Amount Paid ₹)': record.amountPaid,
@@ -206,7 +207,7 @@ export const generateAllTaxesBill = (
   const taxData = allTaxes.map((tax, index) => ({
     'क्र.सं. (S.No.)': index + 1,
     'कर प्रकार (Tax Type)': tax.taxType,
-    'मूल्यांकन वर्ष (Assessment Year)': tax.assessmentYear,
+    'मूल्यांकन वर्ष (Assessment Year)': typeof tax.assessmentYear === 'number' ? tax.assessmentYear.toString() : tax.assessmentYear,
     'आधार राशि (Base Amount ₹)': tax.baseAmount,
     'स्थिति (Status)': tax.status,
     'कुल राशि (Total Amount ₹)': tax.totalAmount,

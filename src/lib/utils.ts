@@ -102,6 +102,65 @@ export function getFinancialYear(date: Date = new Date()): string {
 }
 
 /**
+ * Convert assessment year number to financial year format
+ * @param assessmentYear - Assessment year as number (e.g., 2025)
+ * @returns Financial year string (e.g., "2025-26" or "2024-25")
+ */
+export function assessmentYearToFY(assessmentYear: number, isStartYear: boolean = true): string {
+  if (isStartYear) {
+    // If this is the start year of FY (April onwards)
+    return `${assessmentYear}-${(assessmentYear + 1).toString().slice(-2)}`;
+  } else {
+    // If this is the end year of FY (Jan-March)
+    return `${assessmentYear - 1}-${assessmentYear.toString().slice(-2)}`;
+  }
+}
+
+/**
+ * Parse financial year string to start and end years
+ * @param fy - Financial year string (e.g., "2025-26")
+ * @returns Object with startYear and endYear as numbers
+ */
+export function parseFY(fy: string): { startYear: number; endYear: number } {
+  const [startYear, endYearShort] = fy.split('-');
+  const start = parseInt(startYear);
+  const end = parseInt('20' + endYearShort);
+  return { startYear: start, endYear: end };
+}
+
+/**
+ * Check if a date falls within a financial year
+ * @param date - Date to check
+ * @param fy - Financial year string (e.g., "2025-26")
+ * @returns True if date is within the financial year
+ */
+export function isDateInFY(date: Date | string, fy: string): boolean {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const { startYear, endYear } = parseFY(fy);
+  const year = d.getFullYear();
+  const month = d.getMonth() + 1;
+  
+  // April startYear to December startYear
+  if (year === startYear && month >= 4) return true;
+  // January endYear to March endYear
+  if (year === endYear && month <= 3) return true;
+  
+  return false;
+}
+
+/**
+ * Check if assessment year matches a financial year
+ * @param assessmentYear - Assessment year as number
+ * @param fy - Financial year string (e.g., "2025-26")
+ * @returns True if assessment year can belong to this FY
+ */
+export function isAssessmentYearInFY(assessmentYear: number, fy: string): boolean {
+  const { startYear, endYear } = parseFY(fy);
+  // Assessment year can be either the start or end year of FY
+  return assessmentYear === startYear || assessmentYear === endYear;
+}
+
+/**
  * Calculate tax penalty based on days overdue
  * @param dueDate - Due date for payment
  * @param penaltyRate - Penalty rate percentage per month

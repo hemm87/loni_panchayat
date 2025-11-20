@@ -155,7 +155,9 @@ export function ReportGenerator() {
       const { initializeFirebase } = await import('@/firebase');
       const { firestore } = initializeFirebase();
 
+      console.log('Fetching properties from Firestore...');
       const propertiesSnapshot = await getDocs(collection(firestore, 'properties'));
+      console.log(`Found ${propertiesSnapshot.size} properties`);
 
       const records: TaxRecord[] = [];
 
@@ -187,10 +189,11 @@ export function ReportGenerator() {
         }
       });
 
+      console.log(`Generated ${records.length} tax records`);
       return records;
     } catch (error) {
       console.error('Firestore fetch error:', error);
-      throw new Error('Failed to fetch data from database');
+      throw new Error(`Failed to fetch data: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -199,13 +202,72 @@ export function ReportGenerator() {
 
     // Filter by report type
     if (reportType === 'financial-year' && financialYear) {
-      filtered = filtered.filter(r => r.assessmentYear === financialYear);
-    } else if (reportType === 'custom-date' && startDate && endDate) {
+      console.log(`Selected FY: ${financialYear}`);
+      console.log(`Total records: ${records.length}`);
+      console.log('ALL assessment years in data:', [...new Set(records.map(r => r.assessmentYear))]);
+      
+      // Parse financial year: "2025-26" → startYear=2025, endYear=2026
+      const [startYear, endYearShort] = financialYear.split('-');
+      const fyStartYear = parseInt(startYear);
+      const fyEndYear = parseInt('20' + endYearShort);
+      
+      console.log(`Filtering for FY ${financialYear}: April ${fyStartYear} to March ${fyEndYear}`);
+      
       filtered = filtered.filter(r => {
-        if (!r.paymentDate) return false;
-        const payDate = new Date(r.paymentDate);
-        return payDate >= startDate && payDate <= endDate;
+        // Assessment year is stored as number (e.g., 2025)
+        // Match if assessmentYear equals start or end year
+        const assessmentYear = typeof r.assessmentYear === 'number' 
+          ? r.assessmentYear 
+          : parseInt(r.assessmentYear.toString());
+        
+        const matchesAssessmentYear = assessmentYear === fyStartYear || assessmentYear === fyEndYear;
+        
+        // Also check payment date if available
+        if (r.paymentDate) {
+          try {
+            const payDate = new Date(r.paymentDate);
+            const payYear = payDate.getFullYear();
+            const payMonth = payDate.getMonth() + 1;
+            
+            // FY 2025-26: April 2025 (month >= 4, year = 2025) to March 2026 (month <= 3, year = 2026)
+            const inFyRange = (
+              (payYear === fyStartYear && payMonth >= 4) ||
+              (payYear === fyEndYear && payMonth <= 3)
+            );
+            
+            return matchesAssessmentYear || inFyRange;
+          } catch (e) {
+            console.warn('Invalid payment date:', r.paymentDate);
+            return matchesAssessmentYear;
+          }
+        }
+        
+        return matchesAssessmentYear;
       });
+      
+      console.log(`After FY filter: ${filtered.length} records from ${records.length} total`);
+    } else if (reportType === 'custom-date' && startDate && endDate) {
+      console.log(`Filtering by date range: ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`);
+      
+      filtered = filtered.filter(r => {
+        if (!r.paymentDate) {
+          return false;
+        }
+        
+        try {
+          const payDate = new Date(r.paymentDate);
+          if (isNaN(payDate.getTime())) {
+            console.warn(`Invalid payment date:`, r.paymentDate);
+            return false;
+          }
+          return payDate >= startDate && payDate <= endDate;
+        } catch (e) {
+          console.error(`Error parsing date:`, e);
+          return false;
+        }
+      });
+      
+      console.log(`After date filter: ${filtered.length} records from ${records.length} total`);
     }
 
     // Filter by property type
