@@ -6,7 +6,7 @@
 
 ✅ **Already Completed:**
 - Firebase CLI installed (v14.25.0)
-- Logged into Firebase (`hemmhjnacts87@gmail.com`)
+- Logged into Firebase with admin account
 - Firebase project configured (`studio-7943908738-8bbf8`)
 - Next.js application built and tested
 

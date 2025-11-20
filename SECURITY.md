@@ -4,6 +4,21 @@
 
 This document outlines the security measures implemented in the Loni Panchayat application and best practices for maintaining security.
 
+## ⚠️ CRITICAL: Never Commit Sensitive Data
+
+### Files That Must NEVER Be Committed:
+- `.env` - Local environment variables
+- `.env.local` - Local development secrets
+- `.env.production` - Production credentials (use .env.production.example instead)
+- `.firebase/` - Firebase deployment cache
+- Any files containing API keys, passwords, or tokens
+
+### What's Safe to Commit:
+- `.env.example` - Template files with placeholder values
+- `.env.production.example` - Production template (no real credentials)
+- `firebase.json` - Firebase configuration (no secrets)
+- `firestore.rules` - Security rules (public by design)
+
 ## Authentication & Authorization
 
 ### Firebase Authentication

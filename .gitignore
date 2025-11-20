@@ -12,11 +12,19 @@
 /.next/
 /out/
 
-# Production
+# Environment variables - NEVER commit these!
 .env
 .env.local
+.env.production
 .env.production.local
 .env.development.local
+.env.*.local
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
 
 # Vercel
 .vercel
