@@ -21,13 +21,16 @@ interface BillsSummaryProps {
  * Displays summary statistics for bills
  */
 export function BillsSummary({ bills }: BillsSummaryProps) {
-  // Calculate summary from bills
+  // Calculate summary from bills (now each bill contains multiple taxes)
   const summary = bills.reduce(
     (acc, bill) => {
       acc.totalBills++;
-      acc.totalAssessed += bill.tax.assessedAmount;
-      acc.totalCollected += bill.tax.amountPaid;
-      acc.totalPending += bill.tax.assessedAmount - bill.tax.amountPaid;
+      // Sum all taxes for each property
+      bill.taxes.forEach((tax) => {
+        acc.totalAssessed += tax.assessedAmount;
+        acc.totalCollected += tax.amountPaid;
+        acc.totalPending += tax.assessedAmount - tax.amountPaid;
+      });
       return acc;
     },
     {

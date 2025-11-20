@@ -2,6 +2,7 @@
  * Reports Page Component
  * 
  * Main container for reports section with:
+ * - Excel Report Generator (Financial Year & Custom Date Range)
  * - Date range filters
  * - Report type selection
  * - Report generation and export
@@ -16,6 +17,7 @@ import { ReportFilters } from './ReportFilters';
 import { ReportSummary } from './ReportSummary';
 import { TaxBreakdown } from './TaxBreakdown';
 import { PropertyBreakdown } from './PropertyBreakdown';
+import { ReportGenerator } from './report-generator';
 import { NoReportsState } from '@/components/ui/empty-state';
 import type { Property } from '@/lib/types';
 
@@ -84,9 +86,9 @@ export function ReportsPage({ properties }: ReportsPageProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header and Filters */}
+      {/* Header */}
       <div className="card-premium rounded-2xl shadow-xl p-6 md:p-10 border-2 border-border/50 backdrop-blur-sm animate-fade-in">
-        <div className="flex items-center gap-4 mb-8 pb-6 border-b-2 border-gradient-primary">
+        <div className="flex items-center gap-4 mb-6">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
             <BarChart3 className="w-8 h-8 text-white" />
           </div>
@@ -95,6 +97,24 @@ export function ReportsPage({ properties }: ReportsPageProps) {
               Reports & Analytics
             </h2>
             <p className="text-lg text-muted-foreground mt-1">रिपोर्ट्स और विश्लेषण</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Excel Report Generator - NEW FEATURE */}
+      <ReportGenerator />
+
+      {/* Header and Filters */}
+      <div className="card-premium rounded-2xl shadow-xl p-6 md:p-10 border-2 border-border/50 backdrop-blur-sm animate-fade-in">
+        <div className="flex items-center gap-4 mb-8 pb-6 border-b-2 border-gradient-primary">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-success to-emerald-600 flex items-center justify-center shadow-lg">
+            <FileText className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl md:text-3xl font-headline font-bold text-foreground">
+              Visual Analytics
+            </h2>
+            <p className="text-base text-muted-foreground mt-1">दृश्य विश्लेषण</p>
           </div>
         </div>
 

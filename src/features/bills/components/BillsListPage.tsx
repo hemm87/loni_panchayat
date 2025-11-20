@@ -73,12 +73,12 @@ export function BillsListPage({ properties, settings }: BillsListPageProps) {
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4">
-            {filteredBills.map(({ property, tax }, index) => (
+            {filteredBills.map(({ property, taxes }, index) => (
               <BillCard
-                key={`${property.id}-${tax.id}`}
+                key={property.id}
                 property={property}
-                tax={tax}
-                onDownload={() => handleDownloadBill(property, tax)}
+                taxes={taxes}
+                onDownload={() => handleDownloadBill(property, taxes)}
                 index={index}
               />
             ))}

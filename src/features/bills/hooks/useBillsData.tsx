@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface BillData {
   property: Property;
-  tax: TaxRecord;
+  taxes: TaxRecord[]; // Changed to array of all taxes
 }
 
 export type PaymentStatusFilter = 'All' | 'Paid' | 'Unpaid' | 'Partial';
@@ -28,13 +28,12 @@ export function useBillsData(
   const { toast } = useToast();
 
   // Generate all bills from properties with tax records
+  // Each bill contains ALL taxes for a property (consolidated)
   const allBills = useMemo(() => {
     const bills: BillData[] = [];
     properties.forEach((property) => {
       if (property.taxes && property.taxes.length > 0) {
-        property.taxes.forEach((tax) => {
-          bills.push({ property, tax });
-        });
+        bills.push({ property, taxes: property.taxes });
       }
     });
     return bills;
@@ -55,7 +54,11 @@ export function useBillsData(
 
       // Status filter
       if (filterStatus !== 'All') {
-        if (bill.tax.paymentStatus !== filterStatus) return false;
+        // Check if ANY tax matches the filter status
+        const hasMatchingStatus = bill.taxes.some(
+          (tax) => tax.paymentStatus === filterStatus
+        );
+        if (!hasMatchingStatus) return false;
       }
 
       return true;
@@ -67,9 +70,12 @@ export function useBillsData(
     return filteredBills.reduce(
       (acc, bill) => {
         acc.totalBills++;
-        acc.totalAssessed += bill.tax.assessedAmount;
-        acc.totalCollected += bill.tax.amountPaid;
-        acc.totalPending += bill.tax.assessedAmount - bill.tax.amountPaid;
+        // Sum all taxes for each property
+        bill.taxes.forEach((tax) => {
+          acc.totalAssessed += tax.assessedAmount;
+          acc.totalCollected += tax.amountPaid;
+          acc.totalPending += tax.assessedAmount - tax.amountPaid;
+        });
         return acc;
       },
       {
@@ -81,9 +87,9 @@ export function useBillsData(
     );
   }, [filteredBills]);
 
-  // Handle bill download
+  // Handle bill download - now downloads ALL taxes for a property
   const handleDownloadBill = useCallback(
-    async (property: Property, tax: TaxRecord) => {
+    async (property: Property, taxes: TaxRecord[]) => {
       try {
         if (!settings) {
           toast({
@@ -97,14 +103,15 @@ export function useBillsData(
         // Show loading toast
         toast({
           title: 'Generating PDF...',
-          description: 'Please wait while we generate your bill',
+          description: 'Please wait while we generate your consolidated bill',
         });
 
-        await generateBillPdf(property, [tax], settings);
+        // Generate PDF with ALL taxes
+        await generateBillPdf(property, taxes, settings);
 
         toast({
           title: 'Success!',
-          description: `Tax receipt for ${property.ownerName} downloaded successfully`,
+          description: `Consolidated tax receipt for ${property.ownerName} downloaded successfully`,
         });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Failed to download bill. Please try again.';
