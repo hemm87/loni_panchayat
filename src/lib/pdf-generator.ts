@@ -14,10 +14,10 @@ interface jsPDFWithAutoTable extends jsPDF {
 /**
  * Format currency in Indian numbering system
  * @param amount - Amount to format
- * @returns Formatted currency string with Rs. prefix
+ * @returns Formatted currency string with ₹ prefix
  */
 const formatCurrency = (amount: number): string => {
-  return `Rs. ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 /**
@@ -111,10 +111,10 @@ export const generateBillPdf = async (
       return [
         tax.taxType || 'Property Tax',
         assessmentYear.toString(),
-        `Rs. ${baseAmount.toLocaleString('en-IN')}`,
+        `₹${baseAmount.toLocaleString('en-IN')}`,
         tax.paymentStatus || 'Unpaid',
-        `Rs. ${tax.assessedAmount.toLocaleString('en-IN')}`,
-        `Rs. ${tax.amountPaid.toLocaleString('en-IN')}`
+        `₹${tax.assessedAmount.toLocaleString('en-IN')}`,
+        `₹${tax.amountPaid.toLocaleString('en-IN')}`
       ];
     });
 
