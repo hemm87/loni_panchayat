@@ -49,7 +49,7 @@ export const generateFinancialYearReport = (
     'क्षेत्रफल (Area sq.ft)': record.area,
     'स्थान (Location)': record.location,
     'कर प्रकार (Tax Type)': record.taxType,
-    'मूल्यांकन वर्ष (Assessment Year)': typeof record.assessmentYear === 'number' ? record.assessmentYear.toString() : record.assessmentYear,
+    'वित्तीय वर्ष (Financial Year)': typeof record.assessmentYear === 'number' ? record.assessmentYear.toString() : record.assessmentYear,
     'आधार राशि (Base Amount ₹)': record.baseAmount,
     'कुल राशि (Total Amount ₹)': record.totalAmount,
     'भुगतान राशि (Amount Paid ₹)': record.amountPaid,
@@ -73,7 +73,7 @@ export const generateFinancialYearReport = (
     { wch: 12 }, // Area
     { wch: 12 }, // Location
     { wch: 15 }, // Tax Type
-    { wch: 18 }, // Assessment Year
+    { wch: 18 }, // Financial Year
     { wch: 15 }, // Base Amount
     { wch: 15 }, // Total Amount
     { wch: 15 }, // Amount Paid
@@ -116,7 +116,7 @@ export const generateCustomDateReport = (
     'क्षेत्रफल (Area sq.ft)': record.area,
     'स्थान (Location)': record.location,
     'कर प्रकार (Tax Type)': record.taxType,
-    'मूल्यांकन वर्ष (Assessment Year)': record.assessmentYear,
+    'वित्तीय वर्ष (Financial Year)': record.assessmentYear,
     'आधार राशि (Base Amount ₹)': record.baseAmount,
     'कुल राशि (Total Amount ₹)': record.totalAmount,
     'भुग��ान राशि (Amount Paid ₹)': record.amountPaid,
@@ -207,7 +207,7 @@ export const generateAllTaxesBill = (
   const taxData = allTaxes.map((tax, index) => ({
     'क्र.सं. (S.No.)': index + 1,
     'कर प्रकार (Tax Type)': tax.taxType,
-    'मूल्यांकन वर्ष (Assessment Year)': typeof tax.assessmentYear === 'number' ? tax.assessmentYear.toString() : tax.assessmentYear,
+    'वित्तीय वर्ष (Financial Year)': typeof tax.assessmentYear === 'number' ? tax.assessmentYear.toString() : tax.assessmentYear,
     'आधार राशि (Base Amount ₹)': tax.baseAmount,
     'स्थिति (Status)': tax.status,
     'कुल राशि (Total Amount ₹)': tax.totalAmount,

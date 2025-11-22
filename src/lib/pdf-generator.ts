@@ -2,6 +2,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { Property, TaxRecord, PanchayatSettings } from './types';
+import { assessmentYearToFY } from './utils';
 
 /**
  * Extend jsPDF with the autoTable method from jspdf-autotable plugin
@@ -63,6 +64,7 @@ export const generateBillPdf = async (
     const receiptNo = taxes[0]?.receiptNumber || `RCT${Date.now().toString().slice(-8)}`;
     const billDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const assessmentYear = taxes[0]?.assessmentYear || new Date().getFullYear();
+    const financialYear = assessmentYearToFY(assessmentYear); // Convert to FY format (e.g., "2024-25")
     
     doc.text('Receipt No:', margin, yPos);
     doc.setFont('helvetica', 'normal');
@@ -75,9 +77,9 @@ export const generateBillPdf = async (
     
     yPos += 6;
     doc.setFont('helvetica', 'bold');
-    doc.text('Assessment Year:', margin, yPos);
+    doc.text('Financial Year:', margin, yPos);
     doc.setFont('helvetica', 'normal');
-    doc.text(assessmentYear.toString(), margin + 40, yPos);
+    doc.text(financialYear, margin + 40, yPos); // Display as "FY 2024-25" format
 
     // Property Owner Details Box
     yPos += 10;
