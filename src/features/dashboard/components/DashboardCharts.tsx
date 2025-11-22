@@ -79,8 +79,14 @@ export function DashboardCharts({ properties }: DashboardChartsProps) {
             <BarChart data={monthlyRevenueData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
-              <YAxis tickFormatter={(value) => `₹${Number(value).toLocaleString('en-IN')}`} />
-              <Tooltip formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Revenue']} />
+              <YAxis 
+                tickFormatter={(value) => `₹${Number(value).toLocaleString('en-IN')}`}
+                tick={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}
+              />
+              <Tooltip 
+                formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Revenue']}
+                contentStyle={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}
+              />
               <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -121,7 +127,14 @@ export function DashboardCharts({ properties }: DashboardChartsProps) {
                   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
                   return (
-                    <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+                    <text 
+                      x={x} 
+                      y={y} 
+                      fill="white" 
+                      textAnchor={x > cx ? 'start' : 'end'} 
+                      dominantBaseline="central"
+                      fontFamily="Noto Sans, Segoe UI, Arial Unicode MS, sans-serif"
+                    >
                       {`${(percent * 100).toFixed(0)}%`}
                     </text>
                   );
@@ -131,7 +144,7 @@ export function DashboardCharts({ properties }: DashboardChartsProps) {
                   <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip contentStyle={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>

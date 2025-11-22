@@ -1,6 +1,5 @@
 import React from 'react';
 import type { Property } from '@/lib/types';
-import { UserRoleDisplay } from '@/components/ui/user-role-display';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { DashboardStats } from './DashboardStats';
 import { RevenueChart } from './RevenueChart';
@@ -28,11 +27,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   return (
     <>
-      {/* User Role & Permissions Display */}
-      <div className="mb-6 md:mb-8 animate-fade-in">
-        <UserRoleDisplay />
-      </div>
-
       {/* Stats Cards */}
       <DashboardStats stats={stats} />
 

@@ -168,8 +168,26 @@
   input,
   button,
   span,
-  div {
+  div,
+  p,
+  label,
+  td,
+  th,
+  a {
     font-variant-numeric: tabular-nums;
+  }
+  
+  /* Critical: Force Noto Sans for all text to ensure ₹ renders correctly */
+  body *,
+  body *::before,
+  body *::after {
+    font-family: 'PT Sans', 'Noto Sans', 'Segoe UI', 'Arial Unicode MS', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  }
+  
+  /* Force proper font for SVG text elements (charts, etc.) */
+  svg text,
+  svg tspan {
+    font-family: 'Noto Sans', 'Segoe UI', 'Arial Unicode MS', sans-serif !important;
   }
   
   /* Improved headings with premium typography */

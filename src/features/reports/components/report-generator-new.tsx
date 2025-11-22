@@ -37,9 +37,16 @@ export function ReportGenerator() {
   const { toast } = useToast();
 
   // Generate financial years (current and previous 5 years)
-  const currentYear = new Date().getFullYear();
+  // Indian FY runs from April to March, so FY 2024-25 = April 2024 to March 2025
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth() + 1; // 1-12
+  const currentYear = currentDate.getFullYear();
+  
+  // If current month is Jan-Mar, we're still in previous FY
+  const currentFYStartYear = currentMonth >= 4 ? currentYear : currentYear - 1;
+  
   const financialYears = Array.from({ length: 6 }, (_, i) => {
-    const year = currentYear - i;
+    const year = currentFYStartYear - i;
     return `${year}-${(year + 1).toString().slice(-2)}`;
   });
 
@@ -86,9 +93,13 @@ export function ReportGenerator() {
       const filteredRecords = filterRecords(records);
 
       if (filteredRecords.length === 0) {
+        console.log('No matching records. Total records:', records.length);
+        console.log('Filters - Property Type:', propertyType, 'Payment Status:', paymentStatus);
+        console.log('Report Type:', reportType, 'Financial Year:', financialYear);
+        
         toast({
           title: 'कोई मैच नहीं',
-          description: 'आपके फ़िल्टर के अनुसार कोई रिकॉर्ड नहीं मिला',
+          description: `चयनित फ़िल्टर के लिए कोई रिकॉर्ड नहीं मिला। कुल ${records.length} रिकॉर्ड उपलब्ध हैं।`,
           variant: 'destructive',
         });
         setLoading(false);
@@ -154,6 +165,10 @@ export function ReportGenerator() {
       const { collection, getDocs } = await import('firebase/firestore');
       const { initializeFirebase } = await import('@/firebase');
       const { firestore } = initializeFirebase();
+
+      if (!firestore) {
+        throw new Error('Firestore not initialized. Please check Firebase configuration.');
+      }
 
       console.log('Fetching properties from Firestore...');
       const propertiesSnapshot = await getDocs(collection(firestore, 'properties'));

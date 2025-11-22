@@ -17,6 +17,7 @@ import { setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { PanchayatInfoForm } from './PanchayatInfoForm';
 import { TaxRatesForm } from './TaxRatesForm';
+import { UserRoleDisplay } from '@/components/ui/user-role-display';
 import type { PanchayatSettings } from '@/lib/types';
 
 interface SettingsPageProps {
@@ -110,22 +111,12 @@ export function SettingsPage({ settings, docRef }: SettingsPageProps) {
             onChange={handleInputChange}
           />
 
-          {/* User Management */}
+          {/* User Management & Permissions */}
           <div className="border-b pb-6">
             <h3 className="text-xl font-bold text-gray-800 mb-4">
-              User Management • उपयोगकर्ता प्रबंधन
+              User Management & Permissions • उपयोगकर्ता प्रबंधन और अनुमतियाँ
             </h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-bold text-gray-800">Admin User</p>
-                  <p className="text-sm text-gray-600">admin@lonipanchayat.in</p>
-                </div>
-                <button className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-bold hover:bg-primary/90 transition-all">
-                  Change Password
-                </button>
-              </div>
-            </div>
+            <UserRoleDisplay />
           </div>
 
           {/* Action Buttons */}

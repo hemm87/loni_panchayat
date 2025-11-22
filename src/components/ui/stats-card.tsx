@@ -1,14 +1,14 @@
 
 'use client';
 
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface StatsCardProps {
   title: string;
   titleHi: string;
   value: string;
-  icon: string;
+  icon: LucideIcon;
   color: string;
   trend?: {
     value: number;
@@ -16,7 +16,7 @@ interface StatsCardProps {
   };
 }
 
-export function StatsCard({ title, titleHi, value, icon, color, trend }: StatsCardProps) {
+export function StatsCard({ title, titleHi, value, icon: Icon, color, trend }: StatsCardProps) {
   const colorClasses: { [key: string]: { gradient: string, text: string, shadow: string, bg: string, border: string } } = {
     'bg-blue-500': { 
       gradient: 'from-primary via-primary/90 to-primary/80', 
@@ -81,15 +81,13 @@ export function StatsCard({ title, titleHi, value, icon, color, trend }: StatsCa
           {/* Icon Container with Premium Gradient */}
           <div 
             className={cn(
-              'relative p-4 rounded-2xl bg-gradient-to-br text-white shadow-lg',
+              'relative p-4 rounded-2xl bg-white shadow-lg',
               'transform group-hover:scale-110 group-hover:rotate-6',
               'transition-all duration-300',
-              selectedColor.gradient
+              'border border-border/20'
             )}
           >
-            <span className="text-3xl" role="img" aria-label={title}>
-              {icon}
-            </span>
+            <Icon className={cn("w-8 h-8", selectedColor.text)} strokeWidth={3} />
             
             {/* Shine Effect */}
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

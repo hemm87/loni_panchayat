@@ -1,4 +1,5 @@
 import React from 'react';
+import { Building2, Check, Clock, IndianRupee } from 'lucide-react';
 import { StatsCard } from '@/components/ui/stats-card';
 import type { DashboardStats as DashboardStatsType } from '../hooks/useDashboardData';
 
@@ -17,28 +18,28 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ stats }) => {
       titleHi: 'कुल संपत्ति', 
       value: stats.totalUsers.toLocaleString('en-IN'), 
       color: 'bg-blue-500', 
-      icon: '👥' 
+      icon: Building2
     },
     { 
       title: 'Fully Paid', 
       titleHi: 'पूर्ण भुगतान', 
       value: stats.paidTaxes.toLocaleString('en-IN'), 
       color: 'bg-green-500', 
-      icon: '✅' 
+      icon: Check
     },
     { 
       title: 'Dues Pending', 
       titleHi: 'बकाया लंबित', 
       value: stats.pendingTaxes.toLocaleString('en-IN'), 
       color: 'bg-orange-500', 
-      icon: '⏳' 
+      icon: Clock
     },
     { 
       title: 'Total Revenue', 
       titleHi: 'कुल राजस्व', 
       value: `₹${stats.totalRevenue.toLocaleString('en-IN')}`, 
       color: 'bg-purple-500', 
-      icon: '💰' 
+      icon: IndianRupee
     },
   ];
 

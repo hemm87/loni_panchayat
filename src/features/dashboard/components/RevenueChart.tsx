@@ -28,9 +28,13 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
-            <YAxis tickFormatter={(value) => `₹${Number(value).toLocaleString('en-IN')}`} />
+            <YAxis 
+              tickFormatter={(value) => `₹${Number(value).toLocaleString('en-IN')}`}
+              tick={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}
+            />
             <Tooltip 
-              formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Revenue']} 
+              formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Revenue']}
+              contentStyle={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}
             />
             <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
           </BarChart>

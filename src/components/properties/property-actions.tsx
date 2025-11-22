@@ -199,10 +199,10 @@ export function PropertyActions({ property }: PropertyActionsProps) {
 
       {/* View Taxes Dialog */}
       <Dialog open={isViewTaxesDialogOpen} onOpenChange={setIsViewTaxesDialogOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-3xl" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
           <DialogHeader>
-            <DialogTitle>Tax Details for {property.ownerName}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>Tax Details for {property.ownerName}</DialogTitle>
+            <DialogDescription style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
                 A complete record of all taxes associated with property ID: {property.id}
             </DialogDescription>
           </DialogHeader>
@@ -237,9 +237,13 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                                         <Badge variant="destructive">Unpaid</Badge>
                                     )}
                                 </td>
-                                <td className="p-3 text-right font-mono">₹{tax.assessedAmount.toLocaleString('en-IN')}</td>
-                                <td className="p-3 text-right font-mono">₹{tax.amountPaid.toLocaleString('en-IN')}</td>
-                                <td className={`p-3 text-right font-mono font-semibold ${due > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                                <td className="p-3 text-right font-mono" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
+                                  <span className="font-semibold">₹{tax.assessedAmount.toLocaleString('en-IN')}</span>
+                                </td>
+                                <td className="p-3 text-right font-mono" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
+                                  <span className="font-semibold">₹{tax.amountPaid.toLocaleString('en-IN')}</span>
+                                </td>
+                                <td className={`p-3 text-right font-mono font-semibold ${due > 0 ? 'text-destructive' : 'text-green-600'}`} style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
                                     ₹{due.toLocaleString('en-IN')}
                                 </td>
                             </tr>
@@ -247,11 +251,17 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                         })}
                         </tbody>
                         <tfoot>
-                            <tr className="bg-muted/50 font-bold">
-                                <td colSpan={2} className="p-3 text-right">Total</td>
-                                <td className="p-3 text-right font-mono">₹{property.taxes.reduce((acc, t) => acc + t.assessedAmount, 0).toLocaleString('en-IN')}</td>
-                                <td className="p-3 text-right font-mono">₹{property.taxes.reduce((acc, t) => acc + t.amountPaid, 0).toLocaleString('en-IN')}</td>
-                                <td className="p-3 text-right font-mono">₹{property.taxes.reduce((acc, t) => acc + (t.assessedAmount - t.amountPaid), 0).toLocaleString('en-IN')}</td>
+                            <tr className="bg-primary/10 font-bold border-t-2 border-primary/30">
+                                <td colSpan={2} className="p-3 text-right text-base">Total</td>
+                                <td className="p-3 text-right font-mono text-base" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
+                                  ₹{property.taxes.reduce((acc, t) => acc + t.assessedAmount, 0).toLocaleString('en-IN')}
+                                </td>
+                                <td className="p-3 text-right font-mono text-base" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
+                                  ₹{property.taxes.reduce((acc, t) => acc + t.amountPaid, 0).toLocaleString('en-IN')}
+                                </td>
+                                <td className="p-3 text-right font-mono text-base text-destructive" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
+                                  ₹{property.taxes.reduce((acc, t) => acc + (t.assessedAmount - t.amountPaid), 0).toLocaleString('en-IN')}
+                                </td>
                             </tr>
                         </tfoot>
                     </table>
@@ -337,10 +347,10 @@ export function PropertyActions({ property }: PropertyActionsProps) {
 
       {/* Payment Dialog */}
       <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-2xl" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
             <DialogHeader>
-                <DialogTitle>Record Payment for {property.ownerName}</DialogTitle>
-                <DialogDescription>
+                <DialogTitle style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>Record Payment for {property.ownerName}</DialogTitle>
+                <DialogDescription style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
                     Enter the amount being paid for each tax. The status will be updated automatically.
                 </DialogDescription>
             </DialogHeader>
@@ -351,7 +361,9 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                         <div key={tax.id} className="grid grid-cols-5 items-center gap-4 p-4 rounded-lg bg-muted/50">
                             <div className="col-span-2">
                                 <p className="font-semibold">{tax.taxType} <span className="text-xs">({tax.assessmentYear})</span></p>
-                                <p className="text-sm text-muted-foreground">Due: ₹{due.toLocaleString()}</p>
+                                <p className="text-sm text-muted-foreground" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
+                                  Due: <span className="font-bold text-destructive">₹{due.toLocaleString('en-IN')}</span>
+                                </p>
                             </div>
                             <div>
                                 {tax.paymentStatus === 'Partial' ? (
@@ -363,12 +375,13 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                             <div className="col-span-2">
                                 <Label htmlFor={`payment-${tax.id}`} className="sr-only">Payment Amount</Label>
                                 <div className="relative">
-                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">₹</span>
+                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground font-bold text-base" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>₹</span>
                                     <Input 
                                         id={`payment-${tax.id}`}
                                         type="number"
                                         placeholder="0.00"
-                                        className="pl-7"
+                                        className="pl-8 text-base font-semibold"
+                                        style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}
                                         value={paymentAmounts[tax.id] || ''}
                                         onChange={e => handlePaymentAmountChange(tax.id, e.target.value)}
                                         max={due}
@@ -386,8 +399,14 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                 <DialogClose asChild>
                     <Button type="button" variant="secondary">Cancel</Button>
                 </DialogClose>
-                <Button type="button" onClick={handleRecordPayment} disabled={Object.values(paymentAmounts).every(v => v === 0)}>
-                    <span className="mr-2">₹</span>
+                <Button 
+                  type="button" 
+                  onClick={handleRecordPayment} 
+                  disabled={Object.values(paymentAmounts).every(v => v === 0)}
+                  className="font-semibold"
+                  style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}
+                >
+                    <span className="mr-2 text-base font-bold">₹</span>
                     Save Payments
                 </Button>
             </DialogFooter>

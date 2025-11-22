@@ -47,7 +47,7 @@ export default function PropertiesPage() {
   }
   
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 animate-fade-in">
        <PageHeader
           title="Property Records"
           titleHi="संपत्ति रिकॉर्ड"
@@ -63,6 +63,32 @@ export default function PropertiesPage() {
           showBackButton
           onBack={() => router.push('/dashboard')}
         />
+        
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 animate-slide-up">
+          <div className="card-premium p-5 md:p-6 hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary">
+            <p className="text-sm font-medium text-muted-foreground mb-2">Total Properties</p>
+            <p className="text-3xl md:text-4xl font-bold text-primary">{properties?.length || 0}</p>
+          </div>
+          <div className="card-premium p-5 md:p-6 hover:shadow-lg transition-all duration-300 border-l-4 border-l-success" style={{ animationDelay: '50ms' }}>
+            <p className="text-sm font-medium text-muted-foreground mb-2">All Paid</p>
+            <p className="text-3xl md:text-4xl font-bold text-success">
+              {properties?.filter(p => p.taxes?.every(t => t.paymentStatus === 'Paid')).length || 0}
+            </p>
+          </div>
+          <div className="card-premium p-5 md:p-6 hover:shadow-lg transition-all duration-300 border-l-4 border-l-warning" style={{ animationDelay: '100ms' }}>
+            <p className="text-sm font-medium text-muted-foreground mb-2">Partial</p>
+            <p className="text-3xl md:text-4xl font-bold text-warning">
+              {properties?.filter(p => p.taxes?.some(t => t.paymentStatus === 'Partial')).length || 0}
+            </p>
+          </div>
+          <div className="card-premium p-5 md:p-6 hover:shadow-lg transition-all duration-300 border-l-4 border-l-destructive" style={{ animationDelay: '150ms' }}>
+            <p className="text-sm font-medium text-muted-foreground mb-2">Unpaid</p>
+            <p className="text-3xl md:text-4xl font-bold text-destructive">
+              {properties?.filter(p => p.taxes?.some(t => t.paymentStatus === 'Unpaid')).length || 0}
+            </p>
+          </div>
+        </div>
         {properties && properties.length > 0 ? (
             <PropertiesTable data={properties || []} />
         ) : (

@@ -53,6 +53,7 @@ export const PropertyTypeChart: React.FC<PropertyTypeChartProps> = ({ data }) =>
                     fill="white" 
                     textAnchor={x > cx ? 'start' : 'end'} 
                     dominantBaseline="central"
+                    fontFamily="Noto Sans, Segoe UI, Arial Unicode MS, sans-serif"
                   >
                     {`${(percent * 100).toFixed(0)}%`}
                   </text>
@@ -63,7 +64,7 @@ export const PropertyTypeChart: React.FC<PropertyTypeChartProps> = ({ data }) =>
                 <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip />
+            <Tooltip contentStyle={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }} />
             <Legend />
           </PieChart>
         </ResponsiveContainer>
