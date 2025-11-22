@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, FileText, Printer, PlusCircle, Trash2, AlertCircle } from 'lucide-react'; // Added PlusCircle and Trash2
 import type { Property, PanchayatSettings } from '@/lib/types';
-import { getTaxHindiName } from '@/lib/utils';
+import { getTaxHindiName, generateReceiptNumber, getFinancialYear, parseFY } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -285,6 +285,10 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
             const receiptNumber = generateReceiptNumber();
 
             // Create the complete tax record with all details
+            // Get current FY and use its start year as assessment year
+            const currentFY = getFinancialYear(new Date(billData.date));
+            const { startYear } = parseFY(currentFY);
+            
             const newTaxRecord = {
                 id: taxRecordId,
                 taxType: billData.taxType,
@@ -294,7 +298,7 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                 taxDetails: finalCalculations.detailedTaxes, // Already filtered in calculations
                 paymentStatus: 'Unpaid' as const,
                 amountPaid: 0,
-                assessmentYear: new Date(billData.date).getFullYear(),
+                assessmentYear: startYear, // FY start year (e.g., 2024 for FY 2024-25)
                 paymentDate: null,
                 receiptNumber: receiptNumber,
                 remarks: billData.remarks.trim(),

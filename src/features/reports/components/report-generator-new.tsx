@@ -22,6 +22,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { generateFinancialYearReport, generateCustomDateReport, type TaxRecord } from '@/lib/excel-generator';
 import { useToast } from '@/hooks/use-toast';
+import { getFinancialYear, parseFY, isDateInFY, isAssessmentYearInFY } from '@/lib/utils';
 import type { Property } from '@/lib/types';
 
 export function ReportGenerator() {
@@ -38,15 +39,11 @@ export function ReportGenerator() {
 
   // Generate financial years (current and previous 5 years)
   // Indian FY runs from April to March, so FY 2024-25 = April 2024 to March 2025
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth() + 1; // 1-12
-  const currentYear = currentDate.getFullYear();
-  
-  // If current month is Jan-Mar, we're still in previous FY
-  const currentFYStartYear = currentMonth >= 4 ? currentYear : currentYear - 1;
+  const currentFY = getFinancialYear();
+  const currentFYStart = parseFY(currentFY).startYear;
   
   const financialYears = Array.from({ length: 6 }, (_, i) => {
-    const year = currentFYStartYear - i;
+    const year = currentFYStart - i;
     return `${year}-${(year + 1).toString().slice(-2)}`;
   });
 
@@ -221,35 +218,21 @@ export function ReportGenerator() {
       console.log(`Total records: ${records.length}`);
       console.log('ALL assessment years in data:', [...new Set(records.map(r => r.assessmentYear))]);
       
-      // Parse financial year: "2025-26" → startYear=2025, endYear=2026
-      const [startYear, endYearShort] = financialYear.split('-');
-      const fyStartYear = parseInt(startYear);
-      const fyEndYear = parseInt('20' + endYearShort);
-      
+      const { startYear: fyStartYear, endYear: fyEndYear } = parseFY(financialYear);
       console.log(`Filtering for FY ${financialYear}: April ${fyStartYear} to March ${fyEndYear}`);
       
       filtered = filtered.filter(r => {
-        // Assessment year is stored as number (e.g., 2025)
-        // Match if assessmentYear equals start or end year
+        // Check if assessment year matches this FY
         const assessmentYear = typeof r.assessmentYear === 'number' 
           ? r.assessmentYear 
           : parseInt(r.assessmentYear.toString());
         
-        const matchesAssessmentYear = assessmentYear === fyStartYear || assessmentYear === fyEndYear;
+        const matchesAssessmentYear = isAssessmentYearInFY(assessmentYear, financialYear);
         
         // Also check payment date if available
         if (r.paymentDate) {
           try {
-            const payDate = new Date(r.paymentDate);
-            const payYear = payDate.getFullYear();
-            const payMonth = payDate.getMonth() + 1;
-            
-            // FY 2025-26: April 2025 (month >= 4, year = 2025) to March 2026 (month <= 3, year = 2026)
-            const inFyRange = (
-              (payYear === fyStartYear && payMonth >= 4) ||
-              (payYear === fyEndYear && payMonth <= 3)
-            );
-            
+            const inFyRange = isDateInFY(r.paymentDate, financialYear);
             return matchesAssessmentYear || inFyRange;
           } catch (e) {
             console.warn('Invalid payment date:', r.paymentDate);
