@@ -99,26 +99,7 @@ export function StatsCard({ title, titleHi, value, icon: Icon, color, trend, spa
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </div>
           
-          {/* Trend Indicator */}
-          {trend && (
-            <div 
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold",
-                "shadow-sm transition-all duration-200",
-                "animate-scale-in",
-                trend.isPositive 
-                  ? 'bg-success/10 text-success border border-success/20' 
-                  : 'bg-destructive/10 text-destructive border border-destructive/20'
-              )}
-            >
-              {trend.isPositive ? (
-                <TrendingUp className="w-3.5 h-3.5" />
-              ) : (
-                <TrendingDown className="w-3.5 h-3.5" />
-              )}
-              <span>{Math.abs(trend.value)}%</span>
-            </div>
-          )}
+          {/* Trend Indicator Removed - Cleaner Look */}
         </div>
 
         {/* Content */}

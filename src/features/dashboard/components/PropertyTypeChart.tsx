@@ -1,19 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
-import { Building } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import type { PropertyTypeData } from '../hooks/useDashboardData';
 
 interface PropertyTypeChartProps {
   data: PropertyTypeData[];
 }
 
-const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
+const DONUT_COLORS = ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--accent))'];
 
 /**
  * PropertyTypeChart Component
- * Displays property distribution by type as a pie chart
+ * Displays property distribution by type as an interactive donut chart
  */
 export const PropertyTypeChart: React.FC<PropertyTypeChartProps> = ({ data }) => {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const handleMouseEnter = (_: any, index: number) => {
+    setActiveIndex(index);
+  };
+
+  const handleMouseLeave = () => {
+    setActiveIndex(null);
+  };
+
   return (
     <div 
       className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 md:p-7 border border-border hover:border-primary/30 animate-slide-up" 
@@ -21,56 +31,86 @@ export const PropertyTypeChart: React.FC<PropertyTypeChartProps> = ({ data }) =>
     >
       <h3 className="text-lg md:text-xl font-headline font-bold text-foreground mb-6 flex items-center gap-3">
         <div className="p-2 bg-success/10 rounded-lg">
-          <Building className="w-5 h-5 text-success" />
+          <Building2 className="w-5 h-5 text-success" />
         </div>
         <span>
-          Property Distribution <span className="text-muted-foreground/60">•</span>{' '}
-          <span className="font-hindi text-muted-foreground">संपत्ति वितरण</span>
+          Property Distribution <span className="text-muted-foreground/60">•</span>{' '}\n          <span className="font-hindi text-muted-foreground">संपत्ति वितरण</span>
         </span>
       </h3>
       {data.some(d => d.value > 0) ? (
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              outerRadius={80}
-              fill="#8884d8"
-              dataKey="value"
-              nameKey="name"
-              label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-                const RADIAN = Math.PI / 180;
-                const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-                const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                const y = cy + radius * Math.sin(-midAngle * RADIAN);
+        <div className="space-y-4">
+          <ResponsiveContainer width="100%" height={280}>
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="value"
+                nameKey="name"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+                  const RADIAN = Math.PI / 180;
+                  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                  const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-                return (
-                  <text 
-                    x={x} 
-                    y={y} 
-                    fill="white" 
-                    textAnchor={x > cx ? 'start' : 'end'} 
-                    dominantBaseline="central"
-                    fontFamily="Noto Sans, Segoe UI, Arial Unicode MS, sans-serif"
-                  >
-                    {`${(percent * 100).toFixed(0)}%`}
-                  </text>
-                );
-              }}
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip contentStyle={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }} />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
+                  return (
+                    <text 
+                      x={x} 
+                      y={y} 
+                      fill="white" 
+                      textAnchor={x > cx ? 'start' : 'end'} 
+                      dominantBaseline="central"
+                      fontFamily="Noto Sans, sans-serif"
+                      fontSize="14"
+                      fontWeight="bold"
+                    >
+                      {`${(percent * 100).toFixed(0)}%`}
+                    </text>
+                  );
+                }}
+              >
+                {data.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={DONUT_COLORS[index % DONUT_COLORS.length]}
+                    opacity={activeIndex === null || activeIndex === index ? 1 : 0.6}
+                    className="transition-opacity duration-200"
+                  />
+                ))}
+              </Pie>
+              <Tooltip 
+                formatter={(value: number) => [`${value} properties`, 'Count']}
+                contentStyle={{ 
+                  fontFamily: 'Noto Sans, sans-serif',
+                  backgroundColor: 'hsl(var(--card))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px'
+                }}
+              />
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                formatter={(value, entry) => `${value} (${entry.payload.value})`}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="grid grid-cols-3 gap-2">
+            {data.map((item, idx) => (
+              <div key={idx} className="text-center p-2 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="text-lg font-bold">{item.value}</div>
+                <div className="text-xs text-muted-foreground">{item.name}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
-        <div className="h-64 flex items-center justify-center text-gray-400">
-          <p>No property data to display distribution.</p>
+        <div className="h-80 flex items-center justify-center text-gray-400">
+          <p>No property data available</p>
         </div>
       )}
     </div>

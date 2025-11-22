@@ -19,7 +19,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ stats }) => {
       value: stats.totalUsers.toLocaleString('en-IN'), 
       color: 'bg-blue-500', 
       icon: Building2,
-      trend: stats.totalUsers > 0 ? { value: 5, isPositive: true } : undefined
+      sparklineData: stats.sparklineData
     },
     { 
       title: 'Fully Paid', 
@@ -27,7 +27,6 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ stats }) => {
       value: stats.paidTaxes.toLocaleString('en-IN'), 
       color: 'bg-green-500', 
       icon: Check,
-      trend: stats.paidTrend ? { value: stats.paidTrend, isPositive: stats.paidTrend >= 50 } : undefined,
       sparklineData: stats.sparklineData
     },
     { 
@@ -36,7 +35,6 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ stats }) => {
       value: stats.pendingTaxes.toLocaleString('en-IN'), 
       color: 'bg-orange-500', 
       icon: Clock,
-      trend: stats.pendingTrend ? { value: stats.pendingTrend, isPositive: stats.pendingTrend <= 30 } : undefined,
       sparklineData: stats.sparklineData
     },
     { 
@@ -45,7 +43,6 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ stats }) => {
       value: `₹${stats.totalRevenue.toLocaleString('en-IN')}`, 
       color: 'bg-purple-500', 
       icon: IndianRupee,
-      trend: stats.revenueTrend ? { value: Math.abs(stats.revenueTrend), isPositive: stats.revenueTrend > 0 } : undefined,
       sparklineData: stats.sparklineData
     },
   ];
@@ -60,7 +57,6 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ stats }) => {
           value={stat.value}
           icon={stat.icon}
           color={stat.color}
-          trend={stat.trend}
           sparklineData={stat.sparklineData}
         />
       ))}
