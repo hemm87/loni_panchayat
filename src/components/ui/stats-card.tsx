@@ -4,6 +4,11 @@
 import { TrendingUp, TrendingDown, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+interface SparklineData {
+  month: string;
+  value: number;
+}
+
 interface StatsCardProps {
   title: string;
   titleHi: string;
@@ -14,9 +19,10 @@ interface StatsCardProps {
     value: number;
     isPositive: boolean;
   };
+  sparklineData?: SparklineData[];
 }
 
-export function StatsCard({ title, titleHi, value, icon: Icon, color, trend }: StatsCardProps) {
+export function StatsCard({ title, titleHi, value, icon: Icon, color, trend, sparklineData }: StatsCardProps) {
   const colorClasses: { [key: string]: { gradient: string, text: string, shadow: string, bg: string, border: string } } = {
     'bg-blue-500': { 
       gradient: 'from-primary via-primary/90 to-primary/80', 
@@ -130,6 +136,31 @@ export function StatsCard({ title, titleHi, value, icon: Icon, color, trend }: S
           >
             {value}
           </p>
+          
+          {/* Sparkline Indicator */}
+          {sparklineData && sparklineData.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-border/30">
+              <div className="flex items-end justify-between gap-1 h-10">
+                {sparklineData.map((point, idx) => {
+                  const maxValue = Math.max(...sparklineData.map(p => p.value));
+                  const height = (point.value / maxValue) * 100;
+                  return (
+                    <div 
+                      key={idx}
+                      className={cn(
+                        "flex-1 rounded-t transition-all duration-300",
+                        "bg-gradient-to-t hover:opacity-100 opacity-70",
+                        selectedColor.gradient
+                      )}
+                      style={{ height: `${Math.max(height, 10)}%` }}
+                      title={`${point.month}: ${point.value}`}
+                    />
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">Last 6 months trend</p>
+            </div>
+          )}
         </div>
       </div>
       

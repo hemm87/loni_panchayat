@@ -48,6 +48,12 @@ export function ReportGenerator() {
   });
 
   const handlePreviewReport = async () => {
+    console.log('=== PREVIEW REPORT CLICKED ===');
+    console.log('Report Type:', reportType);
+    console.log('Financial Year:', financialYear);
+    console.log('Start Date:', startDate);
+    console.log('End Date:', endDate);
+    
     setLoading(true);
     setShowPreview(false);
 
@@ -159,11 +165,15 @@ export function ReportGenerator() {
 
   const fetchTaxRecords = async (): Promise<TaxRecord[]> => {
     try {
+      console.log('Starting fetchTaxRecords...');
       const { collection, getDocs } = await import('firebase/firestore');
       const { initializeFirebase } = await import('@/firebase');
+      
+      console.log('Initializing Firebase...');
       const { firestore } = initializeFirebase();
 
       if (!firestore) {
+        console.error('Firestore is null');
         throw new Error('Firestore not initialized. Please check Firebase configuration.');
       }
 
@@ -174,30 +184,45 @@ export function ReportGenerator() {
       const records: TaxRecord[] = [];
 
       propertiesSnapshot.forEach(doc => {
-        const property = doc.data() as Property;
-        
-        // Process each tax for the property
-        if (property.taxes && Array.isArray(property.taxes)) {
-          property.taxes.forEach(tax => {
-            records.push({
-              propertyId: property.id || doc.id,
-              ownerName: property.ownerName || '',
-              fatherName: property.fatherName || '',
-              mobileNumber: property.mobileNumber || '',
-              address: property.address || '',
-              propertyType: property.propertyType || 'Residential',
-              area: property.area || 0,
-              location: '', // Not in current schema
-              taxType: tax.taxType || 'Property Tax',
-              assessmentYear: tax.assessmentYear ? tax.assessmentYear.toString() : new Date().getFullYear().toString(),
-              baseAmount: tax.baseAmount || tax.assessedAmount || 0,
-              status: tax.paymentStatus || 'Pending',
-              totalAmount: tax.assessedAmount || 0,
-              amountPaid: tax.amountPaid || 0,
-              balanceDue: (tax.assessedAmount || 0) - (tax.amountPaid || 0),
-              paymentDate: tax.paymentDate || undefined
+        try {
+          const property = doc.data() as Property;
+          
+          if (!property) {
+            console.warn(`Empty property data for doc ${doc.id}`);
+            return;
+          }
+          
+          // Process each tax for the property
+          if (property.taxes && Array.isArray(property.taxes)) {
+            property.taxes.forEach(tax => {
+              try {
+                records.push({
+                  propertyId: property.id || doc.id,
+                  ownerName: property.ownerName || '',
+                  fatherName: property.fatherName || '',
+                  mobileNumber: property.mobileNumber || '',
+                  address: property.address || '',
+                  propertyType: property.propertyType || 'Residential',
+                  area: property.area || 0,
+                  location: '', // Not in current schema
+                  taxType: tax.taxType || 'Property Tax',
+                  assessmentYear: tax.assessmentYear ? tax.assessmentYear.toString() : new Date().getFullYear().toString(),
+                  baseAmount: tax.baseAmount || tax.assessedAmount || 0,
+                  status: tax.paymentStatus || 'Pending',
+                  totalAmount: tax.assessedAmount || 0,
+                  amountPaid: tax.amountPaid || 0,
+                  balanceDue: (tax.assessedAmount || 0) - (tax.amountPaid || 0),
+                  paymentDate: tax.paymentDate || undefined
+                });
+              } catch (taxError) {
+                console.error(`Error processing tax for property ${doc.id}:`, taxError);
+              }
             });
-          });
+          } else {
+            console.warn(`Property ${doc.id} has no taxes array`);
+          }
+        } catch (propError) {
+          console.error(`Error processing property ${doc.id}:`, propError);
         }
       });
 
@@ -229,21 +254,27 @@ export function ReportGenerator() {
         
         const matchesAssessmentYear = isAssessmentYearInFY(assessmentYear, financialYear);
         
+        console.log(`Record: ${r.propertyId} - ${r.taxType} - Assessment Year: ${assessmentYear} - Matches FY ${financialYear}: ${matchesAssessmentYear}`);
+        
         // Also check payment date if available
         if (r.paymentDate) {
           try {
             const inFyRange = isDateInFY(r.paymentDate, financialYear);
-            return matchesAssessmentYear || inFyRange;
+            const result = matchesAssessmentYear || inFyRange;
+            console.log(`  Payment date: ${r.paymentDate} - In FY range: ${inFyRange} - Final result: ${result}`);
+            return result;
           } catch (e) {
             console.warn('Invalid payment date:', r.paymentDate);
             return matchesAssessmentYear;
           }
         }
         
+        console.log(`  No payment date - Using assessment year match: ${matchesAssessmentYear}`);
         return matchesAssessmentYear;
       });
       
       console.log(`After FY filter: ${filtered.length} records from ${records.length} total`);
+      console.log(`Filtered records:`, filtered.map(r => ({ id: r.propertyId, tax: r.taxType, year: r.assessmentYear })));
     } else if (reportType === 'custom-date' && startDate && endDate) {
       console.log(`Filtering by date range: ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`);
       
@@ -254,10 +285,12 @@ export function ReportGenerator() {
         
         try {
           const payDate = new Date(r.paymentDate);
+          
           if (isNaN(payDate.getTime())) {
             console.warn(`Invalid payment date:`, r.paymentDate);
             return false;
           }
+          
           return payDate >= startDate && payDate <= endDate;
         } catch (e) {
           console.error(`Error parsing date:`, e);

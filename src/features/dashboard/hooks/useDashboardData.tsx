@@ -6,6 +6,10 @@ export interface DashboardStats {
   paidTaxes: number;
   pendingTaxes: number;
   totalRevenue: number;
+  paidTrend?: number; // percentage change
+  pendingTrend?: number;
+  revenueTrend?: number;
+  sparklineData?: Array<{ month: string; value: number }>; // for mini charts
 }
 
 export interface MonthlyRevenueData {
@@ -48,12 +52,14 @@ export const useDashboardData = (properties: Property[] | undefined): DashboardD
     let paidTaxes = 0;
     let pendingTaxes = 0;
     let totalRevenue = 0;
+    let previousMonthRevenue = 0;
     const monthlyRevenue: { [key: string]: number } = {};
     const propertyTypes: { [key: string]: number } = { 
       Residential: 0, 
       Commercial: 0, 
       Agricultural: 0 
     };
+    const revenueByMonth: { [key: string]: number } = {};
 
     properties.forEach(prop => {
       // Count property types
@@ -98,12 +104,30 @@ export const useDashboardData = (properties: Property[] | undefined): DashboardD
       value: propertyTypes[name],
     }));
 
+    // Calculate trends (simplified - last month vs average)
+    const revenueTrend = monthlyRevenueData.length > 1 
+      ? ((monthlyRevenueData[monthlyRevenueData.length - 1].revenue - monthlyRevenueData[0].revenue) / monthlyRevenueData[0].revenue * 100)
+      : 0;
+    
+    const paidTrend = totalUsers > 0 ? (paidTaxes / totalUsers * 100) : 0;
+    const pendingTrend = totalUsers > 0 ? (pendingTaxes / totalUsers * 100) : 0;
+
+    // Sparkline data (last 6 months)
+    const sparklineData = monthlyRevenueData.slice(-6).map(d => ({
+      month: d.month,
+      value: d.revenue
+    }));
+
     return {
       stats: {
         totalUsers,
         paidTaxes,
         pendingTaxes,
         totalRevenue,
+        paidTrend,
+        pendingTrend,
+        revenueTrend,
+        sparklineData,
       },
       monthlyRevenueData,
       propertyTypeData,
