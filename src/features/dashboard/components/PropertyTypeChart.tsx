@@ -74,12 +74,12 @@ export const PropertyTypeChart: React.FC<PropertyTypeChartProps> = ({ data }) =>
                   );
                 }}
               >
-                {data.map((entry, index) => (
+                {data.filter(d => d.value > 0).map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
                     fill={DONUT_COLORS[index % DONUT_COLORS.length]}
-                    opacity={activeIndex === null || activeIndex === index ? 1 : 0.6}
-                    className="transition-opacity duration-200"
+                    opacity={activeIndex === null || activeIndex === index ? 1 : 0.5}
+                    className="transition-opacity duration-200 cursor-pointer"
                   />
                 ))}
               </Pie>
@@ -95,17 +95,26 @@ export const PropertyTypeChart: React.FC<PropertyTypeChartProps> = ({ data }) =>
               <Legend 
                 verticalAlign="bottom" 
                 height={36}
-                formatter={(value, entry) => `${value} (${entry.payload.value})`}
+                formatter={(value, entry) => {
+                  const total = data.filter(d => d.value > 0).reduce((sum, d) => sum + d.value, 0);
+                  const percent = ((entry.payload.value / total) * 100).toFixed(0);
+                  return `${value}: ${entry.payload.value} (${percent}%)`;
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
           <div className="grid grid-cols-3 gap-2">
-            {data.map((item, idx) => (
-              <div key={idx} className="text-center p-2 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
-                <div className="text-lg font-bold">{item.value}</div>
-                <div className="text-xs text-muted-foreground">{item.name}</div>
-              </div>
-            ))}
+            {data.filter(d => d.value > 0).map((item, idx) => {
+              const total = data.filter(d => d.value > 0).reduce((sum, d) => sum + d.value, 0);
+              const percent = ((item.value / total) * 100).toFixed(0);
+              return (
+                <div key={idx} className="text-center p-3 bg-gradient-to-br from-muted/40 to-muted/20 rounded-lg hover:from-muted/60 hover:to-muted/40 transition-colors border border-border/40 hover:border-border/60">
+                  <div className="text-2xl font-bold text-foreground">{item.value}</div>
+                  <div className="text-xs font-medium text-muted-foreground">{item.name}</div>
+                  <div className="text-xs text-muted-foreground/60 mt-1">{percent}%</div>
+                </div>
+              );
+            })}
           </div>
         </div>
       ) : (

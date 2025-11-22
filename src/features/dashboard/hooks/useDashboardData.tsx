@@ -97,12 +97,14 @@ export const useDashboardData = (properties: Property[] | undefined): DashboardD
     const monthlyRevenueData = Object.keys(monthlyRevenue).map(month => ({
       month,
       revenue: monthlyRevenue[month],
-    }));
-
-    const propertyTypeData = Object.keys(propertyTypes).map(name => ({
-      name,
-      value: propertyTypes[name],
-    }));
+    // Transform to chart-friendly formats
+    const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthlyRevenueData = monthOrder
+      .filter(month => monthlyRevenue[month])
+      .map(month => ({
+        month,
+        revenue: monthlyRevenue[month],
+      }));
 
     // Calculate trends (simplified - last month vs average)
     const revenueTrend = monthlyRevenueData.length > 1 
