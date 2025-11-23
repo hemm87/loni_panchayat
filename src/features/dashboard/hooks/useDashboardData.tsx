@@ -94,10 +94,6 @@ export const useDashboardData = (properties: Property[] | undefined): DashboardD
     });
 
     // Transform to chart-friendly formats
-    const monthlyRevenueData = Object.keys(monthlyRevenue).map(month => ({
-      month,
-      revenue: monthlyRevenue[month],
-    // Transform to chart-friendly formats
     const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const monthlyRevenueData = monthOrder
       .filter(month => monthlyRevenue[month])
