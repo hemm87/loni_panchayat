@@ -34,7 +34,7 @@ export function ReportsPage({ properties }: ReportsPageProps) {
         collectionRate: 0,
         taxByType: {} as Record<string, { total: number; collected: number; pending: number }>,
         propertyByType: {} as Record<string, number>,
-        recentPayments: [] as Array<{ date: string; amount: number; property: string }>,
+        recentPayments: [] as Array<{ date: string; amount: number; property: string; owner: string }>,
       };
     }
 

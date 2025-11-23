@@ -111,6 +111,7 @@ export const PropertyTypeChart: React.FC<PropertyTypeChartProps> = ({ data }) =>
                 verticalAlign="bottom" 
                 height={36}
                 formatter={(value, entry) => {
+                  if (!entry.payload) return value;
                   const total = data.filter(d => d.value > 0).reduce((sum, d) => sum + d.value, 0);
                   const percent = ((entry.payload.value / total) * 100).toFixed(0);
                   return `${value}: ${entry.payload.value} (${percent}%)`;

@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, FileText, Printer, PlusCircle, Trash2, AlertCircle } from 'lucide-react'; // Added PlusCircle and Trash2
 import type { Property, PanchayatSettings } from '@/lib/types';
-import { getTaxHindiName, generateReceiptNumber, getFinancialYear, parseFY } from '@/lib/utils';
+import { getTaxHindiName, getFinancialYear, parseFY } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
