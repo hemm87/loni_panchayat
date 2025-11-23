@@ -102,6 +102,11 @@ export const useDashboardData = (properties: Property[] | undefined): DashboardD
         revenue: monthlyRevenue[month],
       }));
 
+    const propertyTypeData = Object.keys(propertyTypes).map(name => ({
+      name,
+      value: propertyTypes[name],
+    }));
+
     // Calculate trends (simplified - last month vs average)
     const revenueTrend = monthlyRevenueData.length > 1 
       ? ((monthlyRevenueData[monthlyRevenueData.length - 1].revenue - monthlyRevenueData[0].revenue) / monthlyRevenueData[0].revenue * 100)
