@@ -31,60 +31,73 @@ export const PropertyTypeChart: React.FC<PropertyTypeChartProps> = ({ data }) =>
     >
       <div className="absolute top-0 right-0 w-40 h-40 bg-success/5 rounded-full blur-3xl" />
       <div className="relative z-10">
-      <h3 className="text-lg md:text-xl font-headline font-bold text-foreground mb-6 flex items-center gap-3">
-        <div className="p-2 bg-success/10 rounded-lg">
-          <Building2 className="w-5 h-5 text-success" />
-        </div>
-        <span>
-          Property Distribution <span className="text-muted-foreground/60">•</span>{' '}\n          <span className="font-hindi text-muted-foreground">संपत्ति वितरण</span>
-        </span>
-      </h3>
-      {data.some(d => d.value > 0) ? (
-        <div className="space-y-4">
-          <ResponsiveContainer width="100%" height={280}>
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-                nameKey="name"
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-                label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-                  const RADIAN = Math.PI / 180;
-                  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-                  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+        <h3 className="text-lg md:text-xl font-headline font-bold text-foreground mb-6 flex items-center gap-3">
+          <div className="p-2.5 bg-gradient-to-br from-success/20 to-success/10 rounded-xl shadow-md">
+            <Building2 className="w-5 h-5 text-success" />
+          </div>
+          <span>
+            Property Distribution <span className="text-muted-foreground/60">•</span>{' '}
+            <span className="font-hindi text-muted-foreground">संपत्ति वितरण</span>
+          </span>
+        </h3>
+        {data.filter(d => d.value > 0).length > 0 ? (
+          <div className="space-y-5">
+            <ResponsiveContainer width="100%" height={320}>
+              <PieChart>
+                <defs>
+                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feDropShadow dx="0" dy="4" stdDeviation="6" floodOpacity="0.15"/>
+                  </filter>
+                </defs>
+                <Pie
+                  data={data.filter(d => d.value > 0)}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={70}
+                  outerRadius={110}
+                  fill="#8884d8"
+                  dataKey="value"
+                  nameKey="name"
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
+                  paddingAngle={2}
+                  label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+                    const RADIAN = Math.PI / 180;
+                    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                    const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-                  return (
-                    <text 
-                      x={x} 
-                      y={y} 
-                      fill="white" 
-                      textAnchor={x > cx ? 'start' : 'end'} 
-                      dominantBaseline="central"
-                      fontFamily="Noto Sans, sans-serif"
-                      fontSize="14"
-                      fontWeight="bold"
-                    >
-                      {`${(percent * 100).toFixed(0)}%`}
-                    </text>
-                  );
-                }}
-              >
-                {data.filter(d => d.value > 0).map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={DONUT_COLORS[index % DONUT_COLORS.length]}
-                    opacity={activeIndex === null || activeIndex === index ? 1 : 0.5}
-                    className="transition-opacity duration-200 cursor-pointer"
-                  />
-                ))}
-              </Pie>
+                    return (
+                      <text 
+                        x={x} 
+                        y={y} 
+                        fill="white" 
+                        textAnchor={x > cx ? 'start' : 'end'} 
+                        dominantBaseline="central"
+                        fontFamily="Noto Sans, sans-serif"
+                        fontSize="15"
+                        fontWeight="700"
+                        style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}
+                      >
+                        {`${(percent * 100).toFixed(0)}%`}
+                      </text>
+                    );
+                  }}
+                >
+                  {data.filter(d => d.value > 0).map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={DONUT_COLORS[index % DONUT_COLORS.length]}
+                      opacity={activeIndex === null || activeIndex === index ? 1 : 0.4}
+                      className="transition-all duration-300 cursor-pointer"
+                      style={{ 
+                        filter: activeIndex === index ? 'url(#shadow)' : 'none',
+                        transform: activeIndex === index ? 'scale(1.05)' : 'scale(1)',
+                        transformOrigin: 'center'
+                      }}
+                    />
+                  ))}
+                </Pie>
               <Tooltip 
                 formatter={(value: number) => [`${value} properties`, 'Count']}
                 contentStyle={{ 
@@ -105,25 +118,39 @@ export const PropertyTypeChart: React.FC<PropertyTypeChartProps> = ({ data }) =>
               />
             </PieChart>
           </ResponsiveContainer>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-3">
             {data.filter(d => d.value > 0).map((item, idx) => {
               const total = data.filter(d => d.value > 0).reduce((sum, d) => sum + d.value, 0);
               const percent = ((item.value / total) * 100).toFixed(0);
               return (
-                <div key={idx} className="text-center p-3 bg-gradient-to-br from-muted/40 to-muted/20 rounded-lg hover:from-muted/60 hover:to-muted/40 transition-colors border border-border/40 hover:border-border/60">
-                  <div className="text-2xl font-bold text-foreground">{item.value}</div>
-                  <div className="text-xs font-medium text-muted-foreground">{item.name}</div>
-                  <div className="text-xs text-muted-foreground/60 mt-1">{percent}%</div>
+                <div 
+                  key={idx} 
+                  className="group text-center p-4 bg-gradient-to-br from-card via-card/95 to-card/90 rounded-xl hover:from-muted/60 hover:via-muted/50 hover:to-muted/40 transition-all duration-300 border-2 border-border/40 hover:border-border shadow-md hover:shadow-xl hover:-translate-y-1 cursor-pointer relative overflow-hidden"
+                  onMouseEnter={() => setActiveIndex(idx)}
+                  onMouseLeave={() => setActiveIndex(null)}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                  <div className="relative z-10">
+                    <div 
+                      className="w-3 h-3 rounded-full mx-auto mb-2 shadow-lg" 
+                      style={{ backgroundColor: DONUT_COLORS[idx % DONUT_COLORS.length] }}
+                    />
+                    <div className="text-3xl font-bold text-foreground mb-1 group-hover:scale-110 transition-transform duration-300">{item.value}</div>
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{item.name}</div>
+                    <div className="text-xs font-bold mt-1.5 px-2 py-0.5 bg-muted/50 rounded-full inline-block" style={{ color: DONUT_COLORS[idx % DONUT_COLORS.length] }}>{percent}%</div>
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
-      ) : (
-        <div className="h-80 flex items-center justify-center text-gray-400">
-          <p>No property data available</p>
-        </div>
-      )}
+        ) : (
+          <div className="h-80 flex flex-col items-center justify-center text-muted-foreground">
+            <Building2 className="w-16 h-16 mb-4 opacity-20" />
+            <p className="text-sm font-medium">No property data available</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
