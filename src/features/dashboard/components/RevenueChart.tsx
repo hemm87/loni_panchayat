@@ -15,7 +15,9 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
   const chartData = data.length > 0 ? data : [];
   
   return (
-    <div className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 md:p-7 border border-border hover:border-primary/30 animate-slide-up">
+    <div className="backdrop-blur-sm bg-card/80 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 p-6 md:p-7 border border-border/40 hover:border-primary/50 animate-slide-up relative overflow-hidden hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-3xl" />
+      <div className="relative z-10">
       <h3 className="text-lg md:text-xl font-headline font-bold text-foreground mb-6 flex items-center gap-3">
         <div className="p-2 bg-primary/10 rounded-lg">
           <TrendingUp className="w-5 h-5 text-primary" />
@@ -76,6 +78,7 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
           <p>No revenue data available</p>
         </div>
       )}
+      </div>
     </div>
   );
 };

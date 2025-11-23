@@ -33,9 +33,10 @@ export const PendingActions: React.FC<PendingActionsProps> = ({ properties, onBi
 
   return (
     <div 
-      className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 md:p-7 border border-border hover:border-primary/30 animate-slide-up"
+      className="backdrop-blur-sm bg-card/80 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 p-6 md:p-7 border border-border/40 hover:border-orange-500/50 animate-slide-up relative overflow-hidden hover:-translate-y-1 hover:scale-[1.01]"
       style={{ animationDelay: '300ms' }}
     >
+      <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full blur-3xl" />
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg md:text-xl font-headline font-bold text-foreground flex items-center gap-3">
           <div className="p-2 bg-orange-500/10 rounded-lg">
@@ -63,9 +64,11 @@ export const PendingActions: React.FC<PendingActionsProps> = ({ properties, onBi
               <div
                 key={property.id}
                 className={cn(
-                  "flex items-center gap-3 p-3 rounded-lg transition-all duration-200",
-                  "hover:bg-muted/50 border border-transparent hover:border-orange-500/30",
-                  "group cursor-pointer"
+                  "flex items-center gap-3 p-3 rounded-xl transition-all duration-300",
+                  "hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-orange-500/5 border border-transparent hover:border-orange-500/40",
+                  "group cursor-pointer relative overflow-hidden",
+                  "hover:shadow-lg hover:-translate-x-1",
+                  "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-orange-500/5 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700"
                 )}
                 onClick={onBillClick}
               >
@@ -107,9 +110,10 @@ export const PendingActions: React.FC<PendingActionsProps> = ({ properties, onBi
       {properties.length > 0 && (
         <button
           onClick={onBillClick}
-          className="mt-4 w-full py-2 px-4 bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 rounded-lg text-sm font-medium transition-colors border border-orange-500/20 hover:border-orange-500/40"
+          className="mt-4 w-full py-3 px-4 bg-gradient-to-r from-orange-500/10 via-orange-500/15 to-orange-500/10 hover:from-orange-500/20 hover:via-orange-500/25 hover:to-orange-500/20 text-orange-600 rounded-xl text-sm font-semibold transition-all duration-300 border border-orange-500/30 hover:border-orange-500/60 shadow-md hover:shadow-lg hover:-translate-y-1 active:scale-95 relative overflow-hidden group"
         >
-          Generate Bills
+          <span className="relative z-10">Generate Bills</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
         </button>
       )}
     </div>

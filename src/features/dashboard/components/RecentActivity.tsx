@@ -35,9 +35,10 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ activities }) =>
 
   return (
     <div 
-      className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 md:p-7 border border-border hover:border-primary/30 animate-slide-up"
+      className="backdrop-blur-sm bg-card/80 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 p-6 md:p-7 border border-border/40 hover:border-primary/50 animate-slide-up relative overflow-hidden hover:-translate-y-1 hover:scale-[1.01]"
       style={{ animationDelay: '200ms' }}
     >
+      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg md:text-xl font-headline font-bold text-foreground flex items-center gap-3">
           <div className="p-2 bg-primary/10 rounded-lg">
@@ -56,16 +57,18 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ activities }) =>
             <div
               key={activity.id}
               className={cn(
-                "flex items-start gap-3 p-3 rounded-lg transition-all duration-200",
-                "hover:bg-muted/50 border border-transparent hover:border-border/50",
-                "group cursor-pointer"
+                "flex items-start gap-3 p-3 rounded-xl transition-all duration-300",
+                "hover:bg-gradient-to-r hover:from-muted/60 hover:to-muted/40 border border-transparent hover:border-border/60",
+                "group cursor-pointer relative overflow-hidden",
+                "hover:shadow-md hover:-translate-x-1",
+                "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/5 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700"
               )}
             >
               <div className={cn(
-                "mt-1 p-2 rounded-lg",
+                "mt-1 p-2 rounded-xl shadow-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-3",
                 activity.action === 'paid' 
-                  ? 'bg-success/10 text-success' 
-                  : 'bg-orange-500/10 text-orange-600'
+                  ? 'bg-gradient-to-br from-success/20 to-success/10 text-success border border-success/20' 
+                  : 'bg-gradient-to-br from-orange-500/20 to-orange-500/10 text-orange-600 border border-orange-500/20'
               )}>
                 {activity.action === 'paid' ? (
                   <CheckCircle className="w-4 h-4" />

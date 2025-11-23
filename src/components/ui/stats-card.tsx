@@ -65,38 +65,51 @@ export function StatsCard({ title, titleHi, value, icon: Icon, color, trend, spa
   return (
     <div 
       className={cn(
-        "group relative bg-card rounded-2xl transition-all duration-300",
-        "border border-border/60 hover:border-opacity-80",
-        "hover:shadow-xl hover:-translate-y-1",
+        "group relative backdrop-blur-sm bg-card/80 rounded-2xl transition-all duration-500",
+        "border border-border/40 hover:border-opacity-100",
+        "hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02]",
         "animate-fade-in",
         "overflow-hidden",
-        "shadow-sm",
-        selectedColor.shadow
+        "shadow-lg",
+        selectedColor.shadow,
+        "before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500"
       )}
     >
-      {/* Gradient Background Accent */}
+      {/* Animated Gradient Background */}
       <div 
         className={cn(
-          "absolute top-0 right-0 w-40 h-40 opacity-[0.03] rounded-full blur-3xl transition-opacity duration-300 group-hover:opacity-[0.08]",
+          "absolute top-0 right-0 w-48 h-48 opacity-[0.05] rounded-full blur-3xl transition-all duration-500",
+          "group-hover:opacity-[0.15] group-hover:scale-110 group-hover:rotate-45",
           selectedColor.bg
         )}
       />
+      {/* Shine effect on hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+      </div>
       
       <div className="relative p-6 md:p-7">
         <div className="flex items-start justify-between mb-5">
-          {/* Icon Container with Premium Gradient */}
+          {/* Icon Container with 3D Effect */}
           <div 
             className={cn(
-              'relative p-4 rounded-2xl bg-white shadow-lg',
-              'transform group-hover:scale-110 group-hover:rotate-6',
-              'transition-all duration-300',
-              'border border-border/20'
+              'relative p-4 rounded-2xl bg-gradient-to-br from-white to-white/80 shadow-2xl',
+              'transform group-hover:scale-125 group-hover:rotate-12',
+              'transition-all duration-500 ease-out',
+              'border border-border/30',
+              'before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/40 before:to-transparent',
+              'after:absolute after:inset-0 after:rounded-2xl after:shadow-inner after:opacity-50'
             )}
+            style={{
+              transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg)',
+              transition: 'transform 0.5s ease-out'
+            }}
           >
-            <Icon className={cn("w-8 h-8", selectedColor.text)} strokeWidth={3} />
+            <Icon className={cn("w-8 h-8 relative z-10", selectedColor.text)} strokeWidth={2.5} />
             
-            {/* Shine Effect */}
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            {/* Glossy Shine Effect */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-60" />
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-transparent via-white/20 to-white/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </div>
           
           {/* Trend Indicator Removed - Cleaner Look */}
@@ -110,10 +123,14 @@ export function StatsCard({ title, titleHi, value, icon: Icon, color, trend, spa
           <p className="text-[10px] font-hindi text-muted-foreground/80 -mt-1">{titleHi}</p>
           <p 
             className={cn(
-              "text-4xl font-headline font-bold tracking-tight",
-              "bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent",
-              "transition-all duration-300 group-hover:scale-105"
+              "text-4xl md:text-5xl font-headline font-bold tracking-tight",
+              "bg-gradient-to-br from-foreground via-foreground to-foreground/80 bg-clip-text text-transparent",
+              "transition-all duration-500 group-hover:scale-110",
+              "drop-shadow-sm"
             )}
+            style={{
+              textShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            }}
           >
             {value}
           </p>

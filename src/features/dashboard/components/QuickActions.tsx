@@ -37,20 +37,30 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
           className={cn(
             "group relative overflow-hidden",
             "bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5",
-            "border-2 border-primary/20 hover:border-primary",
-            "hover:shadow-xl hover:shadow-primary/20",
-            "transition-all duration-300 p-6 md:p-7 rounded-2xl text-center",
-            "hover-lift active:scale-95"
+            "border-2 border-primary/30 hover:border-primary hover:border-primary/80",
+            "hover:shadow-2xl hover:shadow-primary/30",
+            "transition-all duration-500 p-6 md:p-7 rounded-2xl text-center",
+            "hover:-translate-y-2 hover:scale-105 active:scale-95",
+            "backdrop-blur-sm",
+            "before:absolute before:inset-0 before:bg-gradient-to-br before:from-primary/10 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500"
           )}
         >
           <div className="relative z-10">
-            <div className="rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 100%)' }}>
-              <UserPlus className="w-8 h-8 text-white" />
+            <div 
+              className="rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 shadow-2xl" 
+              style={{ 
+                background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.8) 100%)',
+                transform: 'perspective(1000px) rotateX(0deg)'
+              }}
+            >
+              <UserPlus className="w-8 h-8 text-white drop-shadow-lg" strokeWidth={2.5} />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/30 to-transparent" />
             </div>
-            <p className="font-bold text-base md:text-lg text-foreground mb-2">Register New User</p>
+            <p className="font-bold text-base md:text-lg text-foreground mb-2 group-hover:text-primary transition-colors duration-300">Register New User</p>
             <p className="text-sm text-muted-foreground font-hindi">नया उपयोगकर्ता</p>
           </div>
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
         </button>
 
         <button
@@ -58,6 +68,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
           className={cn(
             "group relative overflow-hidden",
             "bg-gradient-to-br from-success/5 via-success/10 to-success/5",
+            "backdrop-blur-sm",
             "border-2 border-success/20 hover:border-success",
             "hover:shadow-xl hover:shadow-success/20",
             "transition-all duration-300 p-6 md:p-7 rounded-2xl text-center",
