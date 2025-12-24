@@ -353,21 +353,14 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
       - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          channelId: live
-          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+        run: firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT_ID }} --token ${{ secrets.FIREBASE_TOKEN }}
 
       - name: Deploy Firestore Rules
-        run: |
-          npm install -g firebase-tools
-          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > service-account.json
-          export GOOGLE_APPLICATION_CREDENTIALS=service-account.json
-          firebase deploy --only firestore:rules --project ${{ secrets.FIREBASE_PROJECT_ID }}
-          rm service-account.json
+        run: firebase deploy --only firestore:rules --project ${{ secrets.FIREBASE_PROJECT_ID }} --token ${{ secrets.FIREBASE_TOKEN }}
 
   # ============================================
   # JOB 11: Post-Deployment Security Verification
