@@ -351,17 +351,17 @@ function TaxCalculatorTool({ settings }: { settings: PanchayatSettings | null })
             {taxBreakdown.breakdown.map((item: any, idx: number) => (
               <div key={idx} className="flex justify-between text-sm">
                 <span>{item.name} ({item.nameHi})</span>
-                <span className="font-semibold">₹{item.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                <span className="font-semibold">Rs. {item.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
             ))}
             <div className="border-t-2 pt-2 flex justify-between font-semibold">
               <span>Subtotal</span>
-              <span>₹{taxBreakdown.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              <span>Rs. {taxBreakdown.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
             </div>
             {taxBreakdown.rebate > 0 && (
               <div className="flex justify-between text-sm text-success">
                 <span>Early Payment Rebate (5%)</span>
-                <span>- ₹{taxBreakdown.rebate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                <span>- Rs. {taxBreakdown.rebate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
             )}
           </div>
@@ -370,7 +370,7 @@ function TaxCalculatorTool({ settings }: { settings: PanchayatSettings | null })
           <div className="bg-gradient-to-r from-success/10 to-emerald-500/10 border-2 border-success/30 rounded-xl p-6 text-center">
             <div className="text-sm text-muted-foreground mb-2">Total Annual Tax • कुल वार्षिक कर</div>
             <div className="text-4xl font-bold text-success">
-              ₹{taxBreakdown.totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              Rs. {taxBreakdown.totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
             <div className="text-xs text-muted-foreground mt-2">
               Pay before March 31st for 5% rebate
@@ -470,7 +470,7 @@ function PropertyValuationTool({ settings }: { settings: PanchayatSettings | nul
         <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-500/30 rounded-xl p-6 text-center animate-slide-up">
           <div className="text-sm text-muted-foreground mb-2">Estimated Property Value • अनुमानित मूल्य</div>
           <div className="text-4xl font-bold text-green-600">
-            ₹{valuation.toLocaleString('en-IN')}
+            Rs. {valuation.toLocaleString('en-IN')}
           </div>
           <div className="text-xs text-muted-foreground mt-3">
             Based on MP circle rates • MP सर्कल दर के आधार पर
@@ -554,7 +554,7 @@ function DueDateCheckerTool({ properties }: { properties: Property[] }) {
           <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3 border border-destructive/20">
             <div className="text-xs text-muted-foreground mb-1">Total Overdue Amount</div>
             <div className="text-2xl font-bold text-destructive">
-              ₹{totalOverdue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              Rs. {totalOverdue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
           </div>
         )}

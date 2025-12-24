@@ -1,0 +1,49 @@
+# Gitleaks Configuration
+# https://github.com/gitleaks/gitleaks
+
+title = "Loni Panchayat Gitleaks Configuration"
+
+[extend]
+# Use default gitleaks rules
+useDefault = true
+
+# Allowlist specific paths or patterns
+[allowlist]
+description = "Allowlisted files and patterns"
+
+# Files to ignore
+paths = [
+    '''(^|/)node_modules/''',
+    '''(^|/)\.next/''',
+    '''(^|/)out/''',
+    '''(^|/)functions/lib/''',
+    '''\.lock$''',
+    '''\.md$''',
+    '''\.txt$''',
+    '''package-lock\.json$''',
+]
+
+# Regex patterns to allowlist
+regexes = [
+    # Ignore example/placeholder values
+    '''NEXT_PUBLIC_\w+\s*=\s*["']?your-.*["']?''',
+    '''placeholder''',
+    '''example\.com''',
+    # Ignore firebase config placeholders
+    '''AIza[A-Za-z0-9_-]{35}EXAMPLE''',
+]
+
+# Custom rules for this project
+[[rules]]
+id = "firebase-config-in-env"
+description = "Firebase config should be in env files only"
+regex = '''AIza[A-Za-z0-9_-]{35}'''
+path = '''(?i)(\.tsx?|\.jsx?)$'''
+allowlist = { paths = ['''\.env''', '''config\.ts'''] }
+
+[[rules]]
+id = "hardcoded-password"
+description = "Hardcoded password detected"
+regex = '''(?i)(password|passwd|pwd)\s*[:=]\s*["'][^"']{8,}["']'''
+path = '''(?i)(\.tsx?|\.jsx?|\.json)$'''
+allowlist = { regexes = ['''placeholder''', '''example''', '''test'''] }

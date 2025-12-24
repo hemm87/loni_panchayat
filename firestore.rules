@@ -12,32 +12,47 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(userId)).data.role;
     }
 
-    // Function to check if the user is an admin or operator
+    // Function to check if user is super admin
+    function isSuperAdmin() {
+      return isSignedIn() && getUserRole(request.auth.uid) == 'super-admin';
+    }
+
+    // Function to check if the user is an admin, super-admin, or operator
     function isAdminOrOperator() {
-      return isSignedIn() && (getUserRole(request.auth.uid) == 'admin' || getUserRole(request.auth.uid) == 'operator');
+      return isSignedIn() && (
+        getUserRole(request.auth.uid) == 'admin' || 
+        getUserRole(request.auth.uid) == 'operator' ||
+        getUserRole(request.auth.uid) == 'super-admin'
+      );
     }
     
     function isAdmin() {
-      return isSignedIn() && getUserRole(request.auth.uid) == 'admin';
+      return isSignedIn() && (
+        getUserRole(request.auth.uid) == 'admin' ||
+        getUserRole(request.auth.uid) == 'super-admin'
+      );
     }
 
-    // Users can read and write their own profile
+    // Users collection
     match /users/{userId} {
-      allow read, write: if isSignedIn() && request.auth.uid == userId;
-      // Admins can also read any user profile
-      allow get: if isAdmin();
-      allow list: if isAdmin();
+      // Users can read their own profile
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      // Users can update their own profile (limited fields)
+      allow update: if isSignedIn() && request.auth.uid == userId;
+      // Super admin can read, write, delete any user
+      allow read, write, delete: if isSuperAdmin();
+      // Admins can read user profiles
+      allow read: if isAdmin();
     }
 
     match /panchayat-settings/{docId} {
         allow get: if isSignedIn();
-        // Only admins can write to settings
-        allow write: if isAdmin();
+        // Only super admin can write to settings
+        allow write: if isSuperAdmin();
     }
 
     match /properties/{propertyId} {
       // Any signed-in user can view/list properties.
-      // For a more secure app, you might restrict list to admins and get to the owner.
       allow get, list: if isSignedIn();
       // Only admins or operators can create, update, or delete properties
       allow create, update, delete: if isAdminOrOperator();
