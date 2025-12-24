@@ -26,7 +26,7 @@
   "devDependencies": {
     "@types/pdfkit": "^0.13.4",
     "@types/qrcode": "^1.5.5",
-    "@types/uuid": "^9.0.8",
+    "@types/uuid": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^5.12.0",
     "@typescript-eslint/parser": "^5.12.0",
     "eslint": "^8.9.0",
