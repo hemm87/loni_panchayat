@@ -7,9 +7,9 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export const metadata: Metadata = {
   title: 'Loni Panchayat Tax Manager | Modern Tax Management System',
-  description: 'Professional tax management system for Loni Panchayat. Manage properties, generate bills, track payments, and view comprehensive reports with an intuitive, modern interface.',
-  keywords: 'tax management, panchayat, property tax, billing system, Loni, Maharashtra',
-  authors: [{ name: 'Loni Panchayat' }],
+  description: 'Professional tax management system for Loni Gram Panchayat, District Burhanpur. Manage properties, generate bills, track payments, and view comprehensive reports with an intuitive, modern interface.',
+  keywords: 'tax management, panchayat, property tax, billing system, Loni, Burhanpur, Madhya Pradesh',
+  authors: [{ name: 'Loni Gram Panchayat' }],
   viewport: {
     width: 'device-width',
     initialScale: 1,
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    title: 'Loni Panchayat Tax Manager',
-    description: 'Modern tax management system for Loni Panchayat',
+    title: 'Loni Gram Panchayat Tax Manager',
+    description: 'Modern tax management system for Loni Gram Panchayat, District Burhanpur',
     siteName: 'Loni Tax Manager',
   },
 };
