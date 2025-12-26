@@ -238,13 +238,13 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                                     )}
                                 </td>
                                 <td className="p-3 text-right font-mono" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
-                                  <span className="font-semibold">₹{tax.assessedAmount.toLocaleString('en-IN')}</span>
+                                  <span className="font-semibold">Rs. {tax.assessedAmount.toLocaleString('en-IN')}</span>
                                 </td>
                                 <td className="p-3 text-right font-mono" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
-                                  <span className="font-semibold">₹{tax.amountPaid.toLocaleString('en-IN')}</span>
+                                  <span className="font-semibold">Rs. {tax.amountPaid.toLocaleString('en-IN')}</span>
                                 </td>
                                 <td className={`p-3 text-right font-mono font-semibold ${due > 0 ? 'text-destructive' : 'text-green-600'}`} style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
-                                    ₹{due.toLocaleString('en-IN')}
+                                    Rs. {due.toLocaleString('en-IN')}
                                 </td>
                             </tr>
                             )
@@ -254,13 +254,13 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                             <tr className="bg-primary/10 font-bold border-t-2 border-primary/30">
                                 <td colSpan={2} className="p-3 text-right text-base">Total</td>
                                 <td className="p-3 text-right font-mono text-base" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
-                                  ₹{property.taxes.reduce((acc, t) => acc + t.assessedAmount, 0).toLocaleString('en-IN')}
+                                  Rs. {property.taxes.reduce((acc, t) => acc + t.assessedAmount, 0).toLocaleString('en-IN')}
                                 </td>
                                 <td className="p-3 text-right font-mono text-base" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
-                                  ₹{property.taxes.reduce((acc, t) => acc + t.amountPaid, 0).toLocaleString('en-IN')}
+                                  Rs. {property.taxes.reduce((acc, t) => acc + t.amountPaid, 0).toLocaleString('en-IN')}
                                 </td>
                                 <td className="p-3 text-right font-mono text-base text-destructive" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
-                                  ₹{property.taxes.reduce((acc, t) => acc + (t.assessedAmount - t.amountPaid), 0).toLocaleString('en-IN')}
+                                  Rs. {property.taxes.reduce((acc, t) => acc + (t.assessedAmount - t.amountPaid), 0).toLocaleString('en-IN')}
                                 </td>
                             </tr>
                         </tfoot>
@@ -362,7 +362,7 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                             <div className="col-span-2">
                                 <p className="font-semibold">{tax.taxType} <span className="text-xs">({tax.assessmentYear})</span></p>
                                 <p className="text-sm text-muted-foreground" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>
-                                  Due: <span className="font-bold text-destructive">₹{due.toLocaleString('en-IN')}</span>
+                                  Due: <span className="font-bold text-destructive">Rs. {due.toLocaleString('en-IN')}</span>
                                 </p>
                             </div>
                             <div>
@@ -375,7 +375,7 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                             <div className="col-span-2">
                                 <Label htmlFor={`payment-${tax.id}`} className="sr-only">Payment Amount</Label>
                                 <div className="relative">
-                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground font-bold text-base" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>₹</span>
+                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground font-bold text-base" style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}>Rs.</span>
                                     <Input 
                                         id={`payment-${tax.id}`}
                                         type="number"
@@ -406,7 +406,7 @@ export function PropertyActions({ property }: PropertyActionsProps) {
                   className="font-semibold"
                   style={{ fontFamily: 'Noto Sans, Segoe UI, Arial Unicode MS, sans-serif' }}
                 >
-                    <span className="mr-2 text-base font-bold">₹</span>
+                    <span className="mr-2 text-base font-bold">Rs.</span>
                     Save Payments
                 </Button>
             </DialogFooter>

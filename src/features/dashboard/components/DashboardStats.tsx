@@ -40,7 +40,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ stats }) => {
     { 
       title: 'Total Revenue', 
       titleHi: 'कुल राजस्व', 
-      value: `₹${stats.totalRevenue.toLocaleString('en-IN')}`, 
+      value: `Rs. ${stats.totalRevenue.toLocaleString('en-IN')}`, 
       color: 'bg-purple-500', 
       icon: IndianRupee,
       sparklineData: stats.sparklineData

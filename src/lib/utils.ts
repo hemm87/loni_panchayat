@@ -20,6 +20,11 @@ export function getTaxHindiName(taxType: string): string {
 }
 
 /**
+ * Super Admin email - has full control over user management
+ */
+export const SUPER_ADMIN_EMAIL = 'kamalchand@lonipanchayat.in';
+
+/**
  * Get admin emails from environment variable
  * Fallback to default admin email if not configured
  */
@@ -28,7 +33,7 @@ export function getAdminEmails(): string[] {
   if (envEmails) {
     return envEmails.split(',').map(e => e.trim()).filter(Boolean);
   }
-  return ['admin@lonipanchayat.in']; // Default fallback
+  return ['admin@lonipanchayat.in', SUPER_ADMIN_EMAIL]; // Default fallback
 }
 
 // Deprecated: Use getAdminEmails() instead
@@ -43,6 +48,43 @@ export function isAdminEmail(email?: string): boolean {
   if (!email) return false;
   const adminEmails = getAdminEmails();
   return adminEmails.some((admin) => admin.toLowerCase() === email.toLowerCase());
+}
+
+/**
+ * Check if an email belongs to the super admin
+ * @param email - Email address to check
+ * @returns True if the email is the super admin
+ */
+export function isSuperAdmin(email?: string): boolean {
+  if (!email) return false;
+  return email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
+}
+
+/**
+ * Get display name for user - special handling for known users
+ * @param email - User email
+ * @param displayName - Firebase display name
+ * @returns Display name to show
+ */
+export function getUserDisplayName(email?: string, displayName?: string | null): string {
+  if (displayName) return displayName;
+  
+  // Special users mapping
+  const knownUsers: Record<string, string> = {
+    'kamalchand@lonipanchayat.in': 'Kamalchand Mahajan',
+    'admin@lonipanchayat.in': 'Admin',
+  };
+  
+  if (email && knownUsers[email.toLowerCase()]) {
+    return knownUsers[email.toLowerCase()];
+  }
+  
+  // Extract name from email
+  if (email) {
+    return email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+  
+  return 'User';
 }
 
 /**

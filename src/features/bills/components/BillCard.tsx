@@ -90,15 +90,15 @@ export const BillCard: React.FC<BillCardProps> = ({ property, taxes, index, onDo
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Assessed:</span>
-                    <span className="font-medium">₹{tax.assessedAmount.toLocaleString('en-IN')}</span>
+                    <span className="font-medium">Rs. {tax.assessedAmount.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Paid:</span>
-                    <span className="font-medium text-success">₹{tax.amountPaid.toLocaleString('en-IN')}</span>
+                    <span className="font-medium text-success">Rs. {tax.amountPaid.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Due:</span>
-                    <span className="font-medium text-destructive">₹{(tax.assessedAmount - tax.amountPaid).toLocaleString('en-IN')}</span>
+                    <span className="font-medium text-destructive">Rs. {(tax.assessedAmount - tax.amountPaid).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               </div>
@@ -112,21 +112,21 @@ export const BillCard: React.FC<BillCardProps> = ({ property, taxes, index, onDo
             <div>
               <span className="text-muted-foreground text-xs block mb-1">Total Assessed</span>
               <span className="font-bold text-foreground text-lg">
-                ₹{totalAssessed.toLocaleString('en-IN')}
+                Rs. {totalAssessed.toLocaleString('en-IN')}
               </span>
             </div>
             <div className="h-10 w-px bg-border"></div>
             <div>
               <span className="text-muted-foreground text-xs block mb-1">Total Paid</span>
               <span className="font-bold text-success text-lg">
-                ₹{totalPaid.toLocaleString('en-IN')}
+                Rs. {totalPaid.toLocaleString('en-IN')}
               </span>
             </div>
             <div className="h-10 w-px bg-border"></div>
             <div>
               <span className="text-muted-foreground text-xs block mb-1">Total Due</span>
               <span className="font-bold text-destructive text-lg">
-                ₹{totalDue.toLocaleString('en-IN')}
+                Rs. {totalDue.toLocaleString('en-IN')}
               </span>
             </div>
           </div>

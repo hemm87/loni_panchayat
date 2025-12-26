@@ -93,7 +93,7 @@ export function BillsSummary({ bills }: BillsSummaryProps) {
                 <p className="text-sm text-muted-foreground">{stat.title}</p>
               </div>
               <p className="text-2xl font-bold text-foreground">
-                {stat.isRupee && '₹'}
+                {stat.isRupee && 'Rs. '}
                 {stat.isRupee
                   ? stat.value.toLocaleString('en-IN')
                   : stat.value}

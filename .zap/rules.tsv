@@ -1,0 +1,20 @@
+# OWASP ZAP Scan Rules Configuration
+# Format: Rule ID	Action (IGNORE, WARN, FAIL)	Description
+
+# Low severity - Warn only
+10015	WARN	Incomplete or No Cache-control Header Set
+10037	WARN	Server Leaks Information via "X-Powered-By" HTTP Response Header Field(s)
+
+# Medium severity - Warn
+10020	WARN	X-Frame-Options Header Not Set
+10021	WARN	X-Content-Type-Options Header Missing
+10038	WARN	Content Security Policy (CSP) Header Not Set
+10098	WARN	Cross-Domain Misconfiguration
+
+# High severity - Fail
+10016	FAIL	Web Browser XSS Protection Not Enabled
+10017	FAIL	Cross-Domain JavaScript Source File Inclusion
+10019	FAIL	Content-Type Header Missing
+10035	FAIL	Strict-Transport-Security Header Not Set
+10040	FAIL	Secure Pages Include Mixed Content
+10202	FAIL	Absence of Anti-CSRF Tokens
