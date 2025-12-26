@@ -1,5 +1,62 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
-  <circle cx="250" cy="250" r="200" fill="#2E3192" stroke="white" stroke-width="10"/>
-  <!-- This is a placeholder - you'll need to add the actual logo -->
-  <text x="250" y="280" font-size="180" fill="white" text-anchor="middle" font-weight="bold">प</text>
+  <!-- MP Gram Panchayat Official Seal Logo -->
+  <defs>
+    <!-- Serrated edge pattern -->
+    <clipPath id="serratedClip">
+      <path id="serrated" d="M250,10 L265,45 L280,15 L290,50 L310,25 L315,60 L340,40 L340,75 L365,60 L360,95 L390,85 L380,120 L410,115 L395,145 L425,150 L405,175 L435,185 L410,205 L440,225 L410,240 L440,265 L405,275 L435,300 L405,310 L430,340 L395,345 L415,375 L380,375 L395,410 L355,400 L365,435 L325,420 L330,455 L290,435 L290,470 L250,445 L250,480 L210,455 L210,470 L170,455 L175,420 L135,435 L145,400 L105,410 L120,375 L80,375 L100,345 L65,340 L90,310 L60,295 L90,275 L55,260 L85,240 L55,220 L90,205 L60,180 L95,170 L70,145 L105,140 L85,115 L120,115 L105,85 L140,90 L130,60 L165,70 L160,40 L195,55 L195,25 L225,50 L230,20 L250,10 Z"/>
+    </clipPath>
+  </defs>
+  
+  <!-- Outer serrated blue circle -->
+  <polygon points="250,5 262,40 275,8 290,42 308,12 320,48 340,22 348,58 370,38 373,75 395,58 393,95 418,85 410,120 435,115 422,150 448,152 428,182 455,192 430,218 458,235 428,255 458,278 423,292 450,318 415,325 438,355 400,355 418,388 378,382 390,418 350,405 355,440 315,422 315,458 275,435 270,472 235,445 225,480 200,448 185,478 168,442 145,468 138,430 110,450 110,412 78,425 85,387 50,392 65,355 32,352 55,318 25,308 55,278 25,260 58,235 28,210 62,190 38,162 75,150 55,120 92,115 78,85 115,88 108,55 145,65 145,35 180,52 188,22 218,45 235,12 250,5" fill="#3949ab"/>
+  
+  <!-- White ring -->
+  <circle cx="250" cy="250" r="175" fill="#ffffff"/>
+  <circle cx="250" cy="250" r="155" fill="#ffffff" stroke="#3949ab" stroke-width="3"/>
+  
+  <!-- Inner blue circle -->
+  <circle cx="250" cy="250" r="130" fill="#3949ab"/>
+  
+  <!-- Curved text path for ग्राम पंचायत -->
+  <defs>
+    <path id="topTextPath" d="M 95 250 A 155 155 0 0 1 405 250" fill="none"/>
+    <path id="bottomTextPath" d="M 405 270 A 155 155 0 0 1 95 270" fill="none"/>
+  </defs>
+  
+  <!-- ग्राम पंचायत text on top curve -->
+  <text fill="#3949ab" font-size="36" font-family="Noto Sans Devanagari, Arial, sans-serif" font-weight="bold">
+    <textPath href="#topTextPath" startOffset="50%" text-anchor="middle">ग्राम पंचायत</textPath>
+  </text>
+  
+  <!-- लोनी text on bottom curve -->
+  <text fill="#3949ab" font-size="42" font-family="Noto Sans Devanagari, Arial, sans-serif" font-weight="bold">
+    <textPath href="#bottomTextPath" startOffset="50%" text-anchor="middle">लोनी</textPath>
+  </text>
+  
+  <!-- पं Symbol in center (white on blue) -->
+  <g fill="#ffffff" transform="translate(250, 250)">
+    <!-- Main vertical stem -->
+    <rect x="-22" y="-75" width="44" height="150" rx="5"/>
+    
+    <!-- Top horizontal bar with hook -->
+    <path d="M -22 -75 
+             L -22 -95
+             L 60 -95
+             Q 95 -95, 95 -55
+             Q 95 -15, 60 -15
+             L 22 -15
+             L 22 -45
+             L 55 -45
+             Q 65 -45, 65 -55
+             Q 65 -65, 55 -65
+             L -22 -65
+             Z"/>
+    
+    <!-- Anusvara dot (bindu) ं -->
+    <circle cx="0" cy="-115" r="14"/>
+  </g>
+  
+  <!-- Inner decorative rings -->
+  <circle cx="250" cy="250" r="168" fill="none" stroke="#3949ab" stroke-width="2"/>
+  <circle cx="250" cy="250" r="140" fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.3"/>
 </svg>

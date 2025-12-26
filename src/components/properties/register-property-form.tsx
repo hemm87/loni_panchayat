@@ -47,8 +47,14 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
     address: '',
     aadhaarHash: '',
     propertyType: '' as Property['propertyType'],
-    area: '',
+    length: '',
+    breadth: '',
   });
+
+  // Calculate area from length and breadth
+  const calculatedArea = formData.length && formData.breadth 
+    ? (parseFloat(formData.length) * parseFloat(formData.breadth)).toFixed(2) 
+    : '0';
 
   const [taxes, setTaxes] = useState<Omit<TaxRecord, 'id' | 'hindiName' | 'paymentStatus' | 'amountPaid' | 'assessmentYear' | 'paymentDate' | 'receiptNumber'>[]>([initialTaxState]);
 
@@ -156,9 +162,12 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
       };
     });
     
+    // Destructure to exclude length and breadth from saved data
+    const { length, breadth, ...formDataWithoutDimensions } = formData;
+    
     const propertyData: Omit<Property, 'id'> = {
-      ...formData,
-      area: Number(formData.area),
+      ...formDataWithoutDimensions,
+      area: Number(calculatedArea),
       photoUrl: 'https://picsum.photos/seed/new-property/600/400',
       photoHint: 'new property',
       taxes: [...currentYearTaxes, ...previousYearTaxes], // Combine current and previous year taxes
@@ -309,16 +318,47 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
                 </SelectContent>
               </Select>
             </div>
-             <div className="space-y-2">
-                <Label className="text-sm font-bold text-foreground/90">Area (sq. ft) • क्षेत्रफल</Label>
-                <Input 
-                  type="number" 
-                  name="area" 
-                  value={formData.area} 
-                  onChange={handleInputChange} 
-                  placeholder="Area in square feet" 
-                  className="h-12 border-2 transition-all shadow-sm hover:shadow-md" 
-                />
+             <div className="md:col-span-2 space-y-4">
+                <Label className="text-sm font-bold text-foreground/90">Property Dimensions • संपत्ति माप</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-800">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-blue-700 dark:text-blue-300">Length (ft) • लंबाई (फीट)</Label>
+                    <Input 
+                      type="number" 
+                      name="length" 
+                      value={formData.length} 
+                      onChange={handleInputChange} 
+                      placeholder="Enter length" 
+                      step="0.01"
+                      min="0"
+                      className="h-12 border-2 border-blue-300 dark:border-blue-700 bg-white dark:bg-background transition-all shadow-sm hover:shadow-md focus:border-blue-500" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-blue-700 dark:text-blue-300">Breadth (ft) • चौड़ाई (फीट)</Label>
+                    <Input 
+                      type="number" 
+                      name="breadth" 
+                      value={formData.breadth} 
+                      onChange={handleInputChange} 
+                      placeholder="Enter breadth" 
+                      step="0.01"
+                      min="0"
+                      className="h-12 border-2 border-blue-300 dark:border-blue-700 bg-white dark:bg-background transition-all shadow-sm hover:shadow-md focus:border-blue-500" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-green-700 dark:text-green-300">Total Area • कुल क्षेत्रफल</Label>
+                    <div className="h-12 px-4 flex items-center justify-center bg-gradient-to-r from-green-100 to-green-200 dark:from-green-900/40 dark:to-green-800/40 rounded-lg border-2 border-green-400 dark:border-green-600">
+                      <span className="text-xl font-bold text-green-700 dark:text-green-300">
+                        {calculatedArea} sq.ft
+                      </span>
+                    </div>
+                    <p className="text-xs text-center text-muted-foreground">
+                      {formData.length || '0'} × {formData.breadth || '0'} = {calculatedArea} वर्ग फीट
+                    </p>
+                  </div>
+                </div>
             </div>
         </div>
 
@@ -356,13 +396,13 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-foreground/90">Annual Amount (₹)</Label>
+                <Label className="text-sm font-bold text-foreground/90">Annual Amount (Rs.)</Label>
                 <Input 
                   type="number" 
                   name="assessedAmount" 
                   value={tax.assessedAmount} 
                   onChange={(e) => handleTaxChange(index, e)} 
-                  placeholder="Amount in ₹" 
+                  placeholder="Amount in Rs." 
                   required 
                   min="0" 
                   className="h-12 border-2 transition-all shadow-sm hover:shadow-md font-semibold"
@@ -460,12 +500,12 @@ export function RegisterPropertyForm({ onFormSubmit, onCancel }: RegisterPropert
               </div>
               
               <div className="space-y-2">
-                <Label className="text-sm font-bold text-foreground/90">Pending Amount (₹) • बकाया राशि</Label>
+                <Label className="text-sm font-bold text-foreground/90">Pending Amount (Rs.) • बकाया राशि</Label>
                 <Input 
                   type="number" 
                   value={prev.amount} 
                   onChange={(e) => handlePreviousPendingChange(index, 'amount', parseFloat(e.target.value) || 0)} 
-                  placeholder="Amount in ₹" 
+                  placeholder="Amount in Rs." 
                   min="0" 
                   required
                   className="h-12 border-2 transition-all shadow-sm hover:shadow-md font-semibold"

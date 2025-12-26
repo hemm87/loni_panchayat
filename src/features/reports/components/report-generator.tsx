@@ -467,19 +467,19 @@ export function ReportGenerator() {
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="text-sm text-green-600 font-medium">कुल राशि</div>
                 <div className="text-2xl font-bold text-green-900">
-                  ₹{summary.total.toLocaleString('en-IN')}
+                  Rs. {summary.total.toLocaleString('en-IN')}
                 </div>
               </div>
               <div className="bg-emerald-50 p-4 rounded-lg">
                 <div className="text-sm text-emerald-600 font-medium">भुगतान राशि</div>
                 <div className="text-2xl font-bold text-emerald-900">
-                  ₹{summary.paid.toLocaleString('en-IN')}
+                  Rs. {summary.paid.toLocaleString('en-IN')}
                 </div>
               </div>
               <div className="bg-red-50 p-4 rounded-lg">
                 <div className="text-sm text-red-600 font-medium">बकाया राशि</div>
                 <div className="text-2xl font-bold text-red-900">
-                  ₹{summary.due.toLocaleString('en-IN')}
+                  Rs. {summary.due.toLocaleString('en-IN')}
                 </div>
               </div>
             </div>
@@ -507,10 +507,10 @@ export function ReportGenerator() {
                         <td className="px-4 py-2">{record.propertyId}</td>
                         <td className="px-4 py-2">{record.taxType}</td>
                         <td className="px-4 py-2 text-right">
-                          ₹{record.totalAmount.toLocaleString('en-IN')}
+                          Rs. {record.totalAmount.toLocaleString('en-IN')}
                         </td>
                         <td className="px-4 py-2 text-right">
-                          ₹{record.amountPaid.toLocaleString('en-IN')}
+                          Rs. {record.amountPaid.toLocaleString('en-IN')}
                         </td>
                         <td className="px-4 py-2">
                           <span className={cn(

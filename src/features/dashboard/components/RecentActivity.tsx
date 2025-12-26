@@ -92,7 +92,7 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ activities }) =>
                       "text-sm font-bold",
                       activity.action === 'paid' ? 'text-success' : 'text-orange-600'
                     )}>
-                      ₹{activity.amount.toLocaleString('en-IN')}
+                      Rs. {activity.amount.toLocaleString('en-IN')}
                     </p>
                     <p className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
                       <Clock className="w-3 h-3" />

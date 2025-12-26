@@ -132,7 +132,7 @@ export function ReportsPage({ properties }: ReportsPageProps) {
               <span className="text-xs font-semibold text-green-600 bg-green-200 px-2 py-1 rounded-full">Revenue</span>
             </div>
             <div className="text-3xl font-bold text-green-900 dark:text-green-100">
-              ₹{analytics.totalRevenue.toLocaleString('en-IN')}
+              Rs. {analytics.totalRevenue.toLocaleString('en-IN')}
             </div>
             <div className="text-sm text-green-700 dark:text-green-300 mt-1">Total Tax Revenue</div>
             <div className="text-xs text-green-600 mt-1">कुल कर राजस्व</div>
@@ -144,7 +144,7 @@ export function ReportsPage({ properties }: ReportsPageProps) {
               <span className="text-xs font-semibold text-emerald-600 bg-emerald-200 px-2 py-1 rounded-full">{analytics.collectionRate.toFixed(1)}%</span>
             </div>
             <div className="text-3xl font-bold text-emerald-900 dark:text-emerald-100">
-              ₹{analytics.totalCollected.toLocaleString('en-IN')}
+              Rs. {analytics.totalCollected.toLocaleString('en-IN')}
             </div>
             <div className="text-sm text-emerald-700 dark:text-emerald-300 mt-1">Collected Amount</div>
             <div className="text-xs text-emerald-600 mt-1">एकत्रित राशि</div>
@@ -156,7 +156,7 @@ export function ReportsPage({ properties }: ReportsPageProps) {
               <span className="text-xs font-semibold text-red-600 bg-red-200 px-2 py-1 rounded-full">Pending</span>
             </div>
             <div className="text-3xl font-bold text-red-900 dark:text-red-100">
-              ₹{analytics.totalPending.toLocaleString('en-IN')}
+              Rs. {analytics.totalPending.toLocaleString('en-IN')}
             </div>
             <div className="text-sm text-red-700 dark:text-red-300 mt-1">Pending Amount</div>
             <div className="text-xs text-red-600 mt-1">बकाया राशि</div>
@@ -179,7 +179,7 @@ export function ReportsPage({ properties }: ReportsPageProps) {
                   <div key={type} className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="font-medium">{type}</span>
-                      <span className="text-muted-foreground">₹{data.total.toLocaleString('en-IN')}</span>
+                      <span className="text-muted-foreground">Rs. {data.total.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                       <div 
@@ -246,7 +246,7 @@ export function ReportsPage({ properties }: ReportsPageProps) {
                     <div className="text-xs text-muted-foreground">{payment.property}</div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-green-600">₹{payment.amount.toLocaleString('en-IN')}</div>
+                    <div className="font-bold text-green-600">Rs. {payment.amount.toLocaleString('en-IN')}</div>
                     <div className="text-xs text-muted-foreground">
                       {new Date(payment.date).toLocaleDateString('en-IN')}
                     </div>
