@@ -19,8 +19,8 @@ const config = {
     },
     extend: {
       fontFamily: {
-        body: ['"PT Sans"', 'sans-serif'],
-        headline: ['"Playfair Display"', 'serif'],
+        body: ['"PT Sans"', '"Noto Sans"', 'sans-serif'],
+        headline: ['"Noto Sans"', '"PT Sans"', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {

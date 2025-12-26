@@ -1,4 +1,17 @@
 
+export type UserRole = 'viewer' | 'admin' | 'super-admin';
+
+export type AppUser = {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL?: string;
+  role: UserRole;
+  createdAt: string;
+  lastLogin: string;
+  isActive?: boolean;
+};
+
 export type TaxRecord = {
   id: string;
   taxType: 'Property Tax' | 'Water Tax' | 'Sanitation Tax' | 'Lighting Tax' | 'Land Tax' | 'Business Tax' | 'Other';

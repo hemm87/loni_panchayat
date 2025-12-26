@@ -474,7 +474,7 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                                 name="customBaseAmount"
                                 value={billData.customBaseAmount}
                                 onChange={handleInputChange}
-                                placeholder="Enter base amount in ₹"
+                                placeholder="Enter base amount in Rs."
                                 min="0"
                                 step="0.01"
                                 required
@@ -526,7 +526,7 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                                 <AlertTitle className="text-green-900">Base Assessment • आधार मूल्यांकन</AlertTitle>
                                 <AlertDescription className="mt-2">
                                     <p className="text-xl font-semibold mb-3 text-green-900">
-                                        Base Amount: ₹{finalCalculations.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        Base Amount: Rs. {finalCalculations.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                     <div className="flex flex-wrap gap-2">
                                         {billData.taxType === 'Property Tax' && (
@@ -541,7 +541,7 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                                         )}
                                         {billData.taxType === 'Water Tax' && (
                                             <Badge variant="secondary" className="bg-green-100 text-green-800">
-                                                Flat Rate: ₹{settings?.waterTaxRate || 0}
+                                                Flat Rate: Rs. {settings?.waterTaxRate || 0}
                                             </Badge>
                                         )}
                                         {(billData.taxType === 'Sanitation Tax' || billData.taxType === 'Lighting Tax') && (
@@ -636,7 +636,7 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                                     />
                                     {tax.rate > 0 && selectedProperty && (
                                         <p className="text-sm badge-success inline-flex items-center gap-1 px-2 py-1 rounded">
-                                            = ₹{(baseAmount * (tax.rate / 100)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            = Rs. {(baseAmount * (tax.rate / 100)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </p>
                                     )}
                                 </div>
@@ -668,7 +668,7 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                         <div className="flex justify-between items-center py-2">
                             <span className="text-base font-medium text-muted-foreground">Base Amount • आधार राशि:</span>
                             <span className="text-xl font-bold text-foreground">
-                                ₹{finalCalculations.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                Rs. {finalCalculations.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         </div>
                         
@@ -685,7 +685,7 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                                                 {tax.name} ({tax.rate}%):
                                             </span>
                                             <span className="font-bold text-foreground">
-                                                ₹{tax.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                Rs. {tax.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </span>
                                         </div>
                                     ))}
@@ -693,7 +693,7 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                                 <div className="flex justify-between items-center border-t-2 border-border/30 pt-3 py-2">
                                     <span className="text-lg font-bold text-foreground">Additional Charges • अतिरिक्त शुल्क:</span>
                                     <span className="text-xl font-bold text-warning">
-                                        ₹{finalCalculations.totalTaxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        Rs. {finalCalculations.totalTaxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>
                                 </div>
                             </>
@@ -702,7 +702,7 @@ export function GenerateBillForm({ properties, settings, onFormSubmit, onCancel 
                         <div className="flex justify-between items-center border-t-2 border-primary/30 pt-4 mt-4 bg-gradient-to-r from-primary/10 to-accent/10 px-4 py-4 rounded-xl shadow-inner">
                             <span className="text-xl md:text-2xl font-headline font-bold text-foreground">Grand Total • कुल राशि:</span>
                             <span className="text-3xl md:text-4xl font-headline font-bold text-gradient bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                                ₹{finalCalculations.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                Rs. {finalCalculations.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         </div>
                     </div>

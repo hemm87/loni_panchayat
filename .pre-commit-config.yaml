@@ -1,0 +1,33 @@
+# Pre-commit hooks configuration
+# Install: npx husky install && npm pkg set scripts.prepare="husky install"
+# Run manually: npx lint-staged
+
+# See https://pre-commit.com for more information
+repos:
+  # Gitleaks for secret detection
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.0
+    hooks:
+      - id: gitleaks
+
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: detect-private-key
+      - id: check-merge-conflict
+      - id: no-commit-to-branch
+        args: ['--branch', 'main']
+
+  # Security-focused checks
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']

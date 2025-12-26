@@ -15,12 +15,17 @@ import type { PanchayatSettings } from '@/lib/types';
 interface PanchayatInfoFormProps {
   settings: Partial<PanchayatSettings>;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  readOnly?: boolean;
 }
 
 /**
  * Panchayat information input form
  */
-export function PanchayatInfoForm({ settings, onChange }: PanchayatInfoFormProps) {
+export function PanchayatInfoForm({ settings, onChange, readOnly = false }: PanchayatInfoFormProps) {
+  const inputClass = readOnly 
+    ? "w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+    : "w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all";
+
   return (
     <div className="border-b pb-6">
       <h3 className="text-xl font-bold text-foreground mb-5">
@@ -36,7 +41,8 @@ export function PanchayatInfoForm({ settings, onChange }: PanchayatInfoFormProps
             name="panchayatName"
             value={settings.panchayatName || ''}
             onChange={onChange}
-            className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+            readOnly={readOnly}
+            className={inputClass}
           />
         </div>
         <div>
@@ -48,8 +54,9 @@ export function PanchayatInfoForm({ settings, onChange }: PanchayatInfoFormProps
             name="district"
             value={settings.district || ''}
             onChange={onChange}
-            placeholder="Enter district name"
-            className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+            placeholder={readOnly ? '' : 'Enter district name'}
+            readOnly={readOnly}
+            className={inputClass}
           />
         </div>
         <div>
@@ -61,8 +68,9 @@ export function PanchayatInfoForm({ settings, onChange }: PanchayatInfoFormProps
             name="state"
             value={settings.state || ''}
             onChange={onChange}
-            placeholder="Enter state name"
-            className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+            placeholder={readOnly ? '' : 'Enter state name'}
+            readOnly={readOnly}
+            className={inputClass}
           />
         </div>
         <div>
@@ -74,8 +82,9 @@ export function PanchayatInfoForm({ settings, onChange }: PanchayatInfoFormProps
             name="pinCode"
             value={settings.pinCode || ''}
             onChange={onChange}
-            placeholder="Enter PIN code"
-            className="w-full px-4 py-3 border-2 border-input rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+            placeholder={readOnly ? '' : 'Enter PIN code'}
+            readOnly={readOnly}
+            className={inputClass}
           />
         </div>
       </div>
