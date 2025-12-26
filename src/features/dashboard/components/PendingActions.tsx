@@ -87,7 +87,7 @@ export const PendingActions: React.FC<PendingActionsProps> = ({ properties, onBi
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="text-sm font-bold text-orange-600">
-                        ₹{pendingAmount.toLocaleString('en-IN')}
+                        Rs. {pendingAmount.toLocaleString('en-IN')}
                       </p>
                       <p className="text-xs text-muted-foreground">Due</p>
                     </div>
