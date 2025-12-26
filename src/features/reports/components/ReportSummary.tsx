@@ -47,7 +47,7 @@ export function ReportSummary({ reportData }: ReportSummaryProps) {
             <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide">Total Tax Assessed</h3>
             <FileText className="w-8 h-8 text-success" />
           </div>
-          <p className="text-4xl font-headline font-bold text-success">₹{reportData.totalTaxes.toLocaleString('en-IN')}</p>
+          <p className="text-4xl font-headline font-bold text-success">Rs. {reportData.totalTaxes.toLocaleString('en-IN')}</p>
           <p className="text-xs text-muted-foreground mt-2">कुल कर निर्धारित</p>
         </div>
 
@@ -56,7 +56,7 @@ export function ReportSummary({ reportData }: ReportSummaryProps) {
             <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide">Collected</h3>
             <Download className="w-8 h-8 text-info" />
           </div>
-          <p className="text-4xl font-headline font-bold text-info">₹{reportData.paidTaxes.toLocaleString('en-IN')}</p>
+          <p className="text-4xl font-headline font-bold text-info">Rs. {reportData.paidTaxes.toLocaleString('en-IN')}</p>
           <p className="text-xs text-muted-foreground mt-2">एकत्रित कर</p>
         </div>
 
@@ -65,7 +65,7 @@ export function ReportSummary({ reportData }: ReportSummaryProps) {
             <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide">Pending</h3>
             <AlertCircle className="w-8 h-8 text-warning" />
           </div>
-          <p className="text-4xl font-headline font-bold text-warning">₹{reportData.pendingTaxes.toLocaleString('en-IN')}</p>
+          <p className="text-4xl font-headline font-bold text-warning">Rs. {reportData.pendingTaxes.toLocaleString('en-IN')}</p>
           <p className="text-xs text-muted-foreground mt-2">लंबित कर</p>
         </div>
       </div>

@@ -44,13 +44,13 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
               tickLine={false}
             />
             <YAxis 
-              tickFormatter={(value) => `₹${(Number(value) / 1000).toFixed(0)}K`}
+              tickFormatter={(value) => `Rs. ${(Number(value) / 1000).toFixed(0)}K`}
               stroke="hsl(var(--muted-foreground))"
               tick={{ fontFamily: 'Noto Sans, sans-serif', fontSize: 12 }}
               tickLine={false}
             />
             <Tooltip 
-              formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Revenue']}
+              formatter={(value: number) => [`Rs. ${value.toLocaleString('en-IN')}`, 'Revenue']}
               labelFormatter={(label) => `Month: ${label}`}
               contentStyle={{ 
                 fontFamily: 'Noto Sans, sans-serif',

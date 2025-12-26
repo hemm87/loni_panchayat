@@ -12,18 +12,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Building } from 'lucide-react';
-import { getAuth, signOut } from 'firebase/auth';
+import { Home, UserPlus, Users, FileText, BarChart3, Settings, LogOut, Menu, X, Building, CreditCard } from 'lucide-react';
+import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, initializeFirebase } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import type { Property, PanchayatSettings } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
+import { getUserDisplayName, isSuperAdmin } from '@/lib/utils';
 
 // Feature Components
 import { DashboardPage } from '@/features/dashboard/components/DashboardPage';
 import { BillsListPage } from '@/features/bills/components/BillsListPage';
 import { ReportsPage } from '@/features/reports/components/ReportsPage';
 import { SettingsPage } from '@/features/settings/components/SettingsPage';
+import { RecordPaymentPage } from '@/features/payments/components/RecordPaymentPage';
 
 // Existing Components
 import { RegisterPropertyForm } from '@/components/properties/register-property-form';
@@ -35,31 +38,44 @@ const Dashboard = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isUserLoading: userLoading } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
 
-  // Firestore queries
+  // Redirect to login if not authenticated
+  React.useEffect(() => {
+    if (!userLoading && !user) {
+      router.push('/');
+    }
+  }, [user, userLoading, router]);
+
+  // Firestore queries - only run when user is authenticated
   const propertiesQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+    if (!firestore || !user) return null;
     return collection(firestore, 'properties');
-  }, [firestore]);
+  }, [firestore, user]);
 
   const { data: properties, isLoading: collectionLoading } = useCollection<Property>(propertiesQuery);
   
   const settingsDocRef = useMemoFirebase(() => {
-    if (!firestore) return null;
+    if (!firestore || !user) return null;
     return doc(firestore, 'panchayat-settings', 'config');
-  }, [firestore]);
+  }, [firestore, user]);
 
   const { data: settings, isLoading: settingsLoading } = useDoc<PanchayatSettings>(settingsDocRef);
 
   const handleLogout = async () => {
-    const auth = getAuth();
     try {
+      const { auth } = initializeFirebase();
       await signOut(auth);
       router.push('/');
     } catch (error) {
       console.error('Error signing out: ', error);
+      toast({
+        variant: 'destructive',
+        title: 'Logout Failed',
+        description: 'Could not sign out. Please try again.',
+      });
     }
   };
 
@@ -74,6 +90,7 @@ const Dashboard = () => {
   // Menu Items
   const menuItems = [
     { id: 'dashboard', icon: Home, label: 'Dashboard', labelHi: 'होम' },
+    { id: 'payments', icon: CreditCard, label: 'Record Payment', labelHi: 'भुगतान दर्ज करें' },
     { id: 'register', icon: UserPlus, label: 'Register New User', labelHi: 'नया उपयोगकर्ता पंजीकरण' },
     { id: 'users', icon: Users, label: 'Property Records', labelHi: 'संपत्ति रिकॉर्ड' },
     { id: 'bill', icon: FileText, label: 'Generate Bill / Receipt', labelHi: 'रसीद बनाएँ' },
@@ -96,6 +113,9 @@ const Dashboard = () => {
             onReportsClick={() => setActiveMenu('reports')}
           />
         );
+      
+      case 'payments':
+        return <RecordPaymentPage properties={props} />;
       
       case 'register':
         return (
@@ -122,7 +142,7 @@ const Dashboard = () => {
         return <ReportsPage properties={props} />;
       
       case 'settings':
-        return <SettingsPage settings={settings || null} docRef={settingsDocRef} />;
+        return <SettingsPage settings={settings || null} docRef={settingsDocRef} userEmail={user?.email} />;
       
       default:
         return (
@@ -136,7 +156,8 @@ const Dashboard = () => {
     }
   };
 
-  if (collectionLoading || settingsLoading) {
+  // Show loading state while checking auth or fetching data
+  if (userLoading || !user || collectionLoading || settingsLoading) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 overflow-y-auto p-6">
@@ -159,14 +180,14 @@ const Dashboard = () => {
         {/* Header */}
         <div className="p-6 border-b border-border/60 bg-gradient-to-br from-primary/8 via-primary/4 to-accent/8">
           <div className="flex items-center gap-4 animate-fade-in">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary via-primary to-accent rounded-2xl flex items-center justify-center text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
-              <Building className="w-8 h-8" />
+            <div className="w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="Panchayat Logo" className="w-16 h-16 object-contain scale-110" />
             </div>
             <div>
               <h1 className="text-xl font-headline font-bold text-foreground tracking-tight">
-                {settings?.panchayatName || 'Loni Panchayat'}
+                {settings?.panchayatName || 'Loni Gram Panchayat'}
               </h1>
-              <p className="text-sm text-muted-foreground font-hindi mt-0.5">लॉनी ग्राम पंचायत</p>
+              <p className="text-sm text-muted-foreground font-hindi mt-0.5">लोनी ग्राम पंचायत</p>
             </div>
           </div>
         </div>
@@ -250,12 +271,16 @@ const Dashboard = () => {
             </div>
             <div className="flex items-center gap-4 animate-slide-down" style={{ animationDelay: '80ms' }}>
               <div className="text-right hidden sm:block">
-                <p className="font-semibold text-foreground text-sm">{user?.displayName || 'Admin User'}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{user?.email || 'admin@lonipanchayat.in'}</p>
+                <p className="font-semibold text-foreground text-sm">
+                  {getUserDisplayName(user?.email || undefined, user?.displayName)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {isSuperAdmin(user?.email || undefined) ? '🔐 Super Admin' : user?.email || ''}
+                </p>
               </div>
               <div className="relative group">
                 <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-white font-bold text-lg uppercase shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300 cursor-pointer border-2 border-white/20">
-                  {user?.displayName?.charAt(0) || 'A'}
+                  {getUserDisplayName(user?.email || undefined, user?.displayName).charAt(0)}
                 </div>
                 <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-success rounded-full border-2 border-card shadow-sm"></div>
               </div>

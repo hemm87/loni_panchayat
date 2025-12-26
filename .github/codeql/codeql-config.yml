@@ -1,0 +1,29 @@
+name: "CodeQL Security Configuration"
+
+# Disable default queries and use security-focused ones
+disable-default-queries: false
+
+queries:
+  # Use the security-extended suite
+  - uses: security-extended
+  # Use the security-and-quality suite
+  - uses: security-and-quality
+
+# Custom query paths (if any custom queries are added)
+# query-paths:
+#   - ./custom-queries
+
+# Path filters
+paths-ignore:
+  - node_modules
+  - .next
+  - out
+  - functions/lib
+  - '**/*.test.ts'
+  - '**/*.test.tsx'
+  - '**/*.spec.ts'
+  - '**/*.spec.tsx'
+  - '**/test/**'
+  - '**/tests/**'
+  - '**/__tests__/**'
+  - '**/mocks/**'

@@ -41,15 +41,15 @@ export function TaxBreakdown({ taxesByType }: TaxBreakdownProps) {
             <div className="grid grid-cols-3 gap-4 text-sm">
               <div>
                 <p className="text-muted-foreground text-xs mb-1">Total</p>
-                <p className="font-bold text-foreground">₹{data.total.toLocaleString('en-IN')}</p>
+                <p className="font-bold text-foreground">Rs. {data.total.toLocaleString('en-IN')}</p>
               </div>
               <div>
                 <p className="text-muted-foreground text-xs mb-1">Collected</p>
-                <p className="font-bold text-success">₹{data.paid.toLocaleString('en-IN')}</p>
+                <p className="font-bold text-success">Rs. {data.paid.toLocaleString('en-IN')}</p>
               </div>
               <div>
                 <p className="text-muted-foreground text-xs mb-1">Pending</p>
-                <p className="font-bold text-warning">₹{data.pending.toLocaleString('en-IN')}</p>
+                <p className="font-bold text-warning">Rs. {data.pending.toLocaleString('en-IN')}</p>
               </div>
             </div>
           </div>
