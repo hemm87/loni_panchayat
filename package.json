@@ -24,8 +24,7 @@
     "firebase:deploy:all": "firebase deploy",
     "docker:build": "docker build -t loni-panchayat:latest .",
     "docker:run": "docker run -p 3000:3000 --env-file .env.local loni-panchayat:latest",
-    "analyze": "ANALYZE=true next build",
-    "prepare": "npm run validate"
+    "analyze": "ANALYZE=true next build"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",
